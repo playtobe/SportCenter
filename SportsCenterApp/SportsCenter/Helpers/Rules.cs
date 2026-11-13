@@ -99,6 +99,33 @@ namespace SportsCenter
             return s.EndDate < Today ? "Hết hạn" : "Còn hạn";
         }
 
+        // P3: ngày bắt đầu của gói mới = ngày sau khi gói XA NHẤT chưa hết hạn kết thúc.
+        // Tính cả gói đã mua nối tiếp mà chưa tới ngày bắt đầu, để mua nhiều lần thì các gói xếp nối đuôi nhau, không chồng lên nhau.
+        // Không còn gói nào chưa hết hạn thì bắt đầu từ hôm nay.
+        public static DateOnly NextStartDate(SportsCenterContext db, int memberId)
+        {
+            var today = Today;
+            DateOnly? lastEnd = db.Subscriptions
+                .AsNoTracking()
+                .Where(s => s.MemberId == memberId && s.Status != "Cancelled" && s.EndDate >= today)
+                .OrderByDescending(s => s.EndDate)
+                .Select(s => (DateOnly?)s.EndDate)
+                .FirstOrDefault();
+            return lastEnd.HasValue ? lastEnd.Value.AddDays(1) : today;
+        }
+
+        // Các gói đã mua nối tiếp nhưng chưa tới ngày bắt đầu (gói hiện tại vẫn đang dùng cho tới khi hết hạn)
+        public static List<Subscription> QueuedSubscriptions(SportsCenterContext db, int memberId)
+        {
+            var today = Today;
+            return db.Subscriptions
+                .AsNoTracking()
+                .Include(s => s.Package)
+                .Where(s => s.MemberId == memberId && s.Status != "Cancelled" && s.StartDate > today)
+                .OrderBy(s => s.StartDate)
+                .ToList();
+        }
+
         // ---------------------------------------------------------------- Lịch học, ca trống
 
         // Các cặp (thứ, ca) đã bị chiếm bởi lớp dùng cùng phòng hoặc cùng HLV
@@ -145,6 +172,22 @@ namespace SportsCenter
             return null;
         }
 
+        // Các buổi học của lớp có thể điểm danh, mới nhất trước: đúng thứ của lớp, nằm trong StartDate..EndDate và không muộn hơn hôm nay.
+        // Màn Điểm danh cho chọn trong danh sách này nên coach không thể chọn sai ngày.
+        public static List<DateOnly> SessionDates(Class c, int max = 12)
+        {
+            var list = new List<DateOnly>();
+            var d = Today;
+            while (IsoDay(d) != c.DayOfWeek) d = d.AddDays(-1);   // lùi về buổi gần nhất (đúng thứ của lớp)
+            while (d > c.EndDate) d = d.AddDays(-7);              // lớp đã kết thúc thì tính từ buổi cuối
+            while (d >= c.StartDate && list.Count < max)
+            {
+                list.Add(d);
+                d = d.AddDays(-7);
+            }
+            return list;
+        }
+
         // ---------------------------------------------------------------- Đặt lớp
 
         // Đăng ký lớp cho member. Trả về thông báo lỗi, hoặc null nếu thành công
@@ -186,7 +229,10 @@ namespace SportsCenter
             return null;
         }
 
-        // Hủy đăng ký: chỉ được hủy khi buổi học gần nhất còn cách hơn 2 giờ
+        // B6: mốc hủy lớp. Chỉ được hủy khi buổi học gần nhất còn cách hơn số giờ này (muốn đổi mốc thì sửa ở đây)
+        public const int CancelHoursBefore = 24;
+
+        // Hủy đăng ký: chỉ được hủy khi buổi học gần nhất còn cách hơn CancelHoursBefore giờ
         public static string? CancelRegistration(SportsCenterContext db, int memberId, int classId)
         {
             var reg = db.Registrations.FirstOrDefault(r => r.MemberId == memberId && r.ClassId == classId && r.Status == "Registered");
@@ -194,14 +240,24 @@ namespace SportsCenter
 
             var c = db.Classes.AsNoTracking().Include(x => x.Slot).First(x => x.ClassId == classId);
             var next = NextSession(c);
-            if (next != null && next.Value - DateTime.Now < TimeSpan.FromHours(2))
-                return "Chỉ được hủy trước giờ học hơn 2 giờ.";
+            if (next != null && next.Value - DateTime.Now < TimeSpan.FromHours(CancelHoursBefore))
+                return $"Chỉ được hủy trước giờ học hơn {CancelHoursBefore} giờ.";
 
             reg.Status = "Cancelled";
             reg.CancelledAt = DateTime.Now;
             db.SaveChanges();
             AuditHelper.Log(db, "CancelClass", $"Hủy đăng ký member #{memberId} khỏi {c.ClassCode}", "Registrations", classId);
             return null;
+        }
+
+        // C4: lớp đang có học viên đăng ký (Registered) thì không hủy được.
+        // Trả về thông báo lý do, hoặc null nếu hủy được.
+        public static string? CancelClassBlockedReason(SportsCenterContext db, Class c)
+        {
+            int n = db.Registrations.Count(r => r.ClassId == c.ClassId && r.Status == "Registered");
+            if (n == 0) return null;
+            return $"Lớp {c.ClassCode} đang có {n} học viên đăng ký nên chưa thể hủy.\n\n"
+                + "Hãy hủy đăng ký của các học viên (hoặc nhờ lễ tân hỗ trợ) rồi hủy lớp.";
         }
 
         // ---------------------------------------------------------------- Hóa đơn

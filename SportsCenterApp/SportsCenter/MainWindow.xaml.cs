@@ -38,17 +38,15 @@ namespace SportsCenter
                 case "Manager":
                     AddItem("Báo cáo", typeof(DashboardPage));
                     AddGroup("Quản lý lớp", ("Lớp học", typeof(ClassesPage)), ("Bộ môn, phòng", typeof(SportsRoomsPage)));
-                    AddGroup("Thành viên và gói", ("Member", typeof(MembersPage)), ("Gói thành viên", typeof(PackagesPage)), ("Mua / gia hạn gói", typeof(BuyPage)));
-                    AddGroup("Giao dịch", ("Đặt lớp", typeof(BookingPage)), ("Thanh toán", typeof(PaymentsPage)));
+                    AddGroup("Thành viên và gói", ("Member", typeof(MembersPage)), ("Gói thành viên", typeof(PackagesPage)));
+                    AddItem("Thanh toán", typeof(PaymentsPage));
                     AddGroup("Hệ thống", ("Tài khoản", typeof(UsersPage)), ("Lịch sử hoạt động", typeof(AuditPage)));
-                    AddItem("Cài đặt", typeof(SettingsPage));
                     break;
 
                 case "Receptionist":
                     AddGroup("Thành viên", ("Member", typeof(MembersPage)), ("Mua / gia hạn gói", typeof(BuyPage)));
                     AddGroup("Lớp học", ("Đặt lớp", typeof(BookingPage)), ("Điểm danh", typeof(AttendancePage)));
                     AddItem("Thanh toán", typeof(PaymentsPage));
-                    AddItem("Cài đặt", typeof(SettingsPage));
                     break;
 
                 case "Member":
@@ -56,13 +54,11 @@ namespace SportsCenter
                     AddItem("Đặt lớp", typeof(BookingPage));
                     AddItem("Gói thành viên", typeof(BuyPage));
                     AddItem("Thanh toán", typeof(PaymentsPage));
-                    AddItem("Cài đặt", typeof(SettingsPage));
                     break;
 
                 case "Coach":
                     AddItem("Lớp của tôi", typeof(CoachPage));
                     AddItem("Điểm danh", typeof(AttendancePage));
-                    AddItem("Cài đặt", typeof(SettingsPage));
                     break;
             }
         }
@@ -114,6 +110,12 @@ namespace SportsCenter
             {
                 group.IsExpanded = true;
             }
+        }
+
+        // Đổi mật khẩu là hộp thoại nhỏ, không phải một màn hình trong menu
+        private void btnChangePassword_Click(object sender, RoutedEventArgs e)
+        {
+            new ChangePasswordWindow { Owner = this }.ShowDialog();
         }
 
         private void btnLogout_Click(object sender, RoutedEventArgs e)

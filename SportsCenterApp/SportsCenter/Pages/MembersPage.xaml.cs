@@ -20,6 +20,13 @@ namespace SportsCenter
             GridHelper.Setup(dgMembers);
             pgMembers.PageChanged += (s, e) => LoadMembers();
 
+            // Bán / gia hạn gói và đăng ký member tại quầy là việc của lễ tân; Manager chỉ xem và tìm danh sách member
+            if (Session.Role == "Manager")
+            {
+                btnBuy.Visibility = Visibility.Collapsed;
+                grpAdd.Visibility = Visibility.Collapsed;
+            }
+
             cbxStatus.ItemsSource = new List<string> { "Tất cả", "Còn hạn", "Hết hạn", "Chưa có gói", "Đã hủy" };
             cbxStatus.SelectedIndex = 0;
             LoadMembers();
@@ -103,9 +110,38 @@ namespace SportsCenter
                 Msg.Warn("Số điện thoại gồm 10-11 chữ số, bắt đầu bằng 0.");
                 return;
             }
+            if (email != "" && !AccountHelper.IsValidEmail(email))
+            {
+                Msg.Warn("Email chưa đúng định dạng (ví dụ: ten@mail.com). Có thể để trống.");
+                return;
+            }
 
             try
             {
+                // Cùng họ tên VÀ cùng số điện thoại với hồ sơ đã có = cùng một người: không tạo thêm
+                var same = AccountHelper.FindSamePerson(_db, fullName, phone);
+                if (same.Count > 0)
+                {
+                    var old = same[0];
+                    Msg.Warn($"Đã có member \"{old.FullName}\" (#{old.MemberId}) cùng họ tên và số điện thoại "
+                        + $"({(old.UserId != null ? "đã có tài khoản" : "đăng ký tại quầy")}).\n\n"
+                        + "Không tạo thêm hồ sơ trùng, hãy dùng hồ sơ đó trong danh sách.");
+                    // Lọc sẵn danh sách theo số điện thoại để thấy ngay hồ sơ cũ
+                    txtSearch.Text = phone;
+                    cbxStatus.SelectedIndex = 0;
+                    pgMembers.Reset();
+                    LoadMembers();
+                    return;
+                }
+
+                // Cùng số điện thoại nhưng khác họ tên: có thể là người nhà dùng chung số, hỏi lại cho chắc
+                var sharedPhone = AccountHelper.FindSamePhoneOtherName(_db, fullName, phone);
+                if (sharedPhone.Count > 0 && !Msg.Confirm($"Số {phone} đang dùng cho member \"{sharedPhone[0].FullName}\".\n\n"
+                    + $"Vẫn tạo hồ sơ mới cho \"{fullName}\"? (chọn Có nếu là người nhà dùng chung số)"))
+                {
+                    return;
+                }
+
                 var member = new Member
                 {
                     FullName = fullName,

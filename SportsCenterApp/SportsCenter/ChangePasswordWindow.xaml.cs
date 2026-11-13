@@ -1,23 +1,23 @@
 using SportsCenter.Entities;
 using System.Windows;
-using System.Windows.Controls;
 
 namespace SportsCenter
 {
     /// <summary>
-    /// Interaction logic for SettingsPage.xaml
+    /// Interaction logic for ChangePasswordWindow.xaml
     /// </summary>
-    public partial class SettingsPage : UserControl
+    public partial class ChangePasswordWindow : Window
     {
         private SportsCenterContext _db;
 
-        public SettingsPage()
+        public ChangePasswordWindow()
         {
             InitializeComponent();
             _db = new();
 
             var u = Session.CurrentUser!;
-            txtInfo.Text = $"Họ tên: {u.FullName}\nTên đăng nhập: {u.Username}\nVai trò: {Rules.RoleNames[u.Role]}";
+            txtInfo.Text = $"{u.FullName} · {u.Username} · {Rules.RoleNames[u.Role]}";
+            Loaded += (s, e) => txtOld.Focus();
         }
 
         private void btnChange_Click(object sender, RoutedEventArgs e)
@@ -81,10 +81,8 @@ namespace SportsCenter
                 _db.SaveChanges();
                 AuditHelper.Log(_db, "ChangePassword", $"{user.Username} đổi mật khẩu", "Users", user.UserId);
 
-                txtOld.Clear();
-                txtNew.Clear();
-                txtConfirm.Clear();
                 Msg.Info("Đã đổi mật khẩu. Lần đăng nhập sau dùng mật khẩu mới.");
+                Close();
             }
             catch (Exception ex)
             {

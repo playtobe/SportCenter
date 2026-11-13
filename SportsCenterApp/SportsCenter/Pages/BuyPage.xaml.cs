@@ -84,6 +84,14 @@ namespace SportsCenter
             {
                 string pkg = _db.MembershipPackages.Find(cur.PackageId)!.PackageName;
                 txtCurrent.Text = $"{member.FullName} · đang có {pkg}, còn hạn đến {cur.EndDate:dd/MM/yyyy}";
+
+                // Gói đã mua nối tiếp: chưa dùng, tự có hiệu lực khi gói hiện tại hết hạn
+                var queued = Rules.QueuedSubscriptions(_db, memberId);
+                if (queued.Count > 0)
+                {
+                    txtCurrent.Text += "\nĐã mua nối tiếp: " + string.Join("; ",
+                        queued.Select(q => $"{q.Package.PackageName} ({q.StartDate:dd/MM/yyyy} → {q.EndDate:dd/MM/yyyy})"));
+                }
                 return;
             }
 
@@ -95,7 +103,7 @@ namespace SportsCenter
                 : $"{member.FullName} · chưa từng mua gói";
         }
 
-        // Gói mới bắt đầu từ hôm nay, hoặc từ ngày sau khi gói hiện tại hết hạn (cộng dồn)
+        // Gói mới bắt đầu từ hôm nay, hoặc nối tiếp sau gói xa nhất chưa hết hạn (xem Rules.NextStartDate)
         private void ShowPreview()
         {
             int? packageId = GridHelper.SelectedId(dgPackages, "PackageId");
@@ -108,12 +116,11 @@ namespace SportsCenter
             }
 
             var pkg = _db.MembershipPackages.AsNoTracking().First(p => p.PackageId == packageId);
-            var cur = Rules.ActiveSubscription(_db, memberId);
-            var start = cur != null ? cur.EndDate.AddDays(1) : Rules.Today;
+            var start = Rules.NextStartDate(_db, memberId);
             var end = start.AddDays(pkg.DurationDays - 1);
 
             txtPreview.Text = $"{pkg.PackageName}: hiệu lực {start:dd/MM/yyyy} → {end:dd/MM/yyyy}"
-                + (cur != null ? " (cộng dồn vào gói đang có)" : "")
+                + (start > Rules.Today ? " (nối tiếp: dùng sau khi gói hiện có hết hạn)" : "")
                 + $"\nSố tiền: {pkg.Price:N0} ₫";
             btnConfirm.IsEnabled = true;
         }
@@ -150,8 +157,7 @@ namespace SportsCenter
                     return;
                 }
 
-                var cur = Rules.ActiveSubscription(_db, memberId);
-                var start = cur != null ? cur.EndDate.AddDays(1) : Rules.Today;
+                var start = Rules.NextStartDate(_db, memberId);
 
                 var sub = new Subscription
                 {

@@ -48,7 +48,7 @@ button,input,select{font:inherit;color:inherit}
 .nav button.ng.open .chev{transform:rotate(45deg)}
 .nav button.ng.has:not(.open){color:var(--accent)}
 .nav .sub{display:flex;flex-direction:column;gap:2px;margin:2px 0 8px 12px;padding-left:8px;border-left:2px solid var(--line)}
-.side .logout{margin-top:auto}
+.sidefoot{margin-top:auto;display:flex;flex-direction:column;gap:6px}
 main{padding:20px 22px 28px;min-width:0}
 .head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
 .head h2{font-size:20px}
@@ -110,6 +110,15 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);
   padding:10px 16px;border-radius:8px;font-size:13px;max-width:min(560px,92vw);z-index:50;box-shadow:0 6px 20px rgba(0,0,0,.3)}
 .toast.bad{background:var(--bad);color:#fff}
+.ov{position:fixed;inset:0;background:rgba(10,20,18,.45);display:grid;place-items:center;padding:16px;z-index:40}
+.dlg{width:min(400px,100%);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px 24px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.dlg h3{font-family:var(--font-head);font-size:18px;margin:0;display:flex;align-items:center;gap:8px}
+.dlgbtn{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
+.arow{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;min-height:46px;padding:0 14px;margin:0 0 6px;border-radius:6px;cursor:pointer;text-align:left;font-size:14px;background:var(--bad-soft);border:1px solid var(--bad);color:var(--ink)}
+.arow.on{background:var(--accent-soft);border-color:var(--accent)}
+.arow b{font-size:13px;color:var(--bad)} .arow.on b{color:var(--accent)}
+.arow:hover{opacity:.85}
+.sum{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px}
 .legend{font-size:12px;color:var(--muted);margin-top:8px}
 .err{color:var(--bad);font-size:12px}.err:empty{display:none}
 input[aria-invalid="true"]{border-color:var(--bad)}
@@ -139,7 +148,7 @@ input[aria-invalid="true"]{border-color:var(--bad)}
   .shell{grid-template-columns:1fr}
   .side{border-right:0;border-bottom:1px solid var(--line);padding:10px}
   .nav .sub{margin-left:6px}
-  .side .logout{margin-top:6px}
+  .sidefoot{margin-top:6px}
   .two{grid-template-columns:1fr}
   .week{grid-template-columns:repeat(2,minmax(0,1fr))}
   main{padding:16px 12px 24px}
@@ -152,6 +161,7 @@ input[aria-invalid="true"]{border-color:var(--bad)}
 
 <script>
 /* ============ helpers ============ */
+const CANCEL_HOURS=24; /* B6: chỉ hủy được lớp khi buổi học gần nhất còn cách hơn số giờ này */
 const DAYS=['','T2','T3','T4','T5','T6','T7','CN'];
 const DAYFULL=['','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy','Chủ Nhật'];
 const today0=()=>{const d=new Date();d.setHours(0,0,0,0);return d};
@@ -163,6 +173,8 @@ const dow=d=>((new Date(d).getDay()+6)%7)+1;
 const mins=t=>{const [h,m]=t.split(':').map(Number);return h*60+m};
 const iso=d=>{const x=new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')};
 const v=id=>document.getElementById(id)?.value??'';
+/* Chuẩn hóa họ tên để so trùng: bỏ dấu, chữ thường, gộp khoảng trắng ("Vũ  Anh Tuấn" == "vu anh tuan") */
+const normName=s=>String(s??'').toLowerCase().replace(/đ/g,'d').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().split(/\s+/).join(' ');
 const $=s=>document.querySelector(s);
 let toastTimer;
 function toast(msg,bad){const t=$('#toast');t.textContent=msg;t.className='toast'+(bad?' bad':'');t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.hidden=true,3800)}
@@ -264,6 +276,9 @@ const memberName=id=>byId(D.members,id)?.name??'?';
 function subStatus(s){if(s.status==='Cancelled')return 'Cancelled';return s.end<T?'Expired':'Active'}
 function activeSub(mid){return D.subs.filter(s=>s.memberId==mid&&subStatus(s)==='Active'&&s.start<=T).sort((a,b)=>b.end-a.end)[0]}
 function lastSub(mid){return D.subs.filter(s=>s.memberId==mid).sort((a,b)=>b.end-a.end)[0]}
+/* P3: gói mới nối tiếp sau gói XA NHẤT chưa hết hạn (kể cả gói đã mua nối tiếp mà chưa tới ngày bắt đầu), không có thì từ hôm nay */
+function nextStart(mid){const l=D.subs.filter(s=>s.memberId==mid&&s.status!=='Cancelled'&&s.end>=T).sort((a,b)=>b.end-a.end)[0];return l?addDays(l.end,1):T}
+function queuedSubs(mid){return D.subs.filter(s=>s.memberId==mid&&s.status!=='Cancelled'&&s.start>T).sort((a,b)=>a.start-b.start)}
 function regCount(cid){return D.regs.filter(r=>r.classId==cid&&r.status==='Registered').length}
 function myReg(mid,cid){return D.regs.find(r=>r.memberId==mid&&r.classId==cid&&r.status==='Registered')}
 const overlap=(a,b)=>a.day==b.day&&a.slotId==b.slotId;   // chia ca: trùng lịch = cùng thứ + cùng ca
@@ -382,20 +397,21 @@ function sDashboard(){
 
 function classRows(list){return list.map(c=>{const n=regCount(c.id);return `<tr><td>${c.id}</td><td>${esc(c.code)}</td><td>${esc(c.name)}</td><td>${esc(byId(D.sports,c.sportId).name)}</td>
   <td>${esc(byId(D.coaches,c.coachId).name)}</td><td>${esc(byId(D.rooms,c.roomId).name)}</td><td>${when(c)}</td><td class="n">${n}/${c.cap}</td>
-  <td>${c.status==='Open'?pill('Mở','ok'):pill('Đã hủy','bad')}</td></tr>`})}
+  <td>${c.status==='Open'?pill('Mở','ok'):pill('Đã hủy','bad')}</td>
+  <td>${c.status==='Open'?`<button class="btn s d" data-act="cancelClass" data-id="${c.id}">Hủy lớp</button>`:''}</td></tr>`})}
 function sClasses(){
   const list=D.classes.filter(c=>(!S.f.sport||c.sportId==S.f.sport)&&(!S.f.coach||c.coachId==S.f.coach));
-  return head('classes')+`<fieldset class="grp"><legend>Filter area</legend><div class="gb"><div class="row"><div class="f"><label for="fs">Bộ môn</label><select id="fs">${opt(D.sports,'name',S.f.sport,'Tất cả')}</select></div>
+  return head('classes')+`<fieldset class="grp"><legend>Bộ lọc</legend><div class="gb"><div class="row"><div class="f"><label for="fs">Bộ môn</label><select id="fs">${opt(D.sports,'name',S.f.sport,'Tất cả')}</select></div>
     <div class="f"><label for="fc">Huấn luyện viên</label><select id="fc">${opt(D.coaches,'name',S.f.coach,'Tất cả')}</select></div>
-    <button class="btn p" data-act="filter">Filter</button><button class="btn" data-act="clearFilter">Clear Filter</button></div></div></fieldset>
-  <fieldset class="grp"><legend>Class list</legend>${tbl([['ClassId'],['Mã'],['Tên lớp'],['Bộ môn'],['HLV'],['Phòng'],['Lịch'],['Sĩ số','n'],['Trạng thái']],classRows(list),'Không có lớp phù hợp','classes')}</fieldset>
-  <fieldset class="grp"><legend>Add new class</legend><div class="gb"><div class="row"><div class="f"><label for="cn">Tên lớp</label><input id="cn"></div><div class="f"><label for="cc">Mã lớp</label><input id="cc"></div>
+    <button class="btn p" data-act="filter">Lọc</button><button class="btn" data-act="clearFilter">Xóa lọc</button></div></div></fieldset>
+  <fieldset class="grp"><legend>Danh sách lớp</legend>${tbl([['Id'],['Mã'],['Tên lớp'],['Bộ môn'],['HLV'],['Phòng'],['Lịch'],['Sĩ số','n'],['Trạng thái'],['']],classRows(list),'Không có lớp phù hợp','classes')}</fieldset>
+  <fieldset class="grp"><legend>Thêm lớp mới</legend><div class="gb"><div class="row"><div class="f"><label for="cn">Tên lớp</label><input id="cn"></div><div class="f"><label for="cc">Mã lớp</label><input id="cc"></div>
     <div class="f"><label for="cs">Bộ môn</label><select id="cs">${opt(D.sports,'name','')}</select></div><div class="f"><label for="ch">HLV</label><select id="ch" data-chg="refreshSlots">${opt(D.coaches,'name','')}</select></div></div>
     <div class="row" style="margin-top:10px"><div class="f"><label for="cr">Phòng</label><select id="cr" data-chg="refreshSlots">${opt(D.rooms,'name','')}</select></div>
     <div class="f"><label for="cd">Thứ</label><select id="cd" data-chg="refreshSlots">${dayOpts(D.rooms[0].id,D.coaches[0].id)}</select></div>
     <div class="f"><label for="cb">Ca học</label><select id="cb">${slotOpts(D.rooms[0].id,D.coaches[0].id)}</select></div>
     <div class="f"><label for="ck">Sĩ số tối đa</label><input id="ck" type="number" value="15"></div></div>
-    <div class="row" style="margin-top:12px;justify-content:flex-end"><button class="btn p" id="addClassBtn" data-act="addClass">Add Class</button><button class="btn" data-act="clearClass">Clear Form</button></div>
+    <div class="row" style="margin-top:12px;justify-content:flex-end"><button class="btn p" id="addClassBtn" data-act="addClass">Thêm lớp</button><button class="btn" data-act="clearClass">Nhập lại</button></div>
         <div class="hint" id="noSlot" hidden style="color:var(--bad)">HLV và phòng này đã kín lịch cả tuần, hãy chọn HLV hoặc phòng khác.</div></div></fieldset>`}
 
 function sSportsRooms(){
@@ -419,19 +435,19 @@ function sMembers(){
   const list=D.members.filter(m=>(!q||(m.name+m.phone+m.email).toLowerCase().includes(q))&&(!S.mst||stOf(m)===S.mst));
   return head('members')+`<div class="grp"><div class="gh">Tìm kiếm member</div><div class="gb"><div class="row"><div class="f"><label for="q">Tên, số điện thoại hoặc email</label><input id="q" value="${esc(S.q)}"></div>
     <div class="f"><label for="mst">Trạng thái gói</label><select id="mst">${[['','Tất cả'],['Active','Còn hạn'],['Expired','Hết hạn'],['None','Chưa có gói']].map(([o,l])=>`<option value="${o}" ${(S.mst||'')===o?'selected':''}>${l}</option>`).join('')}</select></div><button class="btn p" data-act="search">Tìm</button><button class="btn" data-act="searchClear">Xóa lọc</button></div></div></div>
-  <div class="grp"><div class="gh">Danh sách member</div><div class="gb">${tbl([['Id'],['Họ tên'],['Điện thoại'],['Tài khoản'],['Gói hiện tại'],['Hạn đến'],['Trạng thái'],['']],list.map(m=>{const s=activeSub(m.id)||lastSub(m.id);
+  <div class="grp"><div class="gh">Danh sách member</div><div class="gb">${tbl([['Id'],['Họ tên'],['Điện thoại'],['Tài khoản'],['Gói hiện tại'],['Hạn đến'],['Trạng thái'],...(S.user.role!=='Manager'?[['']]:[])],list.map(m=>{const s=activeSub(m.id)||lastSub(m.id);
     return `<tr><td>${m.id}</td><td>${esc(m.name)}</td><td>${esc(m.phone)}</td><td>${m.userId?'Có':pill('Chưa có','mute')}</td><td>${s?esc(byId(D.packages,s.pkgId).name):'—'}</td><td>${s?fd(s.end):'—'}</td><td>${subPill(s)}</td>
-    <td><button class="btn s" data-act="buyFor" data-id="${m.id}">Mua/gia hạn gói</button></td></tr>`}),'Không tìm thấy member','members')}</div></div>
-  <div class="grp"><div class="gh">Đăng ký member mới tại quầy (không cần tài khoản)</div><div class="gb"><div class="row"><div class="f"><label for="mn">Họ tên</label><input id="mn"></div><div class="f"><label for="mp">Điện thoại</label><input id="mp"></div>
-  <div class="f"><label for="me">Email</label><input id="me"></div><button class="btn p" data-act="addMember">Đăng ký</button></div></div></div>`}
+    ${S.user.role!=='Manager'?`<td><button class="btn s" data-act="buyFor" data-id="${m.id}">Mua/gia hạn gói</button></td>`:''}</tr>`}),'Không tìm thấy member','members')}</div></div>
+  ${S.user.role!=='Manager'?`<div class="grp"><div class="gh">Đăng ký member mới tại quầy (không cần tài khoản)</div><div class="gb"><div class="row"><div class="f"><label for="mn">Họ tên</label><input id="mn"></div><div class="f"><label for="mp">Điện thoại</label><input id="mp"></div>
+  <div class="f"><label for="me">Email</label><input id="me"></div><button class="btn p" data-act="addMember">Đăng ký</button></div></div></div>`:''}`}
 
 function sBuy(){
   const mid=memberCtx(),cur=activeSub(mid),last=lastSub(mid);
   const pkg=S.pkg?byId(D.packages,S.pkg):null;
-  const start=cur?addDays(cur.end,1):T; const end=pkg?addDays(start,pkg.days-1):null;
-  return head('buy')+picker()+`<div class="note ${cur?'ok':'bad'}"><b>${esc(memberName(mid))}</b> · ${cur?`đang có ${esc(byId(D.packages,cur.pkgId).name)}, còn hạn đến ${fd(cur.end)}`:last?`gói gần nhất đã hết hạn ngày ${fd(last.end)}`:'chưa từng mua gói'}</div>
+  const start=nextStart(mid),queued=queuedSubs(mid); const end=pkg?addDays(start,pkg.days-1):null;
+  return head('buy')+picker()+`<div class="note ${cur?'ok':'bad'}"><b>${esc(memberName(mid))}</b> · ${cur?`đang có ${esc(byId(D.packages,cur.pkgId).name)}, còn hạn đến ${fd(cur.end)}${queued.length?`<br>Đã mua nối tiếp: ${queued.map(q=>`${esc(byId(D.packages,q.pkgId).name)} (${fd(q.start)} → ${fd(q.end)})`).join('; ')}`:''}`:last?`gói gần nhất đã hết hạn ngày ${fd(last.end)}`:'chưa từng mua gói'}</div>
   <div class="grp"><div class="gh">Chọn gói</div><div class="gb"><div class="pkgs">${D.packages.filter(p=>p.active).map(p=>`<div class="pkg ${S.pkg==p.id?'on':''}" data-act="pickPkg" data-id="${p.id}"><b>${esc(p.name)}</b><div class="pr">${money(p.price)}</div><div class="hint">${p.days} ngày</div></div>`).join('')}</div></div></div>
-  <div class="grp"><div class="gh">Thanh toán (mô phỏng)</div><div class="gb">${pkg?`<div class="row"><div class="f"><label>Hiệu lực</label><div>${fd(start)} → ${fd(end)} ${cur?pill('Cộng dồn','warn'):''}</div></div>
+  <div class="grp"><div class="gh">Thanh toán (mô phỏng)</div><div class="gb">${pkg?`<div class="row"><div class="f"><label>Hiệu lực</label><div>${fd(start)} → ${fd(end)} ${start>T?pill('Nối tiếp','warn'):''}</div></div>
   <div class="f"><label>Số tiền</label><div><b>${money(pkg.price)}</b></div></div><div class="f"><label for="pm">Phương thức</label><select id="pm"><option>Tiền mặt</option><option>Chuyển khoản</option><option>Thẻ</option></select></div>
   <button class="btn p" data-act="buy">Xác nhận đã thu tiền</button></div>`:'<span class="hint">Chọn một gói ở trên.</span>'}</div></div>`}
 
@@ -505,14 +521,15 @@ function sAudit(){
     +fld('Từ ngày','audit','from',fIn('audit','from',f.from,'date'))+fld('Đến ngày','audit','to',fIn('audit','to',f.to,'date')))
   +`<div class="grp"><div class="gb">${tbl([['Thời gian'],['Người dùng'],['Hành động'],['Chi tiết']],list.map(a=>`<tr><td>${new Date(a.at).toLocaleString('vi-VN')}</td><td>${esc(a.user)}</td><td>${pill(a.action,'mute')}</td><td>${esc(a.detail)}</td></tr>`),'Không có hoạt động phù hợp','audit')}</div></div>`}
 
-function sProfile(){const u=S.user;return `<div style="max-width:520px;margin:0 auto">`+head('profile')+`<div class="grp"><div class="gh">Tài khoản</div><div class="gb"><div class="inv"><dl><dt>Họ tên</dt><dd>${esc(u.name)}</dd><dt>Tên đăng nhập</dt><dd>${esc(u.username)}</dd><dt>Vai trò</dt><dd>${pill(ROLE_VN[u.role],'ok')}</dd></dl></div>
-  <div class="legend">Muốn đổi họ tên, hãy nhờ Quản lý hoặc lễ tân.</div></div></div>
-  <div class="grp"><div class="gh">Đổi mật khẩu</div><div class="gb pwform" style="display:flex;flex-direction:column;gap:14px">
+/* Đổi mật khẩu: hộp thoại nhỏ mở từ nút ở góc dưới menu (thay cho màn Cài đặt cũ), giống ChangePasswordWindow trong app */
+function sPwDialog(){const u=S.user;return `<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="pwt">
+  <h3 id="pwt">Đổi mật khẩu <span class="tag">Hộp thoại <b>4</b></span></h3>
+  <div class="hint" style="margin:4px 0 14px">${esc(u.name)} · ${esc(u.username)} · ${ROLE_VN[u.role]}</div>
+  <div class="pwform" style="display:flex;flex-direction:column;gap:12px">
   <div class="f"><label for="op">Mật khẩu hiện tại</label><input id="op" type="password"><div class="err" id="e-op"></div></div>
   <div class="f"><label for="np">Mật khẩu mới</label><div class="pw"><input id="np" type="password"><button type="button" class="eye" data-act="togglePw">Hiện</button></div><div class="hint">Ít nhất 6 ký tự</div><div class="err" id="e-np"></div></div>
   <div class="f"><label for="np2">Nhập lại mật khẩu mới</label><input id="np2" type="password"><div class="err" id="e-np2"></div></div>
-  <button class="btn p" data-act="changePw" style="align-self:flex-start">Đổi mật khẩu</button></div></div></div>`}
-
+  <div class="dlgbtn"><button class="btn" data-act="closePw">Hủy</button><button class="btn p" data-act="changePw">Đổi mật khẩu</button></div></div></div></div>`}
 function sCoach(){
   const co=D.coaches.find(c=>c.userId===S.user.id)||D.coaches[0];
   const mine=D.classes.filter(c=>c.coachId===co.id);
@@ -527,17 +544,26 @@ function sCoach(){
   <div class="grp"><div class="gh">Danh sách học viên</div><div class="gb">${tbl([['Học viên'],['Điện thoại'],['Gói thành viên']],
     regs.map(r=>{const m=byId(D.members,r.memberId);return `<tr><td>${esc(m.name)}</td><td>${esc(m.phone)}</td><td>${subPill(activeSub(m.id)||lastSub(m.id))}</td></tr>`}),'Chưa có học viên','coach')}</div></div>`}
 
+/* Điểm danh: chọn lớp rồi chọn BUỔI học trong danh sách (không phải tự chọn ngày); bấm cả dòng học viên để đổi Có mặt / Vắng.
+   Giống AttendancePage trong app. */
+const CLASS_SESSIONS=12;
+function sessionDates(c){const out=[];let d=T;while(dow(d)!==c.day)d=addDays(d,-1);for(let i=0;i<CLASS_SESSIONS;i++){out.push(iso(d));d=addDays(d,-7)}return out}
+const attStatus=rid=>S.attDraft[rid]||D.att.find(a=>a.regId===rid&&a.date===S.attDate)?.st||'Present';
 function sAttendance(){
   const co=S.user.role==='Coach'?(D.coaches.find(c=>c.userId===S.user.id)||D.coaches[0]):null;
   const cls=D.classes.filter(c=>!co||c.coachId===co.id);
   if(!S.attClass||!cls.find(c=>c.id==S.attClass))S.attClass=cls[0]?.id;
   const c=byId(D.classes,S.attClass);
-  if(!S.attDate&&c){let d=T;while(dow(d)!==c.day)d=addDays(d,-1);S.attDate=iso(d)}
+  const sess=c?sessionDates(c):[];
+  if(!sess.includes(S.attDate))S.attDate=sess[0]||'';
   const regs=c?D.regs.filter(r=>r.classId===c.id&&r.status==='Registered'):[];
+  const present=regs.filter(r=>attStatus(r.id)==='Present').length;
+  const pg=paginate('att',regs);
   return head('attendance')+`<div class="grp"><div class="gh">Chọn buổi học</div><div class="gb"><div class="row"><div class="f"><label for="ac">Lớp</label><select id="ac" data-chg="setAttClass">${cls.map(x=>`<option value="${x.id}" ${x.id==S.attClass?'selected':''}>${esc(x.code)} · ${DAYS[x.day]} ${x.s}</option>`).join('')}</select></div>
-  <div class="f"><label for="ad">Ngày</label><input id="ad" type="date" value="${S.attDate}" data-chg="setAttDate"></div></div></div></div>
-  <div class="grp"><div class="gh">Danh sách điểm danh</div><div class="gb">${tbl([['Học viên'],['Có mặt'],['Vắng']],regs.map(r=>{const prev=S.attDraft[r.id]||D.att.find(a=>a.regId===r.id&&a.date===S.attDate)?.st||'Present';
-    return `<tr><td>${esc(memberName(r.memberId))}</td>${['Present','Absent'].map(s=>`<td><input type="radio" name="att${r.id}" value="${s}" ${prev===s?'checked':''} aria-label="${s}" style="width:auto"></td>`).join('')}</tr>`}),'Lớp chưa có học viên','att')}
+  <div class="f"><label for="ad">Buổi học (mới nhất trước)</label><select id="ad" data-chg="setAttDate">${sess.map(s=>`<option value="${s}" ${s===S.attDate?'selected':''}>${DAYFULL[c.day]} ${fd(s+'T00:00:00')}${s===iso(T)?' (hôm nay)':''}</option>`).join('')}</select></div></div></div></div>
+  <div class="grp"><div class="gh">Danh sách điểm danh (bấm vào cả dòng để đổi Có mặt / Vắng)</div><div class="gb">
+  <div class="sum"><b>${regs.length?`Có mặt ${present}/${regs.length} · Vắng ${regs.length-present}`:''}</b><span><button class="btn" data-act="attAll" data-v="Present">Có mặt tất cả</button> <button class="btn" data-act="attAll" data-v="Absent">Vắng tất cả</button></span></div>
+  ${regs.length?pg.items.map(r=>{const p=attStatus(r.id)==='Present';return `<button type="button" class="arow ${p?'on':''}" data-act="togAtt" data-id="${r.id}" aria-pressed="${p}"><span>${esc(memberName(r.memberId))}</span><b>${p?'✓ Có mặt':'✗ Vắng'}</b></button>`}).join('')+pg.foot:'<div class="hint">Lớp chưa có học viên.</div>'}
   <div class="row" style="margin-top:12px;justify-content:flex-end"><button class="btn p" data-act="saveAtt">Lưu điểm danh</button></div>
   </div></div>`}
 
@@ -545,17 +571,17 @@ const SCREENS={
   dashboard:{no:9,pri:'P0',t:'Báo cáo và doanh thu',r:sDashboard},classes:{no:8,pri:'P0',t:'Quản lý lớp học',r:sClasses},sportsrooms:{no:7,pri:'P0',t:'Bộ môn và phòng tập',r:sSportsRooms},
   packages:{no:6,pri:'P0',t:'Gói thành viên',r:sPackages},members:{no:11,pri:'P0',t:'Quản lý member',r:sMembers},buy:{no:12,pri:'P0',t:'Mua hoặc gia hạn gói',r:sBuy},
   booking:{no:13,pri:'P0',t:'Đặt lớp',r:sBooking},myschedule:{no:14,pri:'P1',t:'Lịch cá nhân',r:sMySchedule},payments:{no:15,pri:'P0',t:'Thanh toán và hóa đơn',r:sPayments},
-  users:{no:5,pri:'P1',t:'Tài khoản và role',r:sUsers},audit:{no:10,pri:'P2',t:'Lịch sử hoạt động',r:sAudit},profile:{no:4,pri:'P1',t:'Cài đặt tài khoản',r:sProfile},
+  users:{no:5,pri:'P1',t:'Tài khoản và role',r:sUsers},audit:{no:10,pri:'P2',t:'Lịch sử hoạt động',r:sAudit},
   coach:{no:16,pri:'P2',t:'Lớp và học viên của tôi',r:sCoach},attendance:{no:17,pri:'P2',t:'Điểm danh',r:sAttendance}};
 /* Mục đơn = nút thường; {g,i} = nhóm bấm để xổ xuống */
 const MENU={
-  Manager:['dashboard',{g:'Quản lý lớp',i:['classes','sportsrooms']},{g:'Thành viên và gói',i:['members','packages','buy']},
-           {g:'Giao dịch',i:['booking','payments']},{g:'Hệ thống',i:['users','audit']},'profile'],
-  Receptionist:[{g:'Thành viên',i:['members','buy']},{g:'Lớp học',i:['booking','attendance']},'payments','profile'],
-  Member:['myschedule','booking','buy','payments','profile'],
-  Coach:['coach','attendance','profile']};
+  Manager:['dashboard',{g:'Quản lý lớp',i:['classes','sportsrooms']},{g:'Thành viên và gói',i:['members','packages']},
+           'payments',{g:'Hệ thống',i:['users','audit']}],
+  Receptionist:[{g:'Thành viên',i:['members','buy']},{g:'Lớp học',i:['booking','attendance']},'payments'],
+  Member:['myschedule','booking','buy','payments'],
+  Coach:['coach','attendance']};
 const NAVNAME={dashboard:'Báo cáo',classes:'Lớp học',sportsrooms:'Bộ môn, phòng',packages:'Gói thành viên',members:'Member',buy:'Mua / gia hạn gói',booking:'Đặt lớp',
-  myschedule:'Lịch của tôi',payments:'Thanh toán',users:'Tài khoản',audit:'Lịch sử hoạt động',profile:'Cài đặt',coach:'Lớp của tôi',attendance:'Điểm danh'};
+  myschedule:'Lịch của tôi',payments:'Thanh toán',users:'Tài khoản',audit:'Lịch sử hoạt động',coach:'Lớp của tôi',attendance:'Điểm danh'};
 const flat=menu=>menu.flatMap(m=>typeof m==='string'?[m]:m.i);
 const navName=id=>id==='buy'&&S.user.role==='Member'?'Gói thành viên':NAVNAME[id];
 const navBtn=id=>`<button class="${id===S.screen?'on':''}" data-act="go" data-id="${id}">${navName(id)}<small>${SCREENS[id].no}</small></button>`;
@@ -577,11 +603,9 @@ function render(){
   if(!all.includes(S.screen))S.screen=all[0];
   app.innerHTML=`<div class="win">${bar}<div class="shell"><aside class="side"><div class="me"><b>${esc(S.user.name)}</b><span>${esc(S.user.username)}</span><br><span class="rolechip">${ROLE_VN[S.user.role]}</span></div>
     <nav class="nav" aria-label="Menu">${navHtml(menu)}</nav>
-    <button class="btn logout" data-act="logout">Đăng xuất</button></aside><main id="main">${SCREENS[S.screen].r()}</main></div></div>`;
+    <div class="sidefoot"><button class="btn" data-act="openPw">Đổi mật khẩu</button><button class="btn" data-act="logout">Đăng xuất</button></div></aside><main id="main">${SCREENS[S.screen].r()}</main></div></div>${S.pwOpen?sPwDialog():''}`;
 }
 const main=()=>{const m=$('#main');if(m)m.innerHTML=SCREENS[S.screen].r()};
-/* Điểm danh nhiều trang: nhớ lựa chọn trên trang đang xem trước khi chuyển trang hoặc lưu */
-function grabAtt(){document.querySelectorAll('input[type="radio"]:checked').forEach(x=>{const m=/^att(\d+)$/.exec(x.name);if(m)S.attDraft[+m[1]]=x.value})}
 
 /* ============ actions ============ */
 const ACT={
@@ -593,7 +617,7 @@ const ACT={
   togglePw(el){const show=el.textContent==='Hiện';['rp','rp2','np','np2'].forEach(i=>{const x=document.getElementById(i);if(x)x.type=show?'text':'password'});el.textContent=show?'Ẩn':'Hiện'},
   register(){const n=v('rn').trim(),ph=v('rph').trim(),u=v('ru').trim(),p=v('rp'),p2=v('rp2'),E={};
     if(!n)E.rn='Vui lòng nhập họ tên.';
-    if(!ph)E.rph='Vui lòng nhập số điện thoại.';else if(!/^0\d{9,10}$/.test(ph))E.rph='Số điện thoại gồm 10-11 chữ số, bắt đầu bằng 0.';
+    if(!ph)E.rph='Vui lòng nhập số điện thoại.';else if(!/^0\d{9,10}$/.test(ph))E.rph='Số điện thoại gồm 10-11 chữ số, bắt đầu bằng 0.';else if(D.members.some(m=>m.userId&&m.phone===ph&&normName(m.name)===normName(n)))E.rph='Họ tên và số điện thoại này đã có tài khoản. Hãy đăng nhập, hoặc nhờ lễ tân nếu quên mật khẩu.';
     if(!u)E.ru='Vui lòng nhập tên đăng nhập.';else if(D.users.some(x=>x.username.toLowerCase()===u.toLowerCase()))E.ru='Tên đăng nhập này đã có người dùng.';
     if(!p)E.rp='Vui lòng nhập mật khẩu.';else if(p.length<6)E.rp='Mật khẩu cần ít nhất 6 ký tự.';else if(p.toLowerCase()===u.toLowerCase())E.rp='Mật khẩu không được trùng tên đăng nhập.';
     if(!p2)E.rp2='Vui lòng nhập lại mật khẩu.';else if(p!==p2)E.rp2='Hai mật khẩu chưa khớp.';
@@ -615,12 +639,18 @@ const ACT={
   regLink(){const c=S.regConfirm;ACT.finishRegister(c,c.mid,false)},
   regNew(){const c=S.regConfirm;ACT.finishRegister(c,null,false)},
   logout(){S.user=null;authView='login';render()},
+  openPw(){S.pwOpen=true;render();document.getElementById('op')?.focus()},closePw(){S.pwOpen=false;render()},
   go(el){S.screen=el.dataset.id;S.open=undefined;render()},
   toggleGroup(el){const g=el.dataset.g,menu=MENU[S.user.role],a=menu.find(m=>typeof m!=='string'&&m.i.includes(S.screen)),cur=S.open===undefined?a?.g:S.open;S.open=cur===g?'':g;render()},
   /* classes */
   filter(){S.f.sport=v('fs');S.f.coach=v('fc');S.page.classes=1;main()},
   clearFilter(){S.f={sport:'',coach:''};S.page.classes=1;main()},
   clearClass(){['cn','cc'].forEach(i=>document.getElementById(i).value='');},
+  /* C4: lớp đang có học viên đăng ký thì không hủy được */
+  cancelClass(el){const c=byId(D.classes,el.dataset.id),n=regCount(c.id);
+    if(c.status==='Cancelled')return toast('Lớp này đã hủy rồi.',true);
+    if(n>0)return toast('Lớp '+c.code+' đang có '+n+' học viên đăng ký nên chưa thể hủy. Hãy hủy đăng ký của các học viên (hoặc nhờ lễ tân hỗ trợ) rồi hủy lớp.',true);
+    c.status='Cancelled';log('CancelClass','Hủy lớp '+c.code);toast('Đã hủy lớp '+c.code+'.');main()},
   addClass(){
     const c={id:D.classes.length+1,code:v('cc').trim().toUpperCase(),name:v('cn').trim(),sportId:+v('cs'),coachId:+v('ch'),roomId:+v('cr'),day:+v('cd'),slotId:+v('cb'),cap:+v('ck'),status:'Open'};
     if(!c.code||!c.name||!c.cap)return toast('Vui lòng nhập đầy đủ thông tin lớp.',true);
@@ -635,7 +665,7 @@ const ACT={
     cd.disabled=cb.disabled=none;$('#addClassBtn').disabled=none;$('#noSlot').hidden=!none},
   weekPrev(){S.weekOff--;main()},weekNext(){S.weekOff++;main()},weekToday(){S.weekOff=0;main()},
   setCoachClass(el){S.coachClass=+el.value;S.page.coach=1;main()},
-  page(el){if(el.dataset.k==='att')grabAtt();S.page[el.dataset.k]=+el.dataset.p;main()},
+  page(el){S.page[el.dataset.k]=+el.dataset.p;main()},
   tab(el){S.tab=el.dataset.t;main()},
   addSport(){const n=v('ns').trim();if(!n)return toast('Nhập tên bộ môn.',true);D.sports.push({id:D.sports.length+1,name:n});main()},
   delSport(el){const id=+el.dataset.id;if(D.classes.some(c=>c.sportId===id))return toast('Bộ môn đang có lớp, không thể xóa.',true);D.sports=D.sports.filter(s=>s.id!==id);main()},
@@ -643,20 +673,30 @@ const ACT={
   delRoom(el){const id=+el.dataset.id;if(D.classes.some(c=>c.roomId===id))return toast('Phòng đang có lớp, không thể xóa.',true);D.rooms=D.rooms.filter(r=>r.id!==id);main()},
   /* packages */
   togglePkg(el){const p=byId(D.packages,el.dataset.id);p.active=!p.active;main()},
-  addPkg(){const n=v('pn').trim(),d=+v('pd'),p=+v('pp');if(!n)return toast('Nhập tên gói.',true);if(d<=0)return toast('Số ngày phải > 0.',true);if(p<0)return toast('Giá không được âm.',true);
+  addPkg(){const n=v('pn').trim(),d=+v('pd'),p=+v('pp');if(!n)return toast('Nhập tên gói.',true);if(D.packages.some(p=>normName(p.name)===normName(n)))return toast('Đã có gói tên "'+n+'".',true);if(d<=0)return toast('Số ngày phải > 0.',true);if(p<0)return toast('Giá không được âm.',true);
     D.packages.push({id:D.packages.length+1,name:n,days:d,price:p,active:true});log('CreatePackage',n);main()},
   /* members */
   search(){S.q=v('q');S.mst=v('mst');S.page.members=1;main();const q=$('#q');if(q){q.focus();q.setSelectionRange(q.value.length,q.value.length)}},
   searchClear(){S.q='';S.mst='';S.page.members=1;main()},
   fApply(el){const k=el.dataset.k,f=S.flt[k];Object.keys(f).forEach(n=>f[n]=v(k+'_'+n));S.page[k]=1;main()},
   fClear(el){const k=el.dataset.k;Object.keys(S.flt[k]).forEach(n=>S.flt[k][n]='');S.page[k]=1;main()},
-  addMember(){const n=v('mn').trim();if(!n)return toast('Nhập họ tên member.',true);
-    D.members.push({id:D.members.length+1,userId:null,name:n,phone:v('mp'),email:v('me')});log('CreateMember',n);toast('Đã đăng ký member mới tại quầy.');main()},
+  addMember(){const n=v('mn').trim(),ph=v('mp').trim(),em=v('me').trim();
+    if(!n||!ph)return toast('Nhập họ tên và số điện thoại.',true);
+    if(!/^0\d{9,10}$/.test(ph))return toast('Số điện thoại gồm 10-11 chữ số, bắt đầu bằng 0.',true);
+    if(em&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em))return toast('Email chưa đúng định dạng (VD: ten@mail.com). Có thể để trống.',true);
+    /* cùng họ tên VÀ cùng SĐT = cùng một người: không tạo thêm */
+    const same=D.members.find(m=>m.phone===ph&&normName(m.name)===normName(n));
+    if(same)return toast('Đã có member "'+same.name+'" (#'+same.id+') cùng họ tên và số điện thoại ('+(same.userId?'đã có tài khoản':'đăng ký tại quầy')+'). Không tạo thêm hồ sơ trùng.',true);
+    /* cùng SĐT khác họ tên (người nhà dùng chung số): hỏi lại; bấm Đăng ký lần nữa để xác nhận */
+    const other=D.members.find(m=>m.phone===ph&&normName(m.name)!==normName(n));
+    if(other&&!(S.memForce&&S.memForce.n===n&&S.memForce.ph===ph)){S.memForce={n,ph};return toast('Số '+ph+' đang dùng cho member "'+other.name+'". Nếu là người nhà dùng chung số, bấm Đăng ký lần nữa để tạo hồ sơ mới.',true)}
+    S.memForce=null;
+    D.members.push({id:D.members.length+1,userId:null,name:n,phone:ph,email:em});log('CreateMember',n);toast('Đã đăng ký member mới tại quầy.');main()},
   buyFor(el){S.actMember=+el.dataset.id;S.screen='buy';S.open=undefined;render()},
   /* buy */
   pickPkg(el){S.pkg=+el.dataset.id;main()},
-  buy(){const mid=memberCtx(),pk=byId(D.packages,S.pkg),cur=activeSub(mid);
-    const start=cur?addDays(cur.end,1):T,sub={id:D.subs.length+1,memberId:mid,pkgId:pk.id,start,end:addDays(start,pk.days-1),status:'Active'};
+  buy(){const mid=memberCtx(),pk=byId(D.packages,S.pkg);
+    const start=nextStart(mid),sub={id:D.subs.length+1,memberId:mid,pkgId:pk.id,start,end:addDays(start,pk.days-1),status:'Active'};
     D.subs.push(sub);const no=nextInvoice();
     D.pays.push({no,memberId:mid,subId:sub.id,amt:pk.price,method:v('pm'),at:new Date(),status:'Paid',note:'Mua '+pk.name});
     log('Payment','Thu '+no+' '+money(pk.price));S.pkg=null;S.sel=no;toast('Đã tạo gói và hóa đơn '+no+'.');main()},
@@ -664,7 +704,7 @@ const ACT={
   setMember(el){S.actMember=+el.value;main()},
   reg(el){const err=tryRegister(memberCtx(),+el.dataset.id);if(err)return toast(err,true);toast('Đăng ký lớp thành công.');main()},
   cancelReg(el){const c=byId(D.classes,el.dataset.id),r=myReg(memberCtx(),c.id),ns=nextSession(c);
-    if(ns&&ns-new Date()<2*3600*1000)return toast('Chỉ được hủy trước giờ học hơn 2 giờ.',true);
+    if(ns&&ns-new Date()<CANCEL_HOURS*3600*1000)return toast('Chỉ được hủy trước giờ học hơn '+CANCEL_HOURS+' giờ.',true);
     r.status='Cancelled';r.cancelledAt=new Date();log('CancelClass','Hủy '+memberName(r.memberId)+' khỏi '+c.code);toast('Đã hủy đăng ký lớp '+c.code+'.');main()},
   /* payments */
   selPay(el){S.sel=el.dataset.id;main()},
@@ -685,22 +725,23 @@ const ACT={
     document.querySelectorAll('.err').forEach(x=>x.textContent='');document.querySelectorAll('[aria-invalid]').forEach(x=>x.removeAttribute('aria-invalid'));
     const keys=Object.keys(E);
     if(keys.length){keys.forEach(k=>{document.getElementById('e-'+k).textContent=E[k];document.getElementById(k).setAttribute('aria-invalid','true')});document.getElementById(keys[0]).focus();return}
-    u.pw=np;log('ChangePassword',u.username);toast('Đã đổi mật khẩu. Lần đăng nhập sau dùng mật khẩu mới.');main()},
+    u.pw=np;log('ChangePassword',u.username);S.pwOpen=false;render();toast('Đã đổi mật khẩu. Lần đăng nhập sau dùng mật khẩu mới.')},
   /* report + attendance */
   repApply(){const a=v('rf'),b=v('rt');if(!a||!b||a>b)return toast('Khoảng ngày không hợp lệ.',true);S.rep={from:a,to:b};main()},
   setAttClass(el){S.attClass=+el.value;S.attDate='';S.attDraft={};S.page.att=1;main()},setAttDate(el){S.attDate=el.value;S.attDraft={};S.page.att=1;main()},
-  saveAtt(){const c=byId(D.classes,S.attClass);if(!S.attDate||dow(S.attDate+'T00:00:00')!==c.day)return toast('Ngày này không phải '+DAYFULL[c.day]+', ngày học của lớp '+c.code+'.',true);
-    grabAtt();
-    D.regs.filter(r=>r.classId===c.id&&r.status==='Registered').forEach(r=>{const st=S.attDraft[r.id]||D.att.find(a=>a.regId===r.id&&a.date===S.attDate)?.st||'Present';
-      const ex=D.att.find(a=>a.regId===r.id&&a.date===S.attDate);if(ex)ex.st=st;else D.att.push({regId:r.id,date:S.attDate,st})});
-    S.attDraft={};log('Attendance',c.code+' '+S.attDate);toast('Đã lưu điểm danh lớp '+c.code+'.')}
+  togAtt(el){const id=+el.dataset.id;S.attDraft[id]=attStatus(id)==='Present'?'Absent':'Present';main()},
+  attAll(el){const c=byId(D.classes,S.attClass);D.regs.filter(r=>r.classId===c.id&&r.status==='Registered').forEach(r=>S.attDraft[r.id]=el.dataset.v);S.page.att=1;main()},
+  saveAtt(){const c=byId(D.classes,S.attClass);if(!c||!S.attDate)return toast('Chưa có buổi học để điểm danh.',true);
+    D.regs.filter(r=>r.classId===c.id&&r.status==='Registered').forEach(r=>{const st=attStatus(r.id),ex=D.att.find(a=>a.regId===r.id&&a.date===S.attDate);if(ex)ex.st=st;else D.att.push({regId:r.id,date:S.attDate,st})});
+    S.attDraft={};log('Attendance',c.code+' '+S.attDate);toast('Đã lưu điểm danh lớp '+c.code+'.');main()}
 };
-function loginAs(u){S.user={...u};if(u.role==='Member')S.user.memberId=D.members.find(m=>m.userId===u.id)?.id;S.screen=flat(MENU[u.role])[0];S.open=undefined;S.pkg=null;S.sel=null;log('Login',u.username);render()}
+function loginAs(u){S.pwOpen=false;S.user={...u};if(u.role==='Member')S.user.memberId=D.members.find(m=>m.userId===u.id)?.id;S.screen=flat(MENU[u.role])[0];S.open=undefined;S.pkg=null;S.sel=null;log('Login',u.username);render()}
 document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(el&&ACT[el.dataset.act])ACT[el.dataset.act](el)});
 document.addEventListener('change',e=>{const el=e.target.closest('[data-chg]');if(el&&ACT[el.dataset.chg])ACT[el.dataset.chg](el)});
 document.addEventListener('keydown',e=>{if(e.key!=='Enter')return;const id=e.target.id;
   if(id==='q')ACT.search();else if(id==='lu'||id==='lp')ACT.login();else if(e.target.closest('.regform')&&e.target.tagName==='INPUT')ACT.register();else if(e.target.closest('.pwform')&&e.target.tagName==='INPUT')ACT.changePw();
   else if(e.target.closest('[data-fbar]')&&e.target.tagName==='INPUT')ACT.fApply({dataset:{k:e.target.closest('[data-fbar]').dataset.fbar}})});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.pwOpen)ACT.closePw()});
 document.addEventListener('input',e=>{const id=e.target.id,m=id&&document.getElementById('e-'+id);if(m){m.textContent='';e.target.removeAttribute('aria-invalid')}});
 render();
 </script>

@@ -50,6 +50,12 @@ namespace SportsCenter
                 errPhone.Text = "Số điện thoại gồm 10-11 chữ số, bắt đầu bằng 0.";
                 ok = false;
             }
+            else if (AccountHelper.FindSamePerson(_db, fullName, phone).Any(m => m.UserId != null))
+            {
+                // Cùng họ tên + số điện thoại với một member đã có tài khoản: không tạo thêm hồ sơ trùng
+                errPhone.Text = "Họ tên và số điện thoại này đã có tài khoản. Hãy đăng nhập, hoặc nhờ lễ tân nếu quên mật khẩu.";
+                ok = false;
+            }
 
             if (username == "")
             {

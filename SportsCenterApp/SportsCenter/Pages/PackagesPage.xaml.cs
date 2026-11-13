@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using SportsCenter.Entities;
 using System.Windows;
 using System.Windows.Controls;
@@ -67,6 +68,13 @@ namespace SportsCenter
             if (name == "" || txtDays.Text.Trim() == "" || txtPrice.Text.Trim() == "")
             {
                 Msg.Warn("Vui lòng nhập Tên gói, Số ngày và Giá.");
+                return;
+            }
+            // Tên gói không được trùng (không phân biệt hoa thường và dấu: "Gói 3 tháng" == "goi 3 thang")
+            string key = AccountHelper.Normalize(name);
+            if (_db.MembershipPackages.AsNoTracking().Select(p => p.PackageName).ToList().Any(n => AccountHelper.Normalize(n) == key))
+            {
+                Msg.Warn("Đã có gói tên \"" + name + "\".");
                 return;
             }
             if (!int.TryParse(txtDays.Text.Trim(), out int days) || days <= 0)

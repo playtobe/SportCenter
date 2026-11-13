@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using SportsCenter.Entities;
 using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace SportsCenter
 {
@@ -21,6 +22,32 @@ namespace SportsCenter
             }
             return string.Join(' ', sb.ToString().Split(' ', StringSplitOptions.RemoveEmptyEntries));
         }
+
+        // Các hồ sơ member trùng CẢ họ tên LẪN số điện thoại (không phân biệt hoa thường và dấu), kể cả hồ sơ đã có tài khoản.
+        // Coi là cùng một người: không tạo thêm hồ sơ.
+        public static List<Member> FindSamePerson(SportsCenterContext db, string fullName, string phone)
+        {
+            string name = Normalize(fullName);
+            return db.Members.AsNoTracking()
+                .Where(m => m.Phone == phone)
+                .ToList()
+                .Where(m => Normalize(m.FullName) == name)
+                .ToList();
+        }
+
+        // Hồ sơ khác đang dùng cùng số điện thoại nhưng khác họ tên (có thể là người nhà dùng chung số): chỉ cảnh báo
+        public static List<Member> FindSamePhoneOtherName(SportsCenterContext db, string fullName, string phone)
+        {
+            string name = Normalize(fullName);
+            return db.Members.AsNoTracking()
+                .Where(m => m.Phone == phone)
+                .ToList()
+                .Where(m => Normalize(m.FullName) != name)
+                .ToList();
+        }
+
+        // Email đơn giản: có @ và có dấu chấm ở phần sau, không có khoảng trắng
+        public static bool IsValidEmail(string email) => Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$");
 
         // Hồ sơ đăng ký tại quầy (chưa có tài khoản) khớp CẢ số điện thoại LẪN họ tên.
         // Chỉ biết số điện thoại thì không đủ để tìm ra hồ sơ.

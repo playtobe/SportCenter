@@ -212,6 +212,13 @@ namespace SportsCenter
                 Msg.Warn("Lớp này đã hủy rồi.");
                 return;
             }
+            // C4: lớp còn học viên đăng ký thì không cho hủy
+            string? blocked = Rules.CancelClassBlockedReason(_db, cl);
+            if (blocked != null)
+            {
+                Msg.Warn(blocked);
+                return;
+            }
             if (!Msg.Confirm($"Hủy lớp {cl.ClassCode}? Ca học của lớp sẽ được trả lại thành ca trống."))
             {
                 return;

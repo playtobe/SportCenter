@@ -7,7 +7,7 @@
             <TextBlock Text="Quản lý lớp học" Style="{StaticResource PageTitle}"/>
 
             <!--FILTER AREA-->
-            <GroupBox Header="FILTER AREA">
+            <GroupBox Header="BỘ LỌC">
                 <WrapPanel>
                     <StackPanel Margin="0,0,12,0">
                         <Label Content="Bộ môn"/>
@@ -17,13 +17,13 @@
                         <Label Content="Huấn luyện viên"/>
                         <ComboBox Name="cbxCoachFilter" Width="200"/>
                     </StackPanel>
-                    <Button Content="Filter" VerticalAlignment="Bottom" Click="btnFilter_Click"/>
-                    <Button Content="Clear Filter" Style="{StaticResource SecondaryButton}" VerticalAlignment="Bottom" Click="btnClearFilter_Click"/>
+                    <Button Content="Lọc" VerticalAlignment="Bottom" Click="btnFilter_Click"/>
+                    <Button Content="Xóa lọc" Style="{StaticResource SecondaryButton}" VerticalAlignment="Bottom" Click="btnClearFilter_Click"/>
                 </WrapPanel>
             </GroupBox>
 
             <!--CLASS LIST-->
-            <GroupBox Header="CLASS LIST">
+            <GroupBox Header="DANH SÁCH LỚP">
                 <StackPanel>
                     <DataGrid Name="dgClassList"/>
                     <local:PagerControl x:Name="pgClass" Margin="0,8,0,0"/>
@@ -32,7 +32,7 @@
             </GroupBox>
 
             <!--ADD NEW CLASS-->
-            <GroupBox Header="ADD NEW CLASS">
+            <GroupBox Header="THÊM LỚP MỚI">
                 <StackPanel>
                     <WrapPanel>
                         <StackPanel Margin="0,0,12,6">
@@ -79,8 +79,8 @@
                     <TextBlock Name="txtNoSlot" Style="{StaticResource ErrText}" Visibility="Collapsed"
                                Text="HLV và phòng này đã kín lịch cả tuần, hãy chọn HLV hoặc phòng khác."/>
                     <StackPanel Orientation="Horizontal">
-                        <Button Name="btnAddClass" Content="Add Class" Click="btnAddClass_Click"/>
-                        <Button Content="Clear Form" Style="{StaticResource SecondaryButton}" Click="btnClearForm_Click"/>
+                        <Button Name="btnAddClass" Content="Thêm lớp" Click="btnAddClass_Click"/>
+                        <Button Content="Nhập lại" Style="{StaticResource SecondaryButton}" Click="btnClearForm_Click"/>
                     </StackPanel>
                 </StackPanel>
             </GroupBox>

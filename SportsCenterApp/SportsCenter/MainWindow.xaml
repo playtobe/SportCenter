@@ -12,7 +12,10 @@
         <!-- Menu bên trái (theo role) -->
         <Border Background="#F5F7F6" BorderBrush="{StaticResource Line}" BorderThickness="0,0,1,0">
             <DockPanel Margin="10">
-                <Button DockPanel.Dock="Bottom" Content="Đăng xuất" Style="{StaticResource SecondaryButton}" Click="btnLogout_Click"/>
+                <StackPanel DockPanel.Dock="Bottom">
+                    <Button Content="Đổi mật khẩu" Style="{StaticResource SecondaryButton}" Click="btnChangePassword_Click"/>
+                    <Button Content="Đăng xuất" Style="{StaticResource SecondaryButton}" Click="btnLogout_Click"/>
+                </StackPanel>
 
                 <StackPanel DockPanel.Dock="Top" Margin="6,6,6,14">
                     <TextBlock Name="txtUserName" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap"/>
