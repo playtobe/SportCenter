@@ -1,0 +1,39 @@
+<UserControl x:Class="SportsCenter.CoachPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SportsCenter">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="20,16">
+            <TextBlock Text="Lớp và học viên của tôi" Style="{StaticResource PageTitle}"/>
+
+            <!-- Chọn một lớp, chỉ hiện học viên của lớp đó (lớp nhiều đến đâu trang cũng không dài thêm) -->
+            <GroupBox Name="boxClass" Header="LỚP PHỤ TRÁCH">
+                <WrapPanel>
+                    <StackPanel Margin="0,0,24,0">
+                        <Label Content="Chọn lớp"/>
+                        <ComboBox Name="cbxClass" Width="320" SelectionChanged="cbxClass_SelectionChanged"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,24,0">
+                        <Label Content="Lịch học"/>
+                        <TextBlock Name="txtSchedule" Margin="0,4,0,0"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,24,0">
+                        <Label Content="Phòng"/>
+                        <TextBlock Name="txtRoom" Margin="0,4,0,0"/>
+                    </StackPanel>
+                    <StackPanel>
+                        <Label Content="Sĩ số"/>
+                        <TextBlock Name="txtCapacity" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </WrapPanel>
+            </GroupBox>
+
+            <GroupBox Header="DANH SÁCH HỌC VIÊN">
+                <StackPanel>
+                    <DataGrid Name="dgStudents"/>
+                    <local:PagerControl x:Name="pgStudents" Margin="0,8,0,0"/>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

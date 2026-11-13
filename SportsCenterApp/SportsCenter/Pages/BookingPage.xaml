@@ -1,0 +1,48 @@
+<UserControl x:Class="SportsCenter.BookingPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SportsCenter">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="20,16">
+            <TextBlock Text="Đặt lớp" Style="{StaticResource PageTitle}"/>
+
+            <!-- Nhân viên chọn member; Member đăng nhập thì ô này ẩn đi -->
+            <StackPanel Name="panelMember" Margin="0,0,0,10" HorizontalAlignment="Left">
+                <Label Content="Đang thao tác cho member"/>
+                <ComboBox Name="cbxMember" Width="320" SelectionChanged="cbxMember_SelectionChanged"/>
+            </StackPanel>
+
+            <Border Name="boxNote" Background="{StaticResource AccentSoft}" CornerRadius="6" Padding="12,10" Margin="0,0,0,12">
+                <TextBlock Name="txtNote" TextWrapping="Wrap"/>
+            </Border>
+
+            <!--FILTER AREA-->
+            <GroupBox Header="BỘ LỌC">
+                <WrapPanel>
+                    <StackPanel Margin="0,0,12,0">
+                        <Label Content="Mã hoặc tên lớp"/>
+                        <TextBox Name="txtSearch" Width="220"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,12,0">
+                        <Label Content="Bộ môn"/>
+                        <ComboBox Name="cbxSportFilter" Width="170"/>
+                    </StackPanel>
+                    <Button Content="Lọc" VerticalAlignment="Bottom" Click="btnFilter_Click"/>
+                    <Button Content="Xóa lọc" Style="{StaticResource SecondaryButton}" VerticalAlignment="Bottom" Click="btnClearFilter_Click"/>
+                </WrapPanel>
+            </GroupBox>
+
+            <!--CLASS LIST-->
+            <GroupBox Header="DANH SÁCH LỚP">
+                <StackPanel>
+                    <DataGrid Name="dgClasses"/>
+                    <local:PagerControl x:Name="pgClasses" Margin="0,8,0,0"/>
+                    <WrapPanel Margin="0,8,0,0">
+                        <Button Content="Đăng ký lớp đã chọn" Click="btnRegister_Click"/>
+                        <Button Content="Hủy đăng ký lớp đã chọn" Style="{StaticResource DangerButton}" Click="btnCancel_Click"/>
+                    </WrapPanel>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

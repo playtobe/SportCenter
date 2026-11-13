@@ -1,0 +1,35 @@
+<UserControl x:Class="SportsCenter.SettingsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <!-- Khung nội dung rộng 520, nằm giữa trang (trước đây căn sát trái nên bên phải trống) -->
+        <StackPanel Margin="20,24,20,16" Width="520" HorizontalAlignment="Center">
+            <TextBlock Text="Cài đặt tài khoản" Style="{StaticResource PageTitle}"/>
+
+            <GroupBox Header="TÀI KHOẢN">
+                <StackPanel>
+                    <TextBlock Name="txtInfo" LineHeight="24"/>
+                    <TextBlock Text="Muốn đổi họ tên, hãy nhờ Quản lý hoặc lễ tân." Foreground="{StaticResource Muted}" FontSize="12" Margin="0,8,0,0"/>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="ĐỔI MẬT KHẨU">
+                <StackPanel>
+                    <Label Content="Mật khẩu hiện tại"/>
+                    <PasswordBox Name="txtOld"/>
+                    <TextBlock Name="errOld" Style="{StaticResource ErrText}"/>
+
+                    <Label Content="Mật khẩu mới (ít nhất 6 ký tự)" Margin="0,10,0,0"/>
+                    <PasswordBox Name="txtNew"/>
+                    <TextBlock Name="errNew" Style="{StaticResource ErrText}"/>
+
+                    <Label Content="Nhập lại mật khẩu mới" Margin="0,10,0,0"/>
+                    <PasswordBox Name="txtConfirm"/>
+                    <TextBlock Name="errConfirm" Style="{StaticResource ErrText}"/>
+
+                    <Button Content="Đổi mật khẩu" HorizontalAlignment="Left" Margin="0,14,0,0" Click="btnChange_Click"/>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

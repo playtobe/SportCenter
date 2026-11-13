@@ -1,0 +1,89 @@
+<UserControl x:Class="SportsCenter.ClassesPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SportsCenter">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="20,16">
+            <TextBlock Text="Quản lý lớp học" Style="{StaticResource PageTitle}"/>
+
+            <!--FILTER AREA-->
+            <GroupBox Header="FILTER AREA">
+                <WrapPanel>
+                    <StackPanel Margin="0,0,12,0">
+                        <Label Content="Bộ môn"/>
+                        <ComboBox Name="cbxSportFilter" Width="180"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,12,0">
+                        <Label Content="Huấn luyện viên"/>
+                        <ComboBox Name="cbxCoachFilter" Width="200"/>
+                    </StackPanel>
+                    <Button Content="Filter" VerticalAlignment="Bottom" Click="btnFilter_Click"/>
+                    <Button Content="Clear Filter" Style="{StaticResource SecondaryButton}" VerticalAlignment="Bottom" Click="btnClearFilter_Click"/>
+                </WrapPanel>
+            </GroupBox>
+
+            <!--CLASS LIST-->
+            <GroupBox Header="CLASS LIST">
+                <StackPanel>
+                    <DataGrid Name="dgClassList"/>
+                    <local:PagerControl x:Name="pgClass" Margin="0,8,0,0"/>
+                    <Button Content="Hủy lớp đã chọn" Style="{StaticResource DangerButton}" HorizontalAlignment="Left" Margin="0,8,0,0" Click="btnCancelClass_Click"/>
+                </StackPanel>
+            </GroupBox>
+
+            <!--ADD NEW CLASS-->
+            <GroupBox Header="ADD NEW CLASS">
+                <StackPanel>
+                    <WrapPanel>
+                        <StackPanel Margin="0,0,12,6">
+                            <Label Content="Tên lớp"/>
+                            <TextBox Name="txtClassName" Width="190"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,12,6">
+                            <Label Content="Mã lớp"/>
+                            <TextBox Name="txtClassCode" Width="110"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,12,6">
+                            <Label Content="Bộ môn"/>
+                            <ComboBox Name="cbxSport" Width="150"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,12,6">
+                            <Label Content="Huấn luyện viên"/>
+                            <ComboBox Name="cbxCoach" Width="180" SelectionChanged="cbxCoachRoom_SelectionChanged"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,12,6">
+                            <Label Content="Phòng"/>
+                            <ComboBox Name="cbxRoom" Width="150" SelectionChanged="cbxCoachRoom_SelectionChanged"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,12,6">
+                            <Label Content="Thứ (chỉ hiện thứ còn trống)"/>
+                            <ComboBox Name="cbxDay" Width="170" SelectionChanged="cbxDay_SelectionChanged"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,12,6">
+                            <Label Content="Ca học (chỉ hiện ca còn trống)"/>
+                            <ComboBox Name="cbxSlot" Width="190"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,12,6">
+                            <Label Content="Sĩ số tối đa"/>
+                            <TextBox Name="txtCapacity" Width="80" Text="15"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,12,6">
+                            <Label Content="Từ ngày"/>
+                            <DatePicker Name="dpStart" Width="130"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,12,6">
+                            <Label Content="Đến ngày"/>
+                            <DatePicker Name="dpEnd" Width="130"/>
+                        </StackPanel>
+                    </WrapPanel>
+                    <TextBlock Name="txtNoSlot" Style="{StaticResource ErrText}" Visibility="Collapsed"
+                               Text="HLV và phòng này đã kín lịch cả tuần, hãy chọn HLV hoặc phòng khác."/>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Name="btnAddClass" Content="Add Class" Click="btnAddClass_Click"/>
+                        <Button Content="Clear Form" Style="{StaticResource SecondaryButton}" Click="btnClearForm_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

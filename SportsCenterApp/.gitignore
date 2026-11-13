@@ -1,0 +1,9 @@
+# Visual Studio / .NET
+.vs/
+bin/
+obj/
+*.user
+*.suo
+
+# Mỗi người một cấu hình kết nối riêng (server khác nhau); commit appsettings.example.json thay vì file này nếu cần
+# SportsCenter/appsettings.json

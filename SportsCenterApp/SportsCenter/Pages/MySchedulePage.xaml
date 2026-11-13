@@ -1,0 +1,23 @@
+<UserControl x:Class="SportsCenter.MySchedulePage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="20,16">
+            <TextBlock Text="Lịch của tôi" Style="{StaticResource PageTitle}"/>
+            <TextBlock Name="txtInfo" Foreground="{StaticResource Muted}" Margin="0,0,0,10"/>
+
+            <!-- Chuyển tuần, giống thời khóa biểu FAP -->
+            <WrapPanel Margin="0,0,0,6">
+                <TextBlock Name="txtWeek" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                <Button Content="‹ Tuần trước" Style="{StaticResource SecondaryButton}" Click="btnPrev_Click"/>
+                <Button Content="Tuần này" Style="{StaticResource SecondaryButton}" Click="btnToday_Click"/>
+                <Button Content="Tuần sau ›" Style="{StaticResource SecondaryButton}" Click="btnNext_Click"/>
+                <DatePicker Name="dpJump" Width="140" Margin="12,4,0,4" SelectedDateChanged="dpJump_SelectedDateChanged"/>
+            </WrapPanel>
+            <TextBlock Name="txtSummary" Foreground="{StaticResource Muted}" Margin="0,0,0,8"/>
+
+            <!-- Thời khóa biểu tuần: hàng là ca, cột là thứ kèm ngày; kết quả điểm danh nằm ngay trong ô lớp (dựng bằng code) -->
+            <Grid Name="gridSchedule"/>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

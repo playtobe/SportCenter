@@ -1,0 +1,34 @@
+<Window x:Class="SportsCenter.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Sports Center" Height="760" Width="1200" MinWidth="960" MinHeight="600"
+        WindowStartupLocation="CenterScreen" FontSize="13">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="240"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Menu bên trái (theo role) -->
+        <Border Background="#F5F7F6" BorderBrush="{StaticResource Line}" BorderThickness="0,0,1,0">
+            <DockPanel Margin="10">
+                <Button DockPanel.Dock="Bottom" Content="Đăng xuất" Style="{StaticResource SecondaryButton}" Click="btnLogout_Click"/>
+
+                <StackPanel DockPanel.Dock="Top" Margin="6,6,6,14">
+                    <TextBlock Name="txtUserName" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                    <TextBlock Name="txtUserLogin" Foreground="{StaticResource Muted}"/>
+                    <Border Background="{StaticResource AccentSoft}" CornerRadius="10" Padding="8,2" HorizontalAlignment="Left" Margin="0,6,0,0">
+                        <TextBlock Name="txtRole" Foreground="{StaticResource Accent}" FontSize="11" FontWeight="SemiBold"/>
+                    </Border>
+                </StackPanel>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Name="panelMenu"/>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+
+        <!-- Vùng nội dung: mỗi mục menu mở một UserControl ở đây -->
+        <ContentControl Name="contentHost" Grid.Column="1"/>
+    </Grid>
+</Window>

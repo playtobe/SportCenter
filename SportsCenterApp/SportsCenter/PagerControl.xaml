@@ -1,0 +1,8 @@
+<UserControl x:Class="SportsCenter.PagerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel HorizontalAlignment="Center">
+        <StackPanel x:Name="panelButtons" Orientation="Horizontal" HorizontalAlignment="Center"/>
+        <TextBlock x:Name="txtInfo" HorizontalAlignment="Center" Foreground="{StaticResource Muted}" FontSize="12" Margin="0,2,0,0"/>
+    </StackPanel>
+</UserControl>

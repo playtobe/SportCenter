@@ -1,0 +1,56 @@
+<UserControl x:Class="SportsCenter.MembersPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SportsCenter">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="20,16">
+            <TextBlock Text="Quản lý member" Style="{StaticResource PageTitle}"/>
+
+            <!--FILTER AREA-->
+            <GroupBox Header="TÌM KIẾM MEMBER">
+                <WrapPanel>
+                    <StackPanel Margin="0,0,12,0">
+                        <Label Content="Tên, số điện thoại hoặc email"/>
+                        <TextBox Name="txtSearch" Width="240"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,12,0">
+                        <Label Content="Trạng thái gói"/>
+                        <ComboBox Name="cbxStatus" Width="150"/>
+                    </StackPanel>
+                    <Button Content="Tìm" VerticalAlignment="Bottom" Click="btnSearch_Click"/>
+                    <Button Content="Xóa lọc" Style="{StaticResource SecondaryButton}" VerticalAlignment="Bottom" Click="btnClearFilter_Click"/>
+                </WrapPanel>
+            </GroupBox>
+
+            <!--MEMBER LIST-->
+            <GroupBox Header="DANH SÁCH MEMBER">
+                <StackPanel>
+                    <DataGrid Name="dgMembers"/>
+                    <local:PagerControl x:Name="pgMembers" Margin="0,8,0,0"/>
+                    <Button Content="Mua / gia hạn gói cho member đã chọn" HorizontalAlignment="Left" Margin="0,8,0,0" Click="btnBuy_Click"/>
+                </StackPanel>
+            </GroupBox>
+
+            <!--ADD NEW MEMBER-->
+            <GroupBox Header="ĐĂNG KÝ MEMBER MỚI TẠI QUẦY (không cần tài khoản)">
+                <StackPanel>
+                    <WrapPanel>
+                        <StackPanel Margin="0,0,12,0">
+                            <Label Content="Họ tên"/>
+                            <TextBox Name="txtFullName" Width="200"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,12,0">
+                            <Label Content="Điện thoại"/>
+                            <TextBox Name="txtPhone" Width="150"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,12,0">
+                            <Label Content="Email (không bắt buộc)"/>
+                            <TextBox Name="txtEmail" Width="200"/>
+                        </StackPanel>
+                    </WrapPanel>
+                    <Button Content="Đăng ký" HorizontalAlignment="Left" Click="btnAddMember_Click"/>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -1,0 +1,60 @@
+<UserControl x:Class="SportsCenter.UsersPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SportsCenter">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="20,16">
+            <TextBlock Text="Tài khoản và role" Style="{StaticResource PageTitle}"/>
+
+            <!--FILTER AREA-->
+            <GroupBox Header="BỘ LỌC">
+                <WrapPanel>
+                    <StackPanel Margin="0,0,12,0">
+                        <Label Content="Tên đăng nhập hoặc họ tên"/>
+                        <TextBox Name="txtSearch" Width="220"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,12,0">
+                        <Label Content="Vai trò"/>
+                        <ComboBox Name="cbxRoleFilter" Width="160"/>
+                    </StackPanel>
+                    <Button Content="Lọc" VerticalAlignment="Bottom" Click="btnFilter_Click"/>
+                    <Button Content="Xóa lọc" Style="{StaticResource SecondaryButton}" VerticalAlignment="Bottom" Click="btnClearFilter_Click"/>
+                </WrapPanel>
+            </GroupBox>
+
+            <!--USER LIST-->
+            <GroupBox Header="TÀI KHOẢN">
+                <StackPanel>
+                    <DataGrid Name="dgUsers"/>
+                    <local:PagerControl x:Name="pgUsers" Margin="0,8,0,0"/>
+                    <WrapPanel Margin="0,8,0,0">
+                        <Button Content="Khóa / Mở khóa" Click="btnToggle_Click"/>
+                        <ComboBox Name="cbxNewRole" Width="150" Margin="16,4,0,4"/>
+                        <Button Content="Đổi vai trò" Style="{StaticResource SecondaryButton}" Click="btnChangeRole_Click"/>
+                    </WrapPanel>
+                </StackPanel>
+            </GroupBox>
+
+            <!--ADD NEW USER-->
+            <GroupBox Header="THÊM TÀI KHOẢN (mật khẩu mặc định 123456)">
+                <StackPanel>
+                    <WrapPanel>
+                        <StackPanel Margin="0,0,12,0">
+                            <Label Content="Họ tên"/>
+                            <TextBox Name="txtFullName" Width="200"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,12,0">
+                            <Label Content="Tên đăng nhập"/>
+                            <TextBox Name="txtUsername" Width="170"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,12,0">
+                            <Label Content="Vai trò"/>
+                            <ComboBox Name="cbxRole" Width="160"/>
+                        </StackPanel>
+                    </WrapPanel>
+                    <Button Content="Thêm tài khoản" HorizontalAlignment="Left" Click="btnAddUser_Click"/>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

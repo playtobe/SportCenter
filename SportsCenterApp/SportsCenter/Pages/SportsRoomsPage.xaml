@@ -1,0 +1,48 @@
+<UserControl x:Class="SportsCenter.SportsRoomsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SportsCenter">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="20,16">
+            <TextBlock Text="Bộ môn và phòng tập" Style="{StaticResource PageTitle}"/>
+
+            <TabControl>
+                <!--BỘ MÔN-->
+                <TabItem Header="Bộ môn">
+                    <StackPanel Margin="12">
+                        <DataGrid Name="dgSports"/>
+                        <local:PagerControl x:Name="pgSports" Margin="0,8,0,0"/>
+                        <Button Content="Xóa bộ môn đã chọn" Style="{StaticResource DangerButton}" HorizontalAlignment="Left" Margin="0,8,0,12" Click="btnDeleteSport_Click"/>
+                        <WrapPanel>
+                            <StackPanel Margin="0,0,12,0">
+                                <Label Content="Tên bộ môn mới"/>
+                                <TextBox Name="txtSportName" Width="220"/>
+                            </StackPanel>
+                            <Button Content="Thêm" VerticalAlignment="Bottom" Click="btnAddSport_Click"/>
+                        </WrapPanel>
+                    </StackPanel>
+                </TabItem>
+
+                <!--PHÒNG TẬP-->
+                <TabItem Header="Phòng tập">
+                    <StackPanel Margin="12">
+                        <DataGrid Name="dgRooms"/>
+                        <local:PagerControl x:Name="pgRooms" Margin="0,8,0,0"/>
+                        <Button Content="Xóa phòng đã chọn" Style="{StaticResource DangerButton}" HorizontalAlignment="Left" Margin="0,8,0,12" Click="btnDeleteRoom_Click"/>
+                        <WrapPanel>
+                            <StackPanel Margin="0,0,12,0">
+                                <Label Content="Tên phòng mới"/>
+                                <TextBox Name="txtRoomName" Width="220"/>
+                            </StackPanel>
+                            <StackPanel Margin="0,0,12,0">
+                                <Label Content="Sức chứa"/>
+                                <TextBox Name="txtRoomCapacity" Width="90" Text="20"/>
+                            </StackPanel>
+                            <Button Content="Thêm" VerticalAlignment="Bottom" Click="btnAddRoom_Click"/>
+                        </WrapPanel>
+                    </StackPanel>
+                </TabItem>
+            </TabControl>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

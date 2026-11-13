@@ -1,0 +1,33 @@
+<Window x:Class="SportsCenter.RegisterWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Sports Center - Đăng ký" Height="640" Width="440"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize" FontSize="13">
+    <StackPanel Margin="40,24">
+        <TextBlock Text="Tạo tài khoản" FontSize="26" FontWeight="Bold"/>
+        <TextBlock Text="Dành cho thành viên mới của trung tâm." Foreground="{StaticResource Muted}" Margin="0,2,0,14"/>
+
+        <Label Content="Họ tên"/>
+        <TextBox Name="txtFullName"/>
+        <TextBlock Name="errFullName" Style="{StaticResource ErrText}"/>
+
+        <Label Content="Số điện thoại" Margin="0,8,0,0"/>
+        <TextBox Name="txtPhone"/>
+        <TextBlock Name="errPhone" Style="{StaticResource ErrText}"/>
+
+        <Label Content="Tên đăng nhập" Margin="0,8,0,0"/>
+        <TextBox Name="txtUsername"/>
+        <TextBlock Name="errUsername" Style="{StaticResource ErrText}"/>
+
+        <Label Content="Mật khẩu (ít nhất 6 ký tự)" Margin="0,8,0,0"/>
+        <PasswordBox Name="txtPassword"/>
+        <TextBlock Name="errPassword" Style="{StaticResource ErrText}"/>
+
+        <Label Content="Nhập lại mật khẩu" Margin="0,8,0,0"/>
+        <PasswordBox Name="txtConfirm"/>
+        <TextBlock Name="errConfirm" Style="{StaticResource ErrText}"/>
+
+        <Button Name="btnCreate" Content="Tạo tài khoản" IsDefault="True" Margin="0,18,0,0" Padding="14,9" Click="btnCreate_Click"/>
+        <Button Name="btnBack" Content="Đã có tài khoản? Đăng nhập" Style="{StaticResource SecondaryButton}" Margin="0,6,0,0" Padding="14,9" Click="btnBack_Click"/>
+    </StackPanel>
+</Window>

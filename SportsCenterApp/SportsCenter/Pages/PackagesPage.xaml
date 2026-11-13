@@ -1,0 +1,40 @@
+<UserControl x:Class="SportsCenter.PackagesPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SportsCenter">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="20,16">
+            <TextBlock Text="Gói thành viên" Style="{StaticResource PageTitle}"/>
+
+            <!--PACKAGE LIST-->
+            <GroupBox Header="DANH SÁCH GÓI">
+                <StackPanel>
+                    <DataGrid Name="dgPackages"/>
+                    <local:PagerControl x:Name="pgPackages" Margin="0,8,0,0"/>
+                    <Button Content="Ngừng bán / Mở bán lại gói đã chọn" HorizontalAlignment="Left" Margin="0,8,0,0" Click="btnToggle_Click"/>
+                </StackPanel>
+            </GroupBox>
+
+            <!--ADD NEW PACKAGE-->
+            <GroupBox Header="THÊM GÓI MỚI">
+                <StackPanel>
+                    <WrapPanel>
+                        <StackPanel Margin="0,0,12,0">
+                            <Label Content="Tên gói"/>
+                            <TextBox Name="txtPackageName" Width="200"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,12,0">
+                            <Label Content="Số ngày"/>
+                            <TextBox Name="txtDays" Width="90" Text="30"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,12,0">
+                            <Label Content="Giá (₫)"/>
+                            <TextBox Name="txtPrice" Width="130" Text="500000"/>
+                        </StackPanel>
+                    </WrapPanel>
+                    <Button Content="Thêm gói" HorizontalAlignment="Left" Click="btnAdd_Click"/>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

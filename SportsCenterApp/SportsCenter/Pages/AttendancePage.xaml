@@ -1,0 +1,31 @@
+<UserControl x:Class="SportsCenter.AttendancePage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SportsCenter">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="20,16">
+            <TextBlock Text="Điểm danh" Style="{StaticResource PageTitle}"/>
+
+            <GroupBox Header="CHỌN BUỔI HỌC">
+                <WrapPanel>
+                    <StackPanel Margin="0,0,12,0">
+                        <Label Content="Lớp"/>
+                        <ComboBox Name="cbxClass" Width="360" SelectionChanged="cbxClass_SelectionChanged"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,12,0">
+                        <Label Content="Ngày"/>
+                        <DatePicker Name="dpDate" Width="150" SelectedDateChanged="dpDate_SelectedDateChanged"/>
+                    </StackPanel>
+                </WrapPanel>
+            </GroupBox>
+
+            <GroupBox Header="DANH SÁCH ĐIỂM DANH (bỏ tick nghĩa là vắng)">
+                <StackPanel>
+                    <DataGrid Name="dgAttendance"/>
+                    <local:PagerControl x:Name="pgAttendance" Margin="0,8,0,0"/>
+                    <Button Content="Lưu điểm danh" HorizontalAlignment="Right" Margin="0,8,0,0" Click="btnSave_Click"/>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

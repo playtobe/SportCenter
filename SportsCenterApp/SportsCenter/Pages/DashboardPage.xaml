@@ -1,0 +1,70 @@
+<UserControl x:Class="SportsCenter.DashboardPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SportsCenter">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="20,16">
+            <TextBlock Text="Báo cáo và doanh thu" Style="{StaticResource PageTitle}"/>
+
+            <GroupBox Header="KHOẢNG NGÀY">
+                <WrapPanel>
+                    <StackPanel Margin="0,0,12,0">
+                        <Label Content="Từ ngày"/>
+                        <DatePicker Name="dpFrom" Width="150"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,12,0">
+                        <Label Content="Đến ngày"/>
+                        <DatePicker Name="dpTo" Width="150"/>
+                    </StackPanel>
+                    <Button Content="Xem báo cáo" VerticalAlignment="Bottom" Click="btnView_Click"/>
+                </WrapPanel>
+            </GroupBox>
+
+            <!--KPI-->
+            <UniformGrid Columns="4" Margin="0,0,0,12">
+                <Border BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="Tổng member" Foreground="{StaticResource Muted}"/>
+                        <TextBlock Name="txtMembers" FontSize="22" FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Border>
+                <Border BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="Gói đang hoạt động" Foreground="{StaticResource Muted}"/>
+                        <TextBlock Name="txtActiveSubs" FontSize="22" FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Border>
+                <Border BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="Doanh thu" Foreground="{StaticResource Muted}"/>
+                        <TextBlock Name="txtRevenue" FontSize="22" FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Border>
+                <Border BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="6" Padding="12">
+                    <StackPanel>
+                        <TextBlock Text="Đăng ký lớp đang có" Foreground="{StaticResource Muted}"/>
+                        <TextBlock Name="txtRegistrations" FontSize="22" FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <GroupBox Header="DOANH THU THEO THÁNG">
+                <Canvas Name="canvasChart" Width="560" Height="230" HorizontalAlignment="Left"/>
+            </GroupBox>
+
+            <GroupBox Header="MỨC LẤP ĐẦY LỚP">
+                <StackPanel>
+                    <DataGrid Name="dgFill"/>
+                    <local:PagerControl x:Name="pgFill" Margin="0,8,0,0"/>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="GÓI SẮP HẾT HẠN TRONG 7 NGÀY">
+                <StackPanel>
+                    <DataGrid Name="dgExpiring"/>
+                    <local:PagerControl x:Name="pgExpiring" Margin="0,8,0,0"/>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
