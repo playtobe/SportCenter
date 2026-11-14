@@ -42,7 +42,8 @@ namespace SportsCenter
             ["FillPercent"] = "Lấp đầy",
             ["PackageStatus"] = "Gói thành viên",
             ["Present"] = "Có mặt",
-            ["Date"] = "Ngày học"
+            ["Date"] = "Ngày học",
+            ["Period"] = "Thời gian"
         };
 
         // Độ rộng tương đối của cột (mặc định 1): cột có chữ dài thì rộng hơn để không bị cắt

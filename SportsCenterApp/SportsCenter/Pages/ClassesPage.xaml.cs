@@ -99,7 +99,9 @@ namespace SportsCenter
                     c.Slot.EndTime,
                     Registered = c.Registrations.Count(r => r.Status == "Registered"),
                     c.Capacity,
-                    c.Status
+                    c.Status,
+                    c.StartDate,
+                    c.EndDate
                 })
                 .ToList()
                 .Select(c => new
@@ -111,6 +113,7 @@ namespace SportsCenter
                     c.CoachName,
                     c.RoomName,
                     Schedule = Rules.ScheduleText(c.DayOfWeek, c.SlotName, c.StartTime, c.EndTime),
+                    Period = $"{c.StartDate:dd/MM/yyyy} → {c.EndDate:dd/MM/yyyy}",
                     Slots = $"{c.Registered}/{c.Capacity}",
                     Status = c.Status == "Open" ? "Mở" : "Đã hủy"
                 })
