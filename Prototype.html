@@ -355,8 +355,8 @@ function sLogin(){return `<div class="login"><h1>Sports Center</h1><p class="hin
   <div class="f"><label for="lp">Mật khẩu</label><input id="lp" type="password" value="123456"></div>
   <div class="row" style="margin-top:14px"><button class="btn p" data-act="login" style="flex:1">Đăng nhập</button><button class="btn" data-act="toRegister" style="flex:1">Đăng ký</button></div></div></div>
   <div class="hint">Vào nhanh theo vai trò (mật khẩu chung 123456):</div>
-  <div class="chips"><button class="btn" data-act="quick" data-u="manager1">Manager</button><button class="btn" data-act="quick" data-u="reception1">Receptionist</button>
-  <button class="btn" data-act="quick" data-u="member1">Member</button><button class="btn" data-act="quick" data-u="coach1">Coach</button></div></div>`}
+  <div class="chips"><button class="btn" data-act="quick" data-u="manager1">${ROLE_VN.Manager}</button><button class="btn" data-act="quick" data-u="reception1">${ROLE_VN.Receptionist}</button>
+  <button class="btn" data-act="quick" data-u="member1">${ROLE_VN.Member}</button><button class="btn" data-act="quick" data-u="coach1">${ROLE_VN.Coach}</button></div></div>`}
 function sRegister(){
   /* Có đúng một hồ sơ tại quầy khớp họ tên + số điện thoại: hỏi xác nhận trước khi gắn */
   if(S.regConfirm){const m=byId(D.members,S.regConfirm.mid),sub=activeSub(m.id)||lastSub(m.id);
@@ -506,13 +506,13 @@ function sPayments(){
 function sUsers(){
   const f=S.flt.users,list=D.users.filter(u=>hit(f,u.username+' '+u.name)&&(!f.role||u.role===f.role));
   return head('users')+fbar('users',fld('Tên đăng nhập hoặc họ tên','users','q',fIn('users','q',f.q,'text','VD: member3 hoặc Hà'),220)
-    +fld('Vai trò','users','role',fSel('users','role',f.role,[['','Tất cả'],['Manager','Manager'],['Receptionist','Receptionist'],['Coach','Coach'],['Member','Member']])))
-  +`<div class="grp"><div class="gh">Tài khoản</div><div class="gb">${tbl([['Id'],['Username'],['Họ tên'],['Role'],['Hoạt động']],list.map(u=>
-  `<tr><td>${u.id}</td><td>${esc(u.username)}</td><td>${esc(u.name)}</td><td><select data-chg="setRole" data-id="${u.id}" aria-label="Role của ${esc(u.username)}" ${u.id===S.user.id?'disabled':''}>${['Manager','Receptionist','Coach','Member'].map(r=>`<option ${u.role===r?'selected':''}>${r}</option>`).join('')}</select></td>
+    +fld('Vai trò','users','role',fSel('users','role',f.role,[['','Tất cả'],...['Manager','Receptionist','Coach','Member'].map(r=>[r,ROLE_VN[r]])])))
+  +`<div class="grp"><div class="gh">Tài khoản</div><div class="gb">${tbl([['Id'],['Username'],['Họ tên'],['Vai trò'],['Hoạt động']],list.map(u=>
+  `<tr><td>${u.id}</td><td>${esc(u.username)}</td><td>${esc(u.name)}</td><td><select data-chg="setRole" data-id="${u.id}" aria-label="Vai trò của ${esc(u.username)}" ${u.id===S.user.id?'disabled':''}>${['Manager','Receptionist','Coach','Member'].map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${ROLE_VN[r]}</option>`).join('')}</select></td>
   <td><button class="btn s ${u.active?'':'d'}" data-act="toggleUser" data-id="${u.id}" ${u.id===S.user.id?'disabled':''}>${u.active?'Đang hoạt động':'Đã khóa'}</button></td></tr>`),'Không tìm thấy tài khoản','users')}
   </div></div>
   <div class="grp"><div class="gh">Thêm tài khoản</div><div class="gb"><div class="row"><div class="f"><label for="un">Họ tên</label><input id="un"></div><div class="f"><label for="uu">Username</label><input id="uu"></div>
-  <div class="f"><label for="ur">Role</label><select id="ur"><option>Receptionist</option><option>Coach</option><option>Member</option><option>Manager</option></select></div><button class="btn p" data-act="addUser">Thêm</button></div></div></div>`}
+  <div class="f"><label for="ur">Vai trò</label><select id="ur">${['Receptionist','Coach','Member','Manager'].map(r=>`<option value="${r}">${ROLE_VN[r]}</option>`).join('')}</select></div><button class="btn p" data-act="addUser">Thêm</button></div></div></div>`}
 
 function sAudit(){
   const f=S.flt.audit,users=[...new Set(D.audit.map(a=>a.user))].sort(),acts=[...new Set(D.audit.map(a=>a.action))].sort();
@@ -553,7 +553,7 @@ function sessionDates(c){const out=[];let d=T;while(dow(d)!==c.day)d=addDays(d,-
 const attStatus=rid=>S.attDraft[rid]||D.att.find(a=>a.regId===rid&&a.date===S.attDate)?.st||'Present';
 function sAttendance(){
   const co=S.user.role==='Coach'?(D.coaches.find(c=>c.userId===S.user.id)||D.coaches[0]):null;
-  const cls=D.classes.filter(c=>!co||c.coachId===co.id);
+  const cls=co?D.classes.filter(c=>c.coachId===co.id):[];   /* chỉ coach điểm danh, và chỉ lớp của mình */
   if(!S.attClass||!cls.find(c=>c.id==S.attClass))S.attClass=cls[0]?.id;
   const c=byId(D.classes,S.attClass);
   const sess=c?sessionDates(c):[];
@@ -579,7 +579,7 @@ const SCREENS={
 const MENU={
   Manager:['dashboard',{g:'Quản lý lớp',i:['classes','sportsrooms']},{g:'Thành viên và gói',i:['members','packages']},
            'payments',{g:'Hệ thống',i:['users','audit']}],
-  Receptionist:[{g:'Thành viên',i:['members','buy']},{g:'Lớp học',i:['booking','attendance']},'payments'],
+  Receptionist:[{g:'Thành viên',i:['members','buy']},'booking','payments'],
   Member:['myschedule','booking','buy','payments'],
   Coach:['coach','attendance']};
 const NAVNAME={dashboard:'Báo cáo',classes:'Lớp học',sportsrooms:'Bộ môn, phòng',packages:'Gói thành viên',members:'Member',buy:'Mua / gia hạn gói',booking:'Đặt lớp',
@@ -598,7 +598,7 @@ function navHtml(menu){
 let authView='login';
 function render(){
   const app=$('#app');
-  const title=S.user?`SportsCenter — ${esc(S.user.name)} (${S.user.role})`:'SportsCenter — '+(authView==='login'?'Đăng nhập':'Đăng ký');
+  const title=S.user?`SportsCenter — ${esc(S.user.name)} (${ROLE_VN[S.user.role]})`:'SportsCenter — '+(authView==='login'?'Đăng nhập':'Đăng ký');
   const bar=`<div class="titlebar"><span class="dot"></span><span class="grow">${title}</span><span class="wbtn" aria-hidden="true">— ▢ ✕</span></div>`;
   if(!S.user){app.innerHTML=`<div class="win">${bar}${authView==='login'?sLogin():sRegister()}</div>`;return}
   const menu=MENU[S.user.role],all=flat(menu);
@@ -708,7 +708,7 @@ const ACT={
   selPay(el){S.sel=el.dataset.id;main()},
   exportInv(){toast('Đã xuất hóa đơn ra file (mô phỏng, bản thật ghi file .txt/.csv).')},
   /* users */
-  setRole(el){const u=byId(D.users,el.dataset.id);u.role=el.value;log('SetRole',u.username+' → '+u.role);toast('Đã đổi role.')},
+  setRole(el){const u=byId(D.users,el.dataset.id);u.role=el.value;log('SetRole','Đổi '+u.username+' thành '+ROLE_VN[u.role]);toast('Đã đổi vai trò.')},
   toggleUser(el){const u=byId(D.users,el.dataset.id);u.active=!u.active;log('ToggleUser',u.username);main()},
   addUser(){const n=v('un').trim(),u=v('uu').trim();if(!n||!u)return toast('Nhập họ tên và username.',true);if(nameErr(n))return toast(nameErr(n),true);if(usernameErr(u))return toast(usernameErr(u),true);if(D.users.some(x=>x.username.toLowerCase()===u.toLowerCase()))return toast('Username đã tồn tại.',true);
     const nu={id:D.users.length+1,username:u,name:n,role:v('ur'),active:true};D.users.push(nu);

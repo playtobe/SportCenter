@@ -45,7 +45,7 @@ namespace SportsCenter
 
                 case "Receptionist":
                     AddGroup("Thành viên", ("Member", typeof(MembersPage)), ("Mua / gia hạn gói", typeof(BuyPage)));
-                    AddGroup("Lớp học", ("Đặt lớp", typeof(BookingPage)), ("Điểm danh", typeof(AttendancePage)));
+                    AddItem("Đặt lớp", typeof(BookingPage));
                     AddItem("Thanh toán", typeof(PaymentsPage));
                     break;
 

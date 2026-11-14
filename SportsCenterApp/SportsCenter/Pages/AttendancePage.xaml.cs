@@ -51,13 +51,10 @@ namespace SportsCenter
 
         private void LoadClasses()
         {
-            // Coach chỉ điểm danh lớp của mình; lễ tân điểm danh mọi lớp
-            var query = _db.Classes.AsNoTracking().Include(c => c.Slot).Where(c => c.Status != "Cancelled");
-            if (Session.Role == "Coach")
-            {
-                int coachId = Session.CurrentCoach?.CoachId ?? 0;
-                query = query.Where(c => c.CoachId == coachId);
-            }
+            // Chỉ coach điểm danh buổi học, và chỉ lớp của mình. Người không phải coach (kể cả lễ tân) không thấy lớp nào.
+            int coachId = Session.CurrentCoach?.CoachId ?? 0;
+            var query = _db.Classes.AsNoTracking().Include(c => c.Slot)
+                .Where(c => c.Status != "Cancelled" && c.CoachId == coachId);
 
             var classes = query.OrderBy(c => c.ClassCode).ToList()
                 .Select(c => new { c.ClassId, Text = c.ClassCode + " · " + Rules.ScheduleText(c) })

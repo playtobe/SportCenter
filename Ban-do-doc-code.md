@@ -29,7 +29,7 @@ Một Page (UserControl) = một màn hình
 1. Hàm tạo: `InitializeComponent(); _db = new(); GridHelper.Setup(dgX); pgX.PageChanged += ...; LoadX();`
 2. `LoadX()`: lọc bằng `query.Where(...)`, chọn cột bằng `Select(new { ... }).ToList()`, rồi `dgX.ItemsSource = pgX.Slice(rows)` (mỗi trang 8 dòng).
 3. Mỗi nút bấm là một hàm `btnXxx_Click`: đọc ô nhập → kiểm tra (lỗi thì `Msg.Warn` rồi `return`) → `try { thao tác; _db.SaveChanges(); AuditHelper.Log(...); LoadX(); Msg.Info(...) } catch (Exception ex) { Msg.Error(ex); }`.
-4. Luật dùng chung giữa nhiều màn nằm trong `Helpers/Rules.cs` và `Helpers/AccountHelper.cs`. Hàm trả về `string?` nghĩa là **thông báo lỗi, hoặc `null` nếu hợp lệ**.
+4. Luật dùng chung giữa nhiều màn nằm trong các file `Helpers/Rules*.cs` và `Helpers/AccountHelper.cs`. Hàm trả về `string?` nghĩa là **thông báo lỗi, hoặc `null` nếu hợp lệ**.
 
 Mỗi Page tự giữ một `_db` riêng (giống Q2). Luôn đọc bằng `Select(...)` hoặc `AsNoTracking()` để dữ liệu mới nhất, không bị cũ khi màn khác vừa sửa.
 
@@ -48,7 +48,7 @@ Mỗi Page tự giữ một `_db` riêng (giống Q2). Luôn đọc bằng `Sele
 | `Helpers/GridHelper.cs` | `Setup`: tự sinh cột DataGrid, **ẩn cột có tên kết thúc bằng `Id`**, đổi tiêu đề sang tiếng Việt (từ điển `Headers`); `SelectedId`, `SelectById`. |
 | `PagerControl.xaml(.cs)` | Thanh phân trang « ‹ 1 2 3 › »: `Slice<T>`, `Reset`, sự kiện `PageChanged`. |
 | `App.xaml` | Style dùng chung: nút (`SecondaryButton`, `DangerButton`, `MenuButton`), `PageTitle`, `ErrText`, bảng dữ liệu. |
-| `Helpers/Rules.cs` | Luật dùng chung, chia thành các cụm: tên hiển thị (`RoleNames`, `MethodNames`, `ActionNames`, `DayNames`, `ScheduleText`); gói thành viên; lịch học và ca trống; đặt lớp; hóa đơn. Cụm nào của ai xem mục 2-6. |
+| `Helpers/Rules*.cs` | Luật dùng chung. Là **một class `Rules` chia thành 4 file**, mỗi file một chủ, gọi vẫn là `Rules.TênHàm`: `Rules.cs` (Người 5: `Today`, `RoleNames`, `MethodNames`, `ActionNames`, `DayNames`, `ScheduleText`, `NextInvoiceNo`), `Rules.Packages.cs` (Người 2: gói thành viên), `Rules.Classes.cs` (Người 3: ca trống, trùng lịch, hủy lớp), `Rules.Booking.cs` (Người 4: đặt lớp, hủy đăng ký, buổi điểm danh). |
 
 Dữ liệu mẫu để demo (mật khẩu chung `123456`): `manager1`, `reception1`, `coach1..3`, `member1..5`. Có sẵn `GYM01` đã đầy, `member4` hết hạn gói, khách "Lê Hải" (SĐT `0920000001`) chưa có tài khoản.
 
@@ -56,7 +56,7 @@ Dữ liệu mẫu để demo (mật khẩu chung `123456`): `manager1`, `recepti
 
 ## 2. Người 1: Tài khoản và khung ứng dụng
 
-**File:** `LoginWindow`, `RegisterWindow`, `ChangePasswordWindow`, `MainWindow`, `Pages/UsersPage` (mỗi cái gồm `.xaml` và `.xaml.cs`); `Helpers/Session.cs`, `PasswordHelper.cs`, `AccountHelper.cs`.
+**File:** `LoginWindow`, `RegisterWindow`, `ChangePasswordWindow`, `MainWindow`, `Pages/UsersPage` (mỗi cái gồm `.xaml` và `.xaml.cs`); `Helpers/Session.cs`, `PasswordHelper.cs`, `AccountHelper.cs`; `Entities/User.cs`.
 **Bảng:** `Users` (và dòng `Members` tạo kèm khi đăng ký). **Luật:** A1, A2, A3, A5, đổi mật khẩu.
 
 **Đọc theo thứ tự**
@@ -87,12 +87,12 @@ Dữ liệu mẫu để demo (mật khẩu chung `123456`): `manager1`, `recepti
 
 ## 3. Người 2: Member, gói thành viên và nhật ký hoạt động
 
-**File:** `Pages/MembersPage`, `PackagesPage`, `BuyPage`, `AuditPage`; `Helpers/AuditHelper.cs`; cụm "Gói thành viên" trong `Rules.cs`.
+**File:** `Pages/MembersPage`, `PackagesPage`, `BuyPage`, `AuditPage`; `Helpers/AuditHelper.cs`, `Helpers/Rules.Packages.cs`; `Entities/Member.cs`, `MembershipPackage.cs`, `Subscription.cs`, `AuditLog.cs`.
 **Bảng:** `Members`, `MembershipPackages`, `Subscriptions`, `Payments` (được tạo khi mua gói), `AuditLogs`. **Luật:** P1-P5, A4.
 
 **Đọc theo thứ tự**
 1. `SportsCenter.sql`: `MembershipPackages`, `Subscriptions` (`CHECK EndDate >= StartDate`), `Payments`.
-2. `Rules.cs`, cụm gói: `ActiveSubscription` (P4), `CurrentOrLatest`, `SubscriptionText`, `NextStartDate` (P3), `QueuedSubscriptions`.
+2. `Rules.Packages.cs`: `ActiveSubscription` (P4), `CurrentOrLatest`, `SubscriptionText`, `NextStartDate` (P3), `QueuedSubscriptions`.
 3. `PackagesPage`: `LoadPackages`, `btnAdd_Click` (P1: giá, số ngày, tên không trùng), `btnToggle_Click` (ngừng bán / mở bán lại).
 4. `MembersPage`: `LoadMembers` (ghép trạng thái gói của từng member), `btnAddMember_Click` (A5: số điện thoại duy nhất), `btnBuy_Click`. Hàm tạo ẩn nút và khung bán gói với Manager.
 5. `BuyPage`: hàm tạo, `LoadMemberPicker` (member tự mua thì ẩn ô chọn member), `ShowCurrent` (gói hiện tại và gói đã mua nối tiếp), `ShowPreview`, `btnConfirm_Click` (P2, Y2).
@@ -114,13 +114,13 @@ Dữ liệu mẫu để demo (mật khẩu chung `123456`): `manager1`, `recepti
 
 ## 4. Người 3: Quản lý lớp học
 
-**File:** `Pages/ClassesPage`, `SportsRoomsPage`, `CoachPage`; cụm "lịch học, ca trống" và `CancelClassBlockedReason` trong `Rules.cs`.
+**File:** `Pages/ClassesPage`, `SportsRoomsPage`, `CoachPage`; `Helpers/Rules.Classes.cs` (`BusySet`, `ClassConflictMessage`, `CancelClassBlockedReason`); `Entities/Class.cs`, `Coach.cs`, `Room.cs`, `Sport.cs`, `TimeSlot.cs`.
 **Bảng:** `Classes`, `Sports`, `Rooms`, `TimeSlots`, `Coaches` (đếm `Registrations` để chặn hủy lớp). **Luật:** C1-C4.
 
 **Đọc theo thứ tự**
 1. `SportsCenter.sql`: `TimeSlots` (6 ca), `Classes` (`DayOfWeek` 1-7 và `SlotId`; **DB không chặn trùng lịch, việc đó làm trong code**).
 2. `SportsRoomsPage`: `LoadSports`, `LoadRooms`, `btnAddSport_Click`, `btnAddRoom_Click` (trùng tên), `btnDeleteSport_Click`, `btnDeleteRoom_Click` (không xóa khi còn lớp dùng).
-3. `Rules.BusySet` (tập (thứ, ca) đã bận của phòng hoặc HLV) và `Rules.ClassConflictMessage` (C2, C3).
+3. `Rules.Classes.cs`: `BusySet` (tập (thứ, ca) đã bận của phòng hoặc HLV) và `ClassConflictMessage` (C2, C3).
 4. `ClassesPage`: `LoadData` → `LoadFilters`, `LoadFormCombos`, `LoadClassList`; **form thêm lớp chỉ hiện thứ và ca còn trống**: `cbxCoachRoom_SelectionChanged` → `RefreshFreeDays` → `cbxDay_SelectionChanged` → `RefreshFreeSlots`; `btnAddClass_Click` (C1, kiểm tra lại C2 và C3); `btnCancelClass_Click` (C4); `ClearForm`.
 5. `CoachPage`: `LoadClasses` (chỉ lớp của coach đăng nhập, qua `Session.CurrentCoach`), `cbxClass_SelectionChanged` → `LoadStudents`.
 
@@ -139,15 +139,15 @@ Dữ liệu mẫu để demo (mật khẩu chung `123456`): `manager1`, `recepti
 
 ## 5. Người 4: Đặt lớp, lịch cá nhân và điểm danh
 
-**File:** `Pages/BookingPage`, `MySchedulePage`, `AttendancePage`; cụm "lịch học" và "đặt lớp" trong `Rules.cs`.
+**File:** `Pages/BookingPage`, `MySchedulePage`, `AttendancePage`; `Helpers/Rules.Booking.cs` (`NextSession`, `SessionDates`, `RegisterClass`, `CancelRegistration`); `Entities/Registration.cs`, `Attendance.cs`.
 **Bảng:** `Registrations`, `Attendances`. **Luật:** B1-B8 và luật điểm danh.
 
 **Đọc theo thứ tự**
 1. `SportsCenter.sql`: `Registrations` (chỉ mục duy nhất có điều kiện `Status = 'Registered'` cho cặp member + lớp), `Attendances` (`UNIQUE` theo đăng ký + ngày).
-2. `Rules.RegisterClass` (B1-B5), `Rules.NextSession`, `Rules.CancelRegistration` (B6, hằng `Rules.CancelHoursBefore` = 24).
+2. `Rules.Booking.cs`: `RegisterClass` (B1-B5), `NextSession`, `CancelRegistration` (B6, hằng `CancelHoursBefore` = 24).
 3. `BookingPage`: hàm tạo, `LoadMemberPicker` và `GetMemberId` (B8: member chỉ thao tác trên dữ liệu của mình; lễ tân chọn member), `ShowNote`, `LoadClasses`, `btnRegister_Click`, `btnCancel_Click`.
 4. `MySchedulePage`: `MondayOf`, `BuildSchedule` (lưới ca × thứ), `MakeClassCell` và `MakeBadge` (huy hiệu Có mặt / Vắng / Chưa điểm danh), `ChangeWeek`, `btnPrev_Click`, `btnNext_Click`, `btnToday_Click`, `dpJump_SelectedDateChanged`.
-5. `AttendancePage`: `LoadClasses`, `cbxClass_SelectionChanged` (gọi `Rules.SessionDates` để đổ ô **Buổi học**), `LoadRows` (mỗi dòng là một `AttendanceRow`), `UpdateSummary`, `btnAllPresent_Click`, `btnAllAbsent_Click`, `btnSave_Click`.
+5. `AttendancePage` (**chỉ coach**, lễ tân không có mục này): `LoadClasses` (chỉ lấy lớp của coach đăng nhập qua `Session.CurrentCoach`), `cbxClass_SelectionChanged` (gọi `Rules.SessionDates` để đổ ô **Buổi học**), `LoadRows` (mỗi dòng là một `AttendanceRow`), `UpdateSummary`, `btnAllPresent_Click`, `btnAllAbsent_Click`, `btnSave_Click`.
 
 **Luồng "đặt lớp"** (`Rules.RegisterClass`, trả về `string?`)
 1. B1: member có gói còn hạn (`ActiveSubscription`).
@@ -172,7 +172,7 @@ Dữ liệu mẫu để demo (mật khẩu chung `123456`): `manager1`, `recepti
 
 ## 6. Người 5: Thanh toán, báo cáo và nền dùng chung
 
-**File:** `Pages/PaymentsPage`, `DashboardPage`; bộ dùng chung `App.xaml(.cs)`, `Helpers/GridHelper.cs`, `Helpers/Msg.cs`, `PagerControl`, `Entities/SportsCenterContext.cs`; `SportsCenter.sql`.
+**File:** `Pages/PaymentsPage`, `DashboardPage`; bộ dùng chung `App.xaml(.cs)`, `Helpers/GridHelper.cs`, `Helpers/Msg.cs`, `Helpers/Rules.cs` (phần lõi: tên hiển thị, `NextInvoiceNo`), `PagerControl`, `Entities/Payment.cs`, `Entities/SportsCenterContext.cs`; `SportsCenter.sql`.
 **Bảng:** `Payments` (đọc), toàn bộ database. **Luật:** Y1, Y3, Y4, R1-R4.
 
 **Đọc theo thứ tự**
@@ -219,4 +219,4 @@ Dữ liệu mẫu để demo (mật khẩu chung `123456`): `manager1`, `recepti
 | R1-R4 | Báo cáo | `DashboardPage.LoadReport`, `LoadFill`, `LoadExpiring` |
 | Điểm danh | Buổi học, lưu | `Rules.SessionDates`, `AttendancePage.btnSave_Click` |
 
-**Mẹo khi bị hỏi bất ngờ:** (1) xác định đó là *màn hình* hay *luật*; (2) màn hình thì mở `Pages/Tên.xaml.cs`, tìm hàm `btn..._Click`; (3) luật thì mở bảng ở trên rồi vào `Helpers/Rules.cs` hoặc `AccountHelper.cs`; (4) dữ liệu thì mở `SportsCenter.sql`.
+**Mẹo khi bị hỏi bất ngờ:** (1) xác định đó là *màn hình* hay *luật*; (2) màn hình thì mở `Pages/Tên.xaml.cs`, tìm hàm `btn..._Click`; (3) luật thì mở bảng ở trên rồi vào `Helpers/Rules*.cs` (đúng file của người đó) hoặc `AccountHelper.cs`; (4) dữ liệu thì mở `SportsCenter.sql`.

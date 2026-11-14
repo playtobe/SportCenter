@@ -30,6 +30,7 @@ Tài liệu tóm tắt phạm vi, thiết kế và quy ước cho **Group Projec
 
 Các quyết định đã chốt trong quá trình thiết kế:
 
+- Điểm danh buổi học **chỉ do coach làm**; lễ tân phụ trách quầy (đăng ký member, bán gói, đặt lớp). Dòng "điểm danh thành viên khi đến trung tâm" của lễ tân trong đề hiện chưa có chức năng riêng, xem mục 9.
 - Thanh toán **chỉ ghi nhận** vào DB, không nối cổng thanh toán thật. **Không có hoàn tiền** (đã bỏ); Manager chỉ xem danh sách thanh toán và doanh thu.
 - Form Đăng ký **không có email** (hệ thống không gửi mail). Thay bằng số điện thoại.
 - Đổi mật khẩu là một **hộp thoại nhỏ** mở từ nút ở chân menu, không có màn Cài đặt riêng. Chỉ đổi được mật khẩu; họ tên và username không sửa được (nhờ Manager hoặc lễ tân).
@@ -46,9 +47,9 @@ Các quyết định đã chốt trong quá trình thiết kế:
 | Role | Việc chính |
 |---|---|
 | **Center Manager** | Quản lý lớp, bộ môn, phòng, gói, tài khoản; xem báo cáo và lịch sử hoạt động |
-| **Receptionist** (lễ tân) | Làm việc **thay cho member** tại quầy: đăng ký member, bán gói, đăng ký lớp, thu tiền, điểm danh |
+| **Receptionist** (lễ tân) | Làm việc **thay cho member** tại quầy: đăng ký member, bán gói, đăng ký lớp, thu tiền (không điểm danh buổi học) |
 | **Member** | Tự mua gói, đăng ký lớp, xem lịch và hóa đơn của mình |
-| **Coach** | Xem lớp mình dạy và học viên, điểm danh |
+| **Coach** | Xem lớp mình dạy và học viên, **điểm danh buổi học** (chỉ coach làm việc này) |
 
 Menu theo role (nhóm bấm để xổ xuống, role ít mục thì để phẳng):
 
@@ -62,7 +63,7 @@ Manager
 
 Receptionist
   ▸ Thành viên             Member · Mua / gia hạn gói
-  ▸ Lớp học                Đặt lớp · Điểm danh
+  Đặt lớp
   Thanh toán
 
 Member                     Lịch của tôi · Đặt lớp · Gói thành viên · Thanh toán
@@ -95,7 +96,7 @@ Receptionist và Member **dùng chung** các màn Mua/gia hạn gói, Đặt l�
 | 14 | Lịch cá nhân kiểu FAP (tuần, kèm kết quả điểm danh trong từng ô) | Member | P1 |
 | 15 | Thanh toán và hóa đơn | Receptionist, Member | P0 |
 | 16 | Lớp và học viên của tôi | Coach | P2 |
-| 17 | Điểm danh | Receptionist, Coach | P2 |
+| 17 | Điểm danh buổi học | Coach | P2 |
 
 Nếu cần cắt cho kịp thời gian: bỏ P2 (10, 16, 17) và P1 (4, 14) còn **12 màn**, các luồng bắt buộc vẫn chạy đủ.
 
@@ -179,7 +180,7 @@ Lịch học cố định hằng tuần: mỗi lớp có `DayOfWeek` (1 = Thứ 
 - **R4**: danh sách gói sắp hết hạn.
 
 ### Điểm danh (P2)
-Chỉ điểm danh được member đang `Registered` ở lớp đó, và chỉ cho các buổi học thật của lớp: đúng thứ của lớp, trong khoảng `StartDate` đến `EndDate`, không muộn hơn hôm nay (tối đa 12 buổi gần nhất). Buổi được chọn trong danh sách nên không thể chọn sai ngày. Mỗi đăng ký chỉ có một dòng cho mỗi ngày. Trạng thái: `Present`, `Absent`. **Member xem kết quả ngay trong màn Lịch của tôi**, kiểu thời khóa biểu FAP: lịch theo tuần (tiêu đề cột có ngày, cột hôm nay tô sáng, nút Tuần trước / Tuần này / Tuần sau và ô chọn ngày), mỗi ô lớp có huy hiệu **Có mặt** (xanh) hoặc **Vắng** (đỏ) của đúng ngày đó, kèm giờ học, phòng, huấn luyện viên. Buổi đã qua mà chưa điểm danh ghi "Chưa điểm danh"; buổi hôm nay và sau này chưa hiện gì. Dòng tóm tắt ở trên cho biết số buổi có mặt, vắng, chưa điểm danh trong tuần. Dữ liệu điểm danh mẫu trong SQL được đặt đúng thứ của lớp để hiện đúng ô.
+**Chỉ coach điểm danh buổi học, và chỉ lớp mình dạy** (lễ tân và Manager không có quyền này). Chỉ điểm danh được member đang `Registered` ở lớp đó, và chỉ cho các buổi học thật của lớp: đúng thứ của lớp, trong khoảng `StartDate` đến `EndDate`, không muộn hơn hôm nay (tối đa 12 buổi gần nhất). Buổi được chọn trong danh sách nên không thể chọn sai ngày. Mỗi đăng ký chỉ có một dòng cho mỗi ngày. Trạng thái: `Present`, `Absent`. **Member xem kết quả ngay trong màn Lịch của tôi**, kiểu thời khóa biểu FAP: lịch theo tuần (tiêu đề cột có ngày, cột hôm nay tô sáng, nút Tuần trước / Tuần này / Tuần sau và ô chọn ngày), mỗi ô lớp có huy hiệu **Có mặt** (xanh) hoặc **Vắng** (đỏ) của đúng ngày đó, kèm giờ học, phòng, huấn luyện viên. Buổi đã qua mà chưa điểm danh ghi "Chưa điểm danh"; buổi hôm nay và sau này chưa hiện gì. Dòng tóm tắt ở trên cho biết số buổi có mặt, vắng, chưa điểm danh trong tuần. Dữ liệu điểm danh mẫu trong SQL được đặt đúng thứ của lớp để hiện đúng ô.
 
 ### Phân quyền
 
@@ -194,7 +195,7 @@ Chỉ điểm danh được member đang `Registered` ở lớp đó, và chỉ 
 | Ghi nhận thanh toán, xuất hóa đơn (khi bán gói) | | ✔ | chính mình | |
 | Xem danh sách thanh toán | ✔ | ✔ | của mình | |
 | Báo cáo, lịch sử hoạt động | ✔ | | | |
-| Xem lớp mình dạy, điểm danh | ✔ | ✔ (điểm danh) | | lớp mình dạy |
+| Điểm danh buổi học | | | | lớp mình dạy |
 
 ---
 
@@ -304,14 +305,15 @@ Folder `SportsCenterApp` (.NET 8, WPF, EF Core 8.0.18). Code theo đúng khuôn 
 SportsCenter/
   Entities/     13 entity + SportsCenterContext (đọc connection string từ appsettings.json)
   Helpers/      Session (người đang đăng nhập), PasswordHelper (SHA-256), AuditHelper (ghi lịch sử),
-                Rules (luật nghiệp vụ dùng chung), GridHelper (cấu hình DataGrid), Msg (MessageBox)
+                Rules.cs + Rules.Packages/Classes/Booking.cs (luật nghiệp vụ dùng chung, chia file theo người),
+                AccountHelper (kiểm tra tài khoản), GridHelper (cấu hình DataGrid), Msg (MessageBox)
   Pages/        13 màn hình, mỗi màn là một cặp .xaml + .xaml.cs (UserControl)
   LoginWindow, RegisterWindow, ChangePasswordWindow (hộp thoại đổi mật khẩu),
   MainWindow (menu theo role, nhóm bấm để xổ xuống, nút Đổi mật khẩu / Đăng xuất ở chân menu)
   PagerControl  thanh phân trang dùng chung « ‹ 1 2 3 › »
 ```
 
-Luật dùng chung giữa nhiều màn (đăng ký lớp, hủy lớp, ca trống, gói còn hạn, mã hóa đơn) nằm trong `Helpers/Rules.cs`. Màn nào cần thì gọi, các thành viên không phải sửa code của nhau.
+Luật dùng chung giữa nhiều màn (đăng ký lớp, hủy lớp, ca trống, gói còn hạn, mã hóa đơn) nằm trong các file `Helpers/Rules*.cs` (một `static partial class Rules`, mỗi người một file, xem mục 8). Màn nào cần thì gọi `Rules.TênHàm`, các thành viên không phải sửa code của nhau.
 
 **Cách chạy**
 
@@ -327,23 +329,37 @@ Luật dùng chung giữa nhiều màn (đăng ký lớp, hủy lớp, ca trốn
 
 ## 8. Chia việc cho 5 người
 
-Chia theo **3 luồng bắt buộc của đề** (tài khoản và gói, lớp và đặt lớp, thanh toán và báo cáo), mỗi người sở hữu một nhóm màn hình, luật và bảng dữ liệu. **Cách đọc từng phần (đọc file nào trước, luồng chính, câu hay bị hỏi) xem `Ban-do-doc-code.md`.**
+Chia theo **3 luồng bắt buộc của đề** (tài khoản và gói, lớp và đặt lớp, thanh toán và báo cáo). Mỗi người **sở hữu trọn một nhóm file** (màn hình, luật và entity của bảng mình), **mỗi file chỉ có một chủ**, nên 5 người làm song song, commit và push phần mình mà không phải sửa file của nhau. **Cách đọc từng phần (đọc file nào trước, luồng chính, câu hay bị hỏi) xem `Ban-do-doc-code.md`.**
 
-| Người | Phần | Màn hình | Luật | Bảng dữ liệu | Code (dòng) |
+| Người | Phần | Màn hình | Luật | Bảng dữ liệu | Dòng code (.cs / .xaml) |
 |---|---|---|---|---|---|
-| 1 | Tài khoản và khung ứng dụng | Login, Register, Đổi mật khẩu (hộp thoại), `MainWindow` (menu theo role), Tài khoản | A1, A2, A3, A5, đổi mật khẩu | Users | ~900 |
-| 2 | Member, gói thành viên, nhật ký | Member, Gói thành viên, Mua / gia hạn gói, Lịch sử hoạt động | P1-P5, A4 | Members, MembershipPackages, Subscriptions, AuditLogs | ~800 |
-| 3 | Quản lý lớp học | Lớp học, Bộ môn và phòng, Lớp của tôi (coach) | C1-C4 | Classes, Sports, Rooms, TimeSlots, Coaches | ~800 |
-| 4 | Đặt lớp, lịch cá nhân, điểm danh | Đặt lớp, Lịch của tôi, Điểm danh | B1-B8, điểm danh | Registrations, Attendances | ~800 |
-| 5 | Thanh toán, báo cáo, nền dùng chung | Thanh toán, Báo cáo; bộ dùng chung `App.xaml`, `GridHelper`, `PagerControl`, `Msg`; script `SportsCenter.sql` | Y1-Y4, R1-R4 | Payments | ~1.000 (nhiều phần ít logic) và 320 dòng SQL |
+| 1 | Tài khoản và khung ứng dụng | Login, Register, Đổi mật khẩu (hộp thoại), `MainWindow` (menu theo role), Tài khoản | A1, A2, A3, A5, đổi mật khẩu | Users | 851 / 180 |
+| 2 | Member, gói thành viên, nhật ký | Member, Gói thành viên, Mua / gia hạn gói, Lịch sử hoạt động | P1-P5, A4 | Members, MembershipPackages, Subscriptions, AuditLogs | 749 / 181 |
+| 3 | Quản lý lớp học | Lớp học, Bộ môn và phòng, Lớp của tôi (coach) | C1-C4 | Classes, Sports, Rooms, TimeSlots, Coaches | 750 / 176 |
+| 4 | Đặt lớp, lịch cá nhân, điểm danh | Đặt lớp, Lịch của tôi, Điểm danh (coach) | B1-B8, điểm danh | Registrations, Attendances | 782 / 157 |
+| 5 | Thanh toán, báo cáo, nền dùng chung | Thanh toán, Báo cáo; bộ dùng chung `App.xaml`, `GridHelper`, `PagerControl`, `Msg`; script `SportsCenter.sql` | Y1-Y4, R1-R4 | Payments | 805 / 335 và 345 dòng SQL |
 
-Số dòng đã gồm phần luật của mình trong `Helpers/Rules.cs` và các entity liên quan. Người 5 nhiều dòng hơn nhưng phần lớn là style, hàm dùng chung và script dữ liệu, ít logic nghiệp vụ.
+Số dòng đã gồm luật của mình trong các file `Rules*.cs` và entity của bảng mình. Người 5 nhiều dòng XAML và SQL hơn nhưng đó là style và dữ liệu mẫu, ít logic nghiệp vụ; số dòng `.cs` của 5 người chỉ chênh nhau khoảng 100 (từ 749 đến 851).
+
+**File của từng người** (mỗi cặp `.xaml` + `.xaml.cs` tính là một mục, đường dẫn trong `SportsCenterApp/SportsCenter/`):
+
+| Người | File sở hữu |
+|---|---|
+| 1 | `LoginWindow`, `RegisterWindow`, `ChangePasswordWindow`, `MainWindow`, `Pages/UsersPage`; `Helpers/Session.cs`, `PasswordHelper.cs`, `AccountHelper.cs`; `Entities/User.cs` |
+| 2 | `Pages/MembersPage`, `PackagesPage`, `BuyPage`, `AuditPage`; `Helpers/AuditHelper.cs`, `Rules.Packages.cs`; `Entities/Member.cs`, `MembershipPackage.cs`, `Subscription.cs`, `AuditLog.cs` |
+| 3 | `Pages/ClassesPage`, `SportsRoomsPage`, `CoachPage`; `Helpers/Rules.Classes.cs`; `Entities/Class.cs`, `Coach.cs`, `Room.cs`, `Sport.cs`, `TimeSlot.cs` |
+| 4 | `Pages/BookingPage`, `MySchedulePage`, `AttendancePage`; `Helpers/Rules.Booking.cs`; `Entities/Registration.cs`, `Attendance.cs` |
+| 5 | `Pages/PaymentsPage`, `DashboardPage`; `App.xaml(.cs)`, `PagerControl`; `Helpers/GridHelper.cs`, `Msg.cs`, `Rules.cs` (phần lõi: tên hiển thị, hóa đơn); `Entities/Payment.cs`, `SportsCenterContext.cs`; `SportsCenter.sql` |
+
+`Helpers/Rules.cs` được tách thành 4 file (cùng một `static partial class Rules`, gọi `Rules.TênHàm` như cũ): phần lõi của Người 5, `Rules.Packages.cs` của Người 2, `Rules.Classes.cs` của Người 3, `Rules.Booking.cs` của Người 4. Nhờ vậy mỗi người thêm hàm luật vào **file của mình**, không cùng sửa một file.
+
+`Prototype.html` cũng chia theo người: mỗi màn là một hàm `sXxx`. Người 1: `sLogin`, `sRegister`, `sUsers`, `sPwDialog` và `MENU`; Người 2: `sMembers`, `sPackages`, `sBuy`, `sAudit`; Người 3: `sClasses`, `sSportsRooms`, `sCoach`; Người 4: `sBooking`, `sMySchedule`, `sAttendance`; Người 5: `sPayments`, `sDashboard`.
 
 Quy tắc làm việc nhóm:
 
-1. **Mỗi người chỉ sửa file của phần mình.** File dùng chung và chủ của chúng: `MainWindow` và `AccountHelper` (Người 1, ai cần thêm mục menu thì nhờ Người 1); `GridHelper`, `PagerControl`, `App.xaml` và `SportsCenter.sql` (Người 5, đổi bảng hay cột phải báo Người 5); `Helpers/Rules.cs` thì **mỗi người chỉ thêm hàm vào đúng cụm của mình** (gói: Người 2; lịch học, ca trống, hủy lớp: Người 3; đặt lớp: Người 4; tên hiển thị, hóa đơn: Người 5).
+1. **Mỗi người chỉ sửa file của phần mình.** Chỉ còn 5 chỗ mà nhiều người cùng thêm một dòng, và cách xử lý: (a) mục menu của role: thêm một dòng trong `MainWindow.BuildMenu` (chủ: Người 1); (b) tên hiển thị của hành động: thêm một dòng vào **nhóm của mình** trong `Rules.ActionNames` (mỗi nhóm có chú thích "Người n"); (c) tiêu đề cột tiếng Việt: thêm một dòng cuối từ điển `GridHelper.Headers`; (d) `SportsCenter.sql`: mỗi bảng có một khối riêng (tạo bảng và dữ liệu mẫu), chỉ sửa khối bảng của mình, đổi cột thì báo người đang dùng bảng đó; (e) hai file `.md`: chỉ sửa mục của mình. Git báo xung đột ở các từ điển trên thì **giữ cả hai dòng**.
 2. **Thứ tự phụ thuộc:** Người 5 chốt script và bộ dùng chung trước → Người 1 làm khung đăng nhập và menu → Người 2 (gói) và Người 3 (lớp) làm song song → Người 4 đặt lớp cần gói của Người 2 và lớp của Người 3 → báo cáo của Người 5 đọc dữ liệu của tất cả.
-3. Để `SportsCenter.sql` trong repo, mỗi người chạy cùng một script trên máy của mình. Dùng Git, mỗi người một nhánh, gộp vào `main` sau khi chạy thử.
+3. Để `SportsCenter.sql` trong repo, mỗi người chạy cùng một script trên máy của mình. Dùng Git, **mỗi người một nhánh** (`nguoi1` … `nguoi5`), chỉ `git add` đúng file của mình (không `git add -A` khi trong máy còn file của người khác), `git pull --rebase origin main` trước khi push, rồi gộp vào `main` sau khi chạy thử. Không commit `appsettings.json` của máy mình.
 4. Trước khi gộp: chạy lại `SportsCenter.sql`, rồi làm đúng các thao tác ở mục **Demo** của phần mình trong `Ban-do-doc-code.md`.
 5. Mỗi người chuẩn bị trình bày phần của mình: luồng chính cộng ba câu hay bị hỏi (có sẵn trong bản đồ).
 
@@ -357,3 +373,4 @@ Quy tắc làm việc nhóm:
    - **B6**: member chỉ được hủy đăng ký lớp khi buổi học gần nhất còn cách hơn **24 giờ** (nhóm đã chọn 24 giờ thay cho 2 giờ ban đầu). Con số nằm ở một chỗ: hằng số `Rules.CancelHoursBefore`. Cách khác: cho hủy tự do, hoặc mốc ngắn hơn.
    - **P3**: mua gói khi đang còn gói thì gói mới **nối tiếp** sau gói xa nhất chưa hết hạn (không mất ngày đã trả tiền); member vẫn dùng gói hiện tại cho tới ngày hết hạn rồi mới sang gói mới. Logic nằm ở hàm `Rules.NextStartDate`. Cách khác: không cho mua khi còn hạn, hoặc gói mới thay thế gói cũ.
 4. **Lớp có nhiều ngày hoặc nhiều ca trong tuần**: hiện mỗi lớp có đúng **1 thứ + 1 ca**. Muốn dạy nhiều buổi thì tạo nhiều lớp (ví dụ `YOGA01-T2`, `YOGA01-T4`), mỗi lớp đăng ký riêng; cách này không cần sửa gì và đủ cho phạm vi bài. Nếu giảng viên muốn **một lớp có nhiều buổi**, đổi mô hình thành bảng `ClassSchedules(ClassId, DayOfWeek, SlotId)` (một lớp – nhiều dòng lịch, nhiều ca trong cùng một ngày cũng là nhiều dòng) và thêm `SlotId` vào `Attendances` (khóa `RegistrationId + SessionDate + SlotId`). Kéo theo sửa: trùng phòng/HLV (C2, C3) xét mọi dòng lịch, trùng lịch member (B5) xét giao của hai tập lịch, hủy đăng ký (B6) lấy buổi gần nhất trong mọi dòng lịch, danh sách buổi điểm danh (`Rules.SessionDates`) trả về cặp (ngày, ca), màn Lịch của tôi và form tạo lớp (thêm nhiều dòng thứ + ca).
+5. **Việc điểm danh của lễ tân**: đề ghi lễ tân "điểm danh thành viên khi đến trung tâm". Nhóm đã bỏ việc điểm danh **buổi học** khỏi lễ tân (chỉ coach làm), nên hiện lễ tân chưa có chức năng riêng cho dòng này. Nếu giảng viên hỏi, hướng làm là **check-in gym**: thêm cờ `IncludesGym` trên `MembershipPackages` và bảng `GymVisits(MemberId, VisitDate, CheckInTime, CheckedInBy)`; lễ tân check-in khi member có gói còn hạn **và** gói đó gồm gym, mỗi ngày một lượt. Cách này không đụng luật nối tiếp gói (P3) nên nhẹ hơn tạo loại gói gym riêng.
