@@ -171,6 +171,16 @@ namespace SportsCenter
                 Msg.Warn("Vui lòng nhập Họ tên và Tên đăng nhập.");
                 return;
             }
+            if (AccountHelper.FullNameError(fullName) is string nameError)
+            {
+                Msg.Warn(nameError);
+                return;
+            }
+            if (AccountHelper.UsernameError(username) is string usernameError)
+            {
+                Msg.Warn(usernameError);
+                return;
+            }
             if (_db.Users.Any(u => u.Username == username))
             {
                 Msg.Warn("Tên đăng nhập đã tồn tại.");

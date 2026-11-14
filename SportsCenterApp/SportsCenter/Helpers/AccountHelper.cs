@@ -23,31 +23,48 @@ namespace SportsCenter
             return string.Join(' ', sb.ToString().Split(' ', StringSplitOptions.RemoveEmptyEntries));
         }
 
-        // Các hồ sơ member trùng CẢ họ tên LẪN số điện thoại (không phân biệt hoa thường và dấu), kể cả hồ sơ đã có tài khoản.
-        // Coi là cùng một người: không tạo thêm hồ sơ.
-        public static List<Member> FindSamePerson(SportsCenterContext db, string fullName, string phone)
+        // Mỗi số điện thoại chỉ thuộc về MỘT member (kể cả hồ sơ đã có tài khoản hay đăng ký tại quầy).
+        // Trả về hồ sơ đang dùng số này, hoặc null nếu số còn trống.
+        public static Member? FindByPhone(SportsCenterContext db, string phone) =>
+            db.Members.AsNoTracking().OrderBy(m => m.MemberId).FirstOrDefault(m => m.Phone == phone);
+
+        // Kết quả kiểm tra số điện thoại khi tự đăng ký tài khoản
+        public enum PhoneCheck
         {
-            string name = Normalize(fullName);
-            return db.Members.AsNoTracking()
-                .Where(m => m.Phone == phone)
-                .ToList()
-                .Where(m => Normalize(m.FullName) == name)
-                .ToList();
+            Free,                // số chưa có ai dùng: tạo hồ sơ mới
+            LinkCounterProfile,  // số thuộc hồ sơ tại quầy (chưa có tài khoản) và đúng họ tên: hỏi gắn vào hồ sơ đó
+            AlreadyRegistered    // số đã thuộc về người khác (có tài khoản, hoặc hồ sơ quầy khác họ tên): không cho đăng ký
         }
 
-        // Hồ sơ khác đang dùng cùng số điện thoại nhưng khác họ tên (có thể là người nhà dùng chung số): chỉ cảnh báo
-        public static List<Member> FindSamePhoneOtherName(SportsCenterContext db, string fullName, string phone)
+        public static (PhoneCheck Result, Member? Profile) CheckPhoneForRegistration(SportsCenterContext db, string fullName, string phone)
         {
-            string name = Normalize(fullName);
-            return db.Members.AsNoTracking()
-                .Where(m => m.Phone == phone)
-                .ToList()
-                .Where(m => Normalize(m.FullName) != name)
-                .ToList();
+            if (FindByPhone(db, phone) == null) return (PhoneCheck.Free, null);
+            var counter = FindCounterProfiles(db, fullName, phone);
+            if (counter.Count > 0) return (PhoneCheck.LinkCounterProfile, counter[0]);
+            return (PhoneCheck.AlreadyRegistered, null);
         }
 
         // Email đơn giản: có @ và có dấu chấm ở phần sau, không có khoảng trắng
         public static bool IsValidEmail(string email) => Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$");
+
+        // Tên đăng nhập: 3-30 ký tự, chỉ gồm chữ không dấu, số, dấu chấm hoặc gạch dưới (không có khoảng trắng). Trả về lỗi hoặc null.
+        public static string? UsernameError(string username)
+        {
+            if (username.Length < 3 || username.Length > 30) return "Tên đăng nhập gồm 3-30 ký tự.";
+            if (!Regex.IsMatch(username, @"^[A-Za-z0-9._]+$"))
+                return "Tên đăng nhập chỉ gồm chữ không dấu, số, dấu chấm hoặc gạch dưới (không có khoảng trắng).";
+            return null;
+        }
+
+        // Họ tên: 2-100 ký tự, chỉ gồm chữ cái (có dấu), khoảng trắng, dấu chấm, dấu nháy hoặc gạch nối; không có số. Trả về lỗi hoặc null.
+        public static string? FullNameError(string fullName)
+        {
+            string n = fullName.Trim().Normalize(NormalizationForm.FormC);
+            if (n.Length < 2 || n.Length > 100) return "Họ tên gồm 2-100 ký tự.";
+            if (!Regex.IsMatch(n, @"^\p{L}[\p{L}\p{M} .'’-]*$"))
+                return "Họ tên chỉ gồm chữ cái và khoảng trắng, không có số hoặc ký tự đặc biệt.";
+            return null;
+        }
 
         // Hồ sơ đăng ký tại quầy (chưa có tài khoản) khớp CẢ số điện thoại LẪN họ tên.
         // Chỉ biết số điện thoại thì không đủ để tìm ra hồ sơ.

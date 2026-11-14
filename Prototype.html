@@ -175,6 +175,9 @@ const iso=d=>{const x=new Date(d);return x.getFullYear()+'-'+String(x.getMonth()
 const v=id=>document.getElementById(id)?.value??'';
 /* Chuẩn hóa họ tên để so trùng: bỏ dấu, chữ thường, gộp khoảng trắng ("Vũ  Anh Tuấn" == "vu anh tuan") */
 const normName=s=>String(s??'').toLowerCase().replace(/đ/g,'d').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().split(/\s+/).join(' ');
+/* Định dạng: tên đăng nhập 3-30 ký tự (chữ không dấu, số, . hoặc _); họ tên 2-100 ký tự, chỉ chữ cái và khoảng trắng. Trả về lỗi hoặc '' */
+const usernameErr=u=>u.length<3||u.length>30?'Tên đăng nhập gồm 3-30 ký tự.':!/^[A-Za-z0-9._]+$/.test(u)?'Tên đăng nhập chỉ gồm chữ không dấu, số, dấu chấm hoặc gạch dưới (không có khoảng trắng).':'';
+const nameErr=n=>{n=String(n).trim().normalize('NFC');return n.length<2||n.length>100?'Họ tên gồm 2-100 ký tự.':!/^\p{L}[\p{L}\p{M} .'’-]*$/u.test(n)?'Họ tên chỉ gồm chữ cái và khoảng trắng, không có số hoặc ký tự đặc biệt.':''};
 const $=s=>document.querySelector(s);
 let toastTimer;
 function toast(msg,bad){const t=$('#toast');t.textContent=msg;t.className='toast'+(bad?' bad':'');t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.hidden=true,3800)}
@@ -360,7 +363,7 @@ function sRegister(){
     return `<div class="login"><h1>Đã có hồ sơ tại quầy</h1><p class="hint" style="margin:0 0 16px">Hệ thống tìm thấy hồ sơ khớp họ tên và số điện thoại bạn vừa nhập.</p>
     <div class="grp"><div class="gb"><div class="inv"><dl><dt>Họ tên</dt><dd>${esc(m.name)}</dd><dt>Điện thoại</dt><dd>${esc(m.phone)}</dd><dt>Gói hiện tại</dt><dd>${sub?esc(byId(D.packages,sub.pkgId).name)+' · '+subPill(sub):'Chưa có gói'}</dd></dl></div>
     <p class="hint" style="margin:12px 0">Gắn tài khoản mới vào hồ sơ này để xem lại gói, hóa đơn và lớp đã đăng ký tại quầy.</p>
-    <div class="row"><button class="btn p" data-act="regLink" style="flex:1">Gắn vào hồ sơ này</button><button class="btn" data-act="regNew" style="flex:1">Tạo hồ sơ mới</button></div></div></div></div>`}
+    <div class="row"><button class="btn p" data-act="regLink" style="flex:1">Gắn vào hồ sơ này</button><button class="btn" data-act="regBack" style="flex:1">Quay lại</button></div></div></div></div>`}
   return `<div class="login"><h1>Tạo tài khoản</h1><p class="hint" style="margin:0 0 16px">Dành cho thành viên mới của trung tâm.</p>
   <div class="grp"><div class="gb regform" style="display:flex;flex-direction:column;gap:14px">
   <div class="f"><label for="rn">Họ tên</label><input id="rn" autocomplete="off"><div class="err" id="e-rn"></div></div>
@@ -615,28 +618,27 @@ const ACT={
   toRegister(){authView='register';render()},toLogin(){authView='login';S.regConfirm=null;render()},
   togglePw(el){const show=el.textContent==='Hiện';['rp','rp2','np','np2'].forEach(i=>{const x=document.getElementById(i);if(x)x.type=show?'text':'password'});el.textContent=show?'Ẩn':'Hiện'},
   register(){const n=v('rn').trim(),ph=v('rph').trim(),u=v('ru').trim(),p=v('rp'),p2=v('rp2'),E={};
-    if(!n)E.rn='Vui lòng nhập họ tên.';
-    if(!ph)E.rph='Vui lòng nhập số điện thoại.';else if(!/^0\d{9,10}$/.test(ph))E.rph='Số điện thoại gồm 10-11 chữ số, bắt đầu bằng 0.';else if(D.members.some(m=>m.userId&&m.phone===ph&&normName(m.name)===normName(n)))E.rph='Họ tên và số điện thoại này đã có tài khoản. Hãy đăng nhập, hoặc nhờ lễ tân nếu quên mật khẩu.';
-    if(!u)E.ru='Vui lòng nhập tên đăng nhập.';else if(D.users.some(x=>x.username.toLowerCase()===u.toLowerCase()))E.ru='Tên đăng nhập này đã có người dùng.';
+    if(!n)E.rn='Vui lòng nhập họ tên.';else if(nameErr(n))E.rn=nameErr(n);
+    if(!ph)E.rph='Vui lòng nhập số điện thoại.';else if(!/^0\d{9,10}$/.test(ph))E.rph='Số điện thoại gồm 10-11 chữ số, bắt đầu bằng 0.';else{const own=D.members.find(m=>m.phone===ph);if(own&&!(!own.userId&&normName(own.name)===normName(n)))E.rph='Số điện thoại này đã được đăng ký. Hãy đăng nhập nếu đây là số của bạn, hoặc nhờ lễ tân kiểm tra.'}
+    if(!u)E.ru='Vui lòng nhập tên đăng nhập.';else if(usernameErr(u))E.ru=usernameErr(u);else if(D.users.some(x=>x.username.toLowerCase()===u.toLowerCase()))E.ru='Tên đăng nhập này đã có người dùng.';
     if(!p)E.rp='Vui lòng nhập mật khẩu.';else if(p.length<6)E.rp='Mật khẩu cần ít nhất 6 ký tự.';else if(p.toLowerCase()===u.toLowerCase())E.rp='Mật khẩu không được trùng tên đăng nhập.';
     if(!p2)E.rp2='Vui lòng nhập lại mật khẩu.';else if(p!==p2)E.rp2='Hai mật khẩu chưa khớp.';
     document.querySelectorAll('.err').forEach(x=>x.textContent='');document.querySelectorAll('[aria-invalid]').forEach(x=>x.removeAttribute('aria-invalid'));
     const keys=Object.keys(E);
     if(keys.length){keys.forEach(k=>{document.getElementById('e-'+k).textContent=E[k];document.getElementById(k).setAttribute('aria-invalid','true')});document.getElementById(keys[0]).focus();return}
-    /* Khớp CẢ số điện thoại LẪN họ tên (không phân biệt hoa thường và dấu), chỉ đề nghị gắn khi có đúng một hồ sơ */
-    const norm=s=>s.toLowerCase().replace(/đ/g,'d').normalize('NFD').replace(/[̀-ͯ]/g,'').trim().split(/\s+/).join(' ');
-    const matches=D.members.filter(m=>!m.userId&&m.phone===ph&&norm(m.name)===norm(n));
-    if(matches.length===1){S.regConfirm={n,ph,u,p,mid:matches[0].id};render();return}
-    ACT.finishRegister({n,ph,u,p},null,matches.length>1)},
-  finishRegister(c,linkId,many){
+    /* Số điện thoại thuộc một hồ sơ tại quầy đúng họ tên: phải gắn vào hồ sơ đó (mỗi số điện thoại chỉ có một hồ sơ) */
+    const own=D.members.find(m=>m.phone===ph);
+    if(own){S.regConfirm={n,ph,u,p,mid:own.id};render();return}
+    ACT.finishRegister({n,ph,u,p},null)},
+  finishRegister(c,linkId){
     const nu={id:D.users.length+1,username:c.u,name:c.n,role:'Member',active:true,pw:c.p};D.users.push(nu);
     if(linkId)byId(D.members,linkId).userId=nu.id;
     else D.members.push({id:D.members.length+1,userId:nu.id,name:c.n,phone:c.ph,email:''});
     S.regConfirm=null;loginAs(nu);
     if(linkId)log('LinkMember','Tài khoản '+c.u+' gắn vào hồ sơ quầy '+byId(D.members,linkId).name+' (#'+linkId+')');
-    toast('Tạo tài khoản thành công.'+(linkId?' Tài khoản đã được gắn vào hồ sơ tại quầy của bạn.':many?' Có nhiều hồ sơ tại quầy trùng thông tin nên chưa tự gắn, hãy nhờ lễ tân kiểm tra.':''))},
-  regLink(){const c=S.regConfirm;ACT.finishRegister(c,c.mid,false)},
-  regNew(){const c=S.regConfirm;ACT.finishRegister(c,null,false)},
+    toast('Tạo tài khoản thành công.'+(linkId?' Tài khoản đã được gắn vào hồ sơ tại quầy của bạn.':''))},
+  regLink(){const c=S.regConfirm;ACT.finishRegister(c,c.mid)},
+  regBack(){S.regConfirm=null;render();toast('Số điện thoại này đã có hồ sơ tại quầy. Hãy gắn tài khoản vào hồ sơ đó, hoặc dùng số điện thoại khác.',true)},
   logout(){S.user=null;authView='login';render()},
   openPw(){S.pwOpen=true;render();document.getElementById('op')?.focus()},closePw(){S.pwOpen=false;render()},
   go(el){S.screen=el.dataset.id;S.open=undefined;render()},
@@ -681,15 +683,12 @@ const ACT={
   fClear(el){const k=el.dataset.k;Object.keys(S.flt[k]).forEach(n=>S.flt[k][n]='');S.page[k]=1;main()},
   addMember(){const n=v('mn').trim(),ph=v('mp').trim(),em=v('me').trim();
     if(!n||!ph)return toast('Nhập họ tên và số điện thoại.',true);
+    if(nameErr(n))return toast(nameErr(n),true);
     if(!/^0\d{9,10}$/.test(ph))return toast('Số điện thoại gồm 10-11 chữ số, bắt đầu bằng 0.',true);
     if(em&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em))return toast('Email chưa đúng định dạng (VD: ten@mail.com). Có thể để trống.',true);
-    /* cùng họ tên VÀ cùng SĐT = cùng một người: không tạo thêm */
-    const same=D.members.find(m=>m.phone===ph&&normName(m.name)===normName(n));
-    if(same)return toast('Đã có member "'+same.name+'" (#'+same.id+') cùng họ tên và số điện thoại ('+(same.userId?'đã có tài khoản':'đăng ký tại quầy')+'). Không tạo thêm hồ sơ trùng.',true);
-    /* cùng SĐT khác họ tên (người nhà dùng chung số): hỏi lại; bấm Đăng ký lần nữa để xác nhận */
-    const other=D.members.find(m=>m.phone===ph&&normName(m.name)!==normName(n));
-    if(other&&!(S.memForce&&S.memForce.n===n&&S.memForce.ph===ph)){S.memForce={n,ph};return toast('Số '+ph+' đang dùng cho member "'+other.name+'". Nếu là người nhà dùng chung số, bấm Đăng ký lần nữa để tạo hồ sơ mới.',true)}
-    S.memForce=null;
+    /* mỗi số điện thoại chỉ thuộc về một member */
+    const own=D.members.find(m=>m.phone===ph);
+    if(own)return toast('Số điện thoại '+ph+' đã thuộc về member "'+own.name+'" (#'+own.id+', '+(own.userId?'đã có tài khoản':'đăng ký tại quầy')+'). Mỗi số điện thoại chỉ dùng cho một member, hãy dùng hồ sơ đó trong danh sách.',true);
     D.members.push({id:D.members.length+1,userId:null,name:n,phone:ph,email:em});log('CreateMember',n);toast('Đã đăng ký member mới tại quầy.');main()},
   buyFor(el){S.actMember=+el.dataset.id;S.screen='buy';S.open=undefined;render()},
   /* buy */
@@ -711,7 +710,7 @@ const ACT={
   /* users */
   setRole(el){const u=byId(D.users,el.dataset.id);u.role=el.value;log('SetRole',u.username+' → '+u.role);toast('Đã đổi role.')},
   toggleUser(el){const u=byId(D.users,el.dataset.id);u.active=!u.active;log('ToggleUser',u.username);main()},
-  addUser(){const n=v('un').trim(),u=v('uu').trim();if(!n||!u)return toast('Nhập họ tên và username.',true);if(D.users.some(x=>x.username===u))return toast('Username đã tồn tại.',true);
+  addUser(){const n=v('un').trim(),u=v('uu').trim();if(!n||!u)return toast('Nhập họ tên và username.',true);if(nameErr(n))return toast(nameErr(n),true);if(usernameErr(u))return toast(usernameErr(u),true);if(D.users.some(x=>x.username.toLowerCase()===u.toLowerCase()))return toast('Username đã tồn tại.',true);
     const nu={id:D.users.length+1,username:u,name:n,role:v('ur'),active:true};D.users.push(nu);
     if(nu.role==='Coach')D.coaches.push({id:D.coaches.length+1,name:n,spec:'',userId:nu.id});
     if(nu.role==='Member')D.members.push({id:D.members.length+1,userId:nu.id,name:n,phone:'',email:''});

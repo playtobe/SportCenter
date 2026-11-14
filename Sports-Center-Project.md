@@ -124,10 +124,10 @@ Mã luật dùng để trao đổi trong nhóm, **không hiển thị cho ngư�
 
 ### Tài khoản
 - **A1 Login**: username tồn tại, `IsActive = 1`, hash mật khẩu khớp. Đúng thì vào menu theo `Role`.
-- **A2 Register**: chỉ tạo role Member. Họ tên, số điện thoại (10-11 số, bắt đầu bằng 0), username không trùng, mật khẩu, nhập lại mật khẩu. Mật khẩu tối thiểu 6 ký tự, hai ô phải khớp, không trùng username. Tạo cùng lúc một dòng `Users` và một dòng `Members`. **Gắn vào hồ sơ tại quầy**: nếu số điện thoại **và** họ tên (không phân biệt hoa thường và dấu) khớp **đúng một** hồ sơ đăng ký tại quầy chưa có tài khoản, hệ thống hỏi xác nhận rồi gắn tài khoản vào hồ sơ đó thay vì tạo hồ sơ mới, nên khách thấy lại gói, hóa đơn, lớp cũ. Có nhiều hồ sơ trùng thì không tự gắn. Mỗi lần gắn ghi `LinkMember` vào lịch sử hoạt động. **Giới hạn đã cân nhắc**: ai biết cả họ tên lẫn số điện thoại của khách vẫn gắn được; muốn chặt hơn phải dùng mã liên kết hoặc để lễ tân gắn tay.
+- **A2 Register**: chỉ tạo role Member. Gồm họ tên, số điện thoại, tên đăng nhập, mật khẩu, nhập lại mật khẩu. **Họ tên**: 2-100 ký tự, chỉ chữ cái (có dấu) và khoảng trắng, không có số hay ký tự lạ. **Số điện thoại**: 10-11 số, bắt đầu bằng 0 và **không trùng với member nào** (A5). **Tên đăng nhập**: 3-30 ký tự, chỉ chữ không dấu, số, `.` hoặc `_`, không khoảng trắng, không trùng (không phân biệt hoa thường). Mật khẩu tối thiểu 6 ký tự, hai ô phải khớp, không trùng username. Tạo cùng lúc một dòng `Users` và một dòng `Members`. **Gắn vào hồ sơ tại quầy**: nếu số điện thoại đã thuộc về một hồ sơ đăng ký tại quầy (chưa có tài khoản) **và** họ tên khớp (không phân biệt hoa thường và dấu), hệ thống hỏi xác nhận rồi gắn tài khoản vào hồ sơ đó thay vì tạo hồ sơ mới, nên khách thấy lại gói, hóa đơn, lớp cũ. Chọn không gắn thì không tạo tài khoản (vì không được có hai hồ sơ cùng số). Số đã thuộc về người khác (đã có tài khoản, hoặc hồ sơ quầy khác họ tên) thì báo lỗi. Mỗi lần gắn ghi `LinkMember` vào lịch sử hoạt động. **Giới hạn đã cân nhắc**: ai biết cả họ tên lẫn số điện thoại của khách vẫn gắn được; muốn chặt hơn phải dùng mã liên kết hoặc để lễ tân gắn tay.
 - **A3**: Manager không được tự khóa hoặc tự đổi role của chính mình. Tạo user role Coach thì tạo kèm dòng `Coaches`, role Member thì tạo kèm `Members`.
 - **A4**: ghi `AuditLogs` cho Login, tạo lớp, đăng ký lớp, hủy lớp, thanh toán, đổi mật khẩu…
-- **A5 Chống trùng hồ sơ member**: đăng ký tại quầy mà đã có member cùng họ tên **và** cùng số điện thoại (không phân biệt hoa thường và dấu) thì chặn, không tạo thêm hồ sơ. Cùng số điện thoại nhưng khác họ tên (người nhà dùng chung số) thì hỏi xác nhận. Tự đăng ký tài khoản mà họ tên và số điện thoại đó đã có tài khoản thì báo lỗi, hướng dẫn đăng nhập. Email nếu có nhập thì phải đúng định dạng.
+- **A5 Số điện thoại duy nhất**: mỗi số điện thoại chỉ thuộc về **một** member (hồ sơ đã có tài khoản hay đăng ký tại quầy đều tính). Đăng ký member tại quầy mà số đã có chủ thì chặn, nêu rõ chủ của số và lọc sẵn danh sách ra hồ sơ cũ. Database cũng có chỉ mục duy nhất `UX_Members_Phone` làm lớp chặn cuối cùng. Họ tên và tên đăng nhập theo luật định dạng ở A2 (Manager tạo tài khoản cũng áp dụng). Email nếu có nhập thì phải đúng định dạng.
 - **Đổi mật khẩu**: phải nhập đúng mật khẩu hiện tại; mật khẩu mới ≥ 6 ký tự, khác mật khẩu cũ, không trùng username, hai ô khớp.
 
 ### Gói thành viên
@@ -214,7 +214,7 @@ Ghi chú thiết kế:
 - `Members.UserId` cho phép **NULL**: khách đăng ký tại quầy chưa cần tài khoản.
 - `Users.Email` cho phép NULL (không bắt buộc).
 - `Classes` chứa `DayOfWeek` và `SlotId`, không còn cột giờ bắt đầu hoặc kết thúc.
-- Luật trùng phòng, trùng HLV, sĩ số, gói còn hạn để **BLL** xử lý. DB chỉ chặn đăng ký trùng bằng filtered unique index trên `Registrations(MemberId, ClassId) WHERE Status = 'Registered'`.
+- Luật trùng phòng, trùng HLV, sĩ số, gói còn hạn để **BLL** xử lý. DB chỉ chặn bằng filtered unique index: `Registrations(MemberId, ClassId) WHERE Status = 'Registered'` (đăng ký trùng lớp) và `Members(Phone) WHERE Phone IS NOT NULL` (số điện thoại duy nhất).
 - Tên bảng số nhiều, entity số ít (`Users` → `User`), giống khuôn scaffold của Q2.
 
 ### Chạy script
@@ -318,7 +318,7 @@ Luật dùng chung giữa nhiều màn (đăng ký lớp, hủy lớp, ca trốn
 2. Mở `SportsCenterApp\SportsCenterApp.sln` bằng Visual Studio 2022, kiểm tra `SportsCenter\appsettings.json` (xem mục 6).
 3. Chạy (F5) và đăng nhập bằng một tài khoản mẫu ở mục 5.
 
-**Đã kiểm tra** (bằng bộ test tự động mô phỏng thao tác trên database tạm LocalDB, hơn 120 kiểm tra cho app và gần 100 cho prototype, không mở cửa sổ nào): hiển thị tiếng Việt (dữ liệu mẫu, tên vai trò, tên hành động), hộp thoại đổi mật khẩu, hủy đăng ký lớp trước 24 giờ, mua gói nối tiếp nhau, menu và nút theo từng role (Manager không bán gói, không đặt lớp, không đăng ký member tại quầy), chống trùng hồ sơ member và tên gói, gắn tài khoản vào hồ sơ tại quầy, màn Điểm danh (chọn buổi, bấm cả dòng, lưu), chặn hủy lớp còn học viên. Các phần còn lại (đăng nhập, tạo lớp, báo cáo, phân trang, bộ lọc…) đã kiểm tra ở các đợt trước nhưng **chưa chạy lại trọn bộ** sau những lần sửa gần đây.
+**Đã kiểm tra** (bằng bộ test tự động mô phỏng thao tác trên database tạm LocalDB, hơn 140 kiểm tra cho app và hơn 120 cho prototype, không mở cửa sổ nào): hiển thị tiếng Việt (dữ liệu mẫu, tên vai trò, tên hành động), hộp thoại đổi mật khẩu, hủy đăng ký lớp trước 24 giờ, mua gói nối tiếp nhau, menu và nút theo từng role (Manager không bán gói, không đặt lớp, không đăng ký member tại quầy), số điện thoại duy nhất, định dạng họ tên và tên đăng nhập, chống trùng tên gói, gắn tài khoản vào hồ sơ tại quầy, màn Điểm danh (chọn buổi, bấm cả dòng, lưu), chặn hủy lớp còn học viên. Các phần còn lại (đăng nhập, tạo lớp, báo cáo, phân trang, bộ lọc…) đã kiểm tra ở các đợt trước nhưng **chưa chạy lại trọn bộ** sau những lần sửa gần đây.
 
 **Chưa kiểm tra**: chạy trên SQL Server của từng máy trong nhóm (chuỗi kết nối `(local)`), thao tác chuột bàn phím thật, và thiết kế trong Visual Studio Designer. Nhóm nên chạy thử và báo lại chỗ nào lỗi.
 

@@ -75,6 +75,8 @@ CREATE TABLE Members (
     CONSTRAINT FK_Members_Users FOREIGN KEY (UserId) REFERENCES Users(UserId)
 );
 CREATE UNIQUE INDEX UX_Members_UserId ON Members(UserId) WHERE UserId IS NOT NULL;
+-- Moi so dien thoai chi thuoc ve MOT member (app cung kiem tra truoc, day la lop chan cuoi cung o database)
+CREATE UNIQUE INDEX UX_Members_Phone ON Members(Phone) WHERE Phone IS NOT NULL;
 GO
 CREATE TABLE Coaches (
     CoachId   INT IDENTITY(1,1) PRIMARY KEY,
