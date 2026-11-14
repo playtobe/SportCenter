@@ -234,7 +234,9 @@ const D={
 [[1,1],[1,3],[2,1],[2,6],[3,3],[3,7],[5,5],[1,7],[2,7]].forEach(([m,c],i)=>D.regs.push({id:i+1,memberId:m,classId:c,status:'Registered'}));
 D.regs.push({id:10,memberId:3,classId:2,status:'Cancelled'});
 /* Lớp học chỉ lưu slotId; s/e (giờ bắt đầu/kết thúc) lấy từ ca, giống JOIN với TimeSlots */
-function mk(c){Object.defineProperties(c,{s:{get(){return byId(D.slots,c.slotId).s}},e:{get(){return byId(D.slots,c.slotId).e}}});return c}
+/* from/to = ngày bắt đầu / ngày kết thúc của lớp (Classes.StartDate / EndDate). Lớp mẫu giống SportsCenter.sql: từ 14 ngày trước đến 60 ngày sau */
+function mk(c){c.from=c.from||addDays(T,-14);c.to=c.to||addDays(T,60);
+  Object.defineProperties(c,{s:{get(){return byId(D.slots,c.slotId).s}},e:{get(){return byId(D.slots,c.slotId).e}}});return c}
 D.classes.forEach(mk);
 
 /* ---- Dữ liệu mẫu bổ sung (chỉ dành cho prototype) để các danh sách đủ dài, xem được phân trang ---- */
@@ -300,7 +302,7 @@ function log(action,detail){D.audit.unshift({at:new Date(),user:S.user?.username
 function tryRegister(mid,cid){
   const c=byId(D.classes,cid);
   if(!activeSub(mid))return 'Member chưa có gói còn hạn nên không đăng ký lớp được.';
-  if(c.status!=='Open')return 'Lớp đã đóng hoặc đã hủy.';
+  if(c.status!=='Open'||c.to<T)return 'Lớp đã đóng, đã hủy hoặc đã kết thúc.';   /* B2: lớp quá ngày kết thúc thì không đăng ký nữa */
   if(myReg(mid,cid))return 'Member đã đăng ký lớp này rồi.';
   if(regCount(cid)>=c.cap)return 'Lớp đã đầy ('+c.cap+'/'+c.cap+').';
   const clash=D.regs.filter(r=>r.memberId==mid&&r.status==='Registered').map(r=>byId(D.classes,r.classId)).find(o=>overlap(o,c));
@@ -413,7 +415,9 @@ function sClasses(){
     <div class="row" style="margin-top:10px"><div class="f"><label for="cr">Phòng</label><select id="cr" data-chg="refreshSlots">${opt(D.rooms,'name','')}</select></div>
     <div class="f"><label for="cd">Thứ</label><select id="cd" data-chg="refreshSlots">${dayOpts(D.rooms[0].id,D.coaches[0].id)}</select></div>
     <div class="f"><label for="cb">Ca học</label><select id="cb">${slotOpts(D.rooms[0].id,D.coaches[0].id)}</select></div>
-    <div class="f"><label for="ck">Sĩ số tối đa</label><input id="ck" type="number" value="15"></div></div>
+    <div class="f"><label for="ck">Sĩ số tối đa</label><input id="ck" type="number" value="15"></div>
+    <div class="f"><label for="cf">Từ ngày</label><input id="cf" type="date" value="${iso(T)}"></div>
+    <div class="f"><label for="ct">Đến ngày</label><input id="ct" type="date" value="${iso(addDays(T,90))}"></div></div>
     <div class="row" style="margin-top:12px;justify-content:flex-end"><button class="btn p" id="addClassBtn" data-act="addClass">Thêm lớp</button><button class="btn" data-act="clearClass">Nhập lại</button></div>
         <div class="hint" id="noSlot" hidden style="color:var(--bad)">HLV và phòng này đã kín lịch cả tuần, hãy chọn HLV hoặc phòng khác.</div></div></fieldset>`}
 
@@ -471,7 +475,7 @@ function sMySchedule(){
   const regs=D.regs.filter(r=>r.memberId==mid);
   const active=new Set(regs.filter(r=>r.status==='Registered').map(r=>r.classId));
   const attOf=(c,date)=>regs.filter(r=>r.classId===c.id).map(r=>D.att.find(a=>a.regId===r.id&&a.date===iso(date))).find(Boolean);
-  const classOf=(d,sl,date)=>D.classes.find(c=>c.day===d&&c.slotId===sl.id&&regs.some(r=>r.classId===c.id)&&(attOf(c,date)||(active.has(c.id)&&c.status!=='Cancelled')));
+  const classOf=(d,sl,date)=>D.classes.find(c=>c.day===d&&c.slotId===sl.id&&regs.some(r=>r.classId===c.id)&&(attOf(c,date)||(active.has(c.id)&&c.status!=='Cancelled'&&c.from<=date&&c.to>=date)));   /* chỉ hiện buổi nằm trong ngày bắt đầu → ngày kết thúc của lớp */
   const isToday=date=>date.getTime()===T.getTime();
   let pre=0,abs=0,pen=0,tot=0;
   const cell=(d,sl,date)=>{
@@ -549,7 +553,9 @@ function sCoach(){
 /* Điểm danh: chọn lớp rồi chọn BUỔI học trong danh sách (không phải tự chọn ngày); bấm cả dòng học viên để đổi Có mặt / Vắng.
    Giống AttendancePage trong app. */
 const CLASS_SESSIONS=12;
-function sessionDates(c){const out=[];let d=T;while(dow(d)!==c.day)d=addDays(d,-1);for(let i=0;i<CLASS_SESSIONS;i++){out.push(iso(d));d=addDays(d,-7)}return out}
+/* Giống Rules.SessionDates: buổi đúng thứ của lớp, nằm trong ngày bắt đầu → ngày kết thúc, không muộn hơn hôm nay, mới nhất trước, tối đa 12 */
+function sessionDates(c){const out=[];let d=T;while(dow(d)!==c.day)d=addDays(d,-1);while(d>c.to)d=addDays(d,-7);
+  while(d>=c.from&&out.length<CLASS_SESSIONS){out.push(iso(d));d=addDays(d,-7)}return out}
 const attStatus=rid=>S.attDraft[rid]||D.att.find(a=>a.regId===rid&&a.date===S.attDate)?.st||'Present';
 function sAttendance(){
   const co=S.user.role==='Coach'?(D.coaches.find(c=>c.userId===S.user.id)||D.coaches[0]):null;
@@ -558,15 +564,16 @@ function sAttendance(){
   const c=byId(D.classes,S.attClass);
   const sess=c?sessionDates(c):[];
   if(!sess.includes(S.attDate))S.attDate=sess[0]||'';
-  const regs=c?D.regs.filter(r=>r.classId===c.id&&r.status==='Registered'):[];
+  const regs=c&&sess.length?D.regs.filter(r=>r.classId===c.id&&r.status==='Registered'):[];
+  const empty=!c?'Chưa có lớp nào để điểm danh.':!sess.length?'Lớp này chưa có buổi học nào để điểm danh (chưa tới ngày bắt đầu).':'Lớp này chưa có học viên đăng ký.';
   const present=regs.filter(r=>attStatus(r.id)==='Present').length;
   const pg=paginate('att',regs);
   return head('attendance')+`<div class="grp"><div class="gh">Chọn buổi học</div><div class="gb"><div class="row"><div class="f"><label for="ac">Lớp</label><select id="ac" data-chg="setAttClass">${cls.map(x=>`<option value="${x.id}" ${x.id==S.attClass?'selected':''}>${esc(x.code)} · ${DAYS[x.day]} ${x.s}</option>`).join('')}</select></div>
   <div class="f"><label for="ad">Buổi học (mới nhất trước)</label><select id="ad" data-chg="setAttDate">${sess.map(s=>`<option value="${s}" ${s===S.attDate?'selected':''}>${DAYFULL[c.day]} ${fd(s+'T00:00:00')}${s===iso(T)?' (hôm nay)':''}</option>`).join('')}</select></div></div></div></div>
   <div class="grp"><div class="gh">Danh sách điểm danh (bấm vào cả dòng để đổi Có mặt / Vắng)</div><div class="gb">
   <div class="sum"><b>${regs.length?`Có mặt ${present}/${regs.length} · Vắng ${regs.length-present}`:''}</b><span><button class="btn" data-act="attAll" data-v="Present">Có mặt tất cả</button> <button class="btn" data-act="attAll" data-v="Absent">Vắng tất cả</button></span></div>
-  ${regs.length?pg.items.map(r=>{const p=attStatus(r.id)==='Present';return `<button type="button" class="arow ${p?'on':''}" data-act="togAtt" data-id="${r.id}" aria-pressed="${p}"><span>${esc(memberName(r.memberId))}</span><b>${p?'✓ Có mặt':'✗ Vắng'}</b></button>`}).join('')+pg.foot:'<div class="hint">Lớp chưa có học viên.</div>'}
-  <div class="row" style="margin-top:12px;justify-content:flex-end"><button class="btn p" data-act="saveAtt">Lưu điểm danh</button></div>
+  ${regs.length?pg.items.map(r=>{const p=attStatus(r.id)==='Present';return `<button type="button" class="arow ${p?'on':''}" data-act="togAtt" data-id="${r.id}" aria-pressed="${p}"><span>${esc(memberName(r.memberId))}</span><b>${p?'✓ Có mặt':'✗ Vắng'}</b></button>`}).join('')+pg.foot:`<div class="hint">${empty}</div>`}
+  <div class="row" style="margin-top:12px;justify-content:flex-end"><button class="btn p" data-act="saveAtt" ${regs.length?'':'disabled'}>Lưu điểm danh</button></div>
   </div></div>`}
 
 const SCREENS={
@@ -646,15 +653,18 @@ const ACT={
   /* classes */
   filter(){S.f.sport=v('fs');S.f.coach=v('fc');S.page.classes=1;main()},
   clearFilter(){S.f={sport:'',coach:''};S.page.classes=1;main()},
-  clearClass(){['cn','cc'].forEach(i=>document.getElementById(i).value='');},
+  clearClass(){['cn','cc'].forEach(i=>document.getElementById(i).value='');document.getElementById('ck').value=15;
+    document.getElementById('cf').value=iso(T);document.getElementById('ct').value=iso(addDays(T,90))},
   /* C4: lớp đang có học viên đăng ký thì không hủy được */
   cancelClass(el){const c=byId(D.classes,el.dataset.id),n=regCount(c.id);
     if(c.status==='Cancelled')return toast('Lớp này đã hủy rồi.',true);
     if(n>0)return toast('Lớp '+c.code+' đang có '+n+' học viên đăng ký nên chưa thể hủy. Hãy hủy đăng ký của các học viên (hoặc nhờ lễ tân hỗ trợ) rồi hủy lớp.',true);
     c.status='Cancelled';log('CancelClass','Hủy lớp '+c.code);toast('Đã hủy lớp '+c.code+'.');main()},
   addClass(){
-    const c={id:D.classes.length+1,code:v('cc').trim().toUpperCase(),name:v('cn').trim(),sportId:+v('cs'),coachId:+v('ch'),roomId:+v('cr'),day:+v('cd'),slotId:+v('cb'),cap:+v('ck'),status:'Open'};
+    const c={id:D.classes.length+1,code:v('cc').trim().toUpperCase(),name:v('cn').trim(),sportId:+v('cs'),coachId:+v('ch'),roomId:+v('cr'),day:+v('cd'),slotId:+v('cb'),cap:+v('ck'),from:new Date(v('cf')+'T00:00:00'),to:new Date(v('ct')+'T00:00:00'),status:'Open'};
     if(!c.code||!c.name||!c.cap)return toast('Vui lòng nhập đầy đủ thông tin lớp.',true);
+    if(!v('cf')||!v('ct'))return toast('Vui lòng chọn Từ ngày và Đến ngày.',true);
+    if(v('ct')<v('cf'))return toast('Ngày kết thúc không được trước ngày bắt đầu.',true);   /* C1 */
     if(D.classes.some(x=>x.code===c.code))return toast('Mã lớp đã tồn tại.',true);
         if(c.cap<=0||c.cap>byId(D.rooms,c.roomId).cap)return toast('Sĩ số phải > 0 và không vượt sức chứa phòng ('+byId(D.rooms,c.roomId).cap+').',true);
     const act=D.classes.filter(x=>x.status!=='Cancelled');

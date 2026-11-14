@@ -151,7 +151,7 @@ Lịch học cố định hằng tuần: mỗi lớp có `DayOfWeek` (1 = Thứ 
 | Ca 5 | 18:00 – 19:30 |
 | Ca 6 | 19:30 – 21:00 |
 
-- **C1**: `ClassCode` không trùng, `Capacity > 0` và không vượt sức chứa phòng, `EndDate >= StartDate`.
+- **C1**: `ClassCode` không trùng, `Capacity > 0` và không vượt sức chứa phòng, `EndDate >= StartDate`. Form thêm lớp có hai ô **Từ ngày** (`StartDate`) và **Đến ngày** (`EndDate`), mặc định hôm nay và 90 ngày sau. Khoảng ngày này quyết định: lớp chưa tới ngày bắt đầu thì chưa có buổi nào để điểm danh; quá ngày kết thúc thì không đăng ký được nữa (B2); Lịch của tôi chỉ hiện các buổi nằm trong khoảng ngày của lớp.
 - **C2 Trùng phòng**: cùng `RoomId`, cùng `DayOfWeek`, cùng `SlotId` và lớp kia chưa hủy. Bản code không xét khoảng ngày (chặn chặt hơn cho đơn giản).
 - **C3 Trùng HLV**: giống C2 nhưng theo `CoachId`.
 - **C4**: lớp không xóa khỏi DB mà chỉ đổi `Status = Cancelled`, và **chỉ hủy được khi không còn học viên đang đăng ký** (phải hủy đăng ký của họ trước, ví dụ lễ tân hỗ trợ). Phòng, bộ môn đang có lớp thì không xóa.
