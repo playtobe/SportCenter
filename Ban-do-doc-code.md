@@ -1,6 +1,6 @@
 # Bản đồ đọc code: Sports Center
 
-Mỗi người đọc **mục 0 và mục 1 (cả nhóm)**, sau đó chỉ đọc **phần của mình**. Phần cuối là bảng tra nhanh từ mã luật sang file và hàm. Cách chia việc nằm ở mục 8 của `Sports-Center-Project.md`.
+Mỗi người đọc **mục 0 và mục 1 (cả nhóm)**, sau đó chỉ đọc **phần của mình**. Phần cuối là bảng tra nhanh từ mã luật sang file và hàm. Cách chia việc (ai làm file nào, quy tắc git) nằm trong `Chia-viec-5-nguoi.md`.
 
 Quy ước: `Tên.xaml` là giao diện, `Tên.xaml.cs` là code-behind của nó. Đường dẫn bên dưới tính từ `SportsCenterApp/SportsCenter/`. Khi cần tìm hàm, hãy tìm theo **tên hàm** (số dòng đổi liên tục nên không ghi).
 
