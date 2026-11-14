@@ -24,12 +24,6 @@ namespace SportsCenter
             GridHelper.Setup(dgPayments);
             pgPayments.PageChanged += (s, e) => LoadPayments();
 
-            cbxStatus.ItemsSource = new List<string> { "Tất cả", "Đã thu", "Đã hoàn" };
-            cbxStatus.SelectedIndex = 0;
-
-            // Chỉ Manager được hoàn tiền
-            btnRefund.Visibility = Session.Role == "Manager" ? Visibility.Visible : Visibility.Collapsed;
-
             LoadPayments();
         }
 
@@ -49,11 +43,6 @@ namespace SportsCenter
             {
                 query = query.Where(p => p.InvoiceNo.Contains(keyword) || p.Member.FullName.Contains(keyword));
             }
-            if (cbxStatus.SelectedItem is string status && status != "Tất cả")
-            {
-                string dbStatus = status == "Đã thu" ? "Paid" : "Refunded";
-                query = query.Where(p => p.Status == dbStatus);
-            }
             if (dpFrom.SelectedDate is DateTime from)
             {
                 query = query.Where(p => p.PaidAt >= from.Date);
@@ -71,8 +60,7 @@ namespace SportsCenter
                     p.InvoiceNo,
                     Member = p.Member.FullName,
                     p.Amount,
-                    p.PaidAt,
-                    Status = p.Status == "Paid" ? "Đã thu" : "Đã hoàn"
+                    p.PaidAt
                 })
                 .ToList();
 
@@ -92,7 +80,6 @@ namespace SportsCenter
                 txtInvoice.Text = "Chọn một hóa đơn trong danh sách.";
                 _invoiceText = "";
                 btnExport.IsEnabled = false;
-                btnRefund.IsEnabled = false;
                 return;
             }
 
@@ -109,13 +96,11 @@ namespace SportsCenter
                 sb.AppendLine($"Hiệu lực: {p.Subscription.StartDate:dd/MM/yyyy} → {p.Subscription.EndDate:dd/MM/yyyy}");
             sb.AppendLine("Phương thức: " + Rules.MethodNames.GetValueOrDefault(p.PaymentMethod, p.PaymentMethod));
             sb.AppendLine($"Số tiền: {p.Amount:N0} ₫");
-            sb.AppendLine($"Ngày thu: {p.PaidAt:dd/MM/yyyy HH:mm}");
-            sb.Append("Trạng thái: " + (p.Status == "Paid" ? "Đã thu" : "Đã hoàn"));
+            sb.Append($"Ngày thu: {p.PaidAt:dd/MM/yyyy HH:mm}");
 
             _invoiceText = sb.ToString();
             txtInvoice.Text = _invoiceText;
             btnExport.IsEnabled = true;
-            btnRefund.IsEnabled = p.Status == "Paid";
         }
 
         private void btnFilter_Click(object sender, RoutedEventArgs e)
@@ -127,7 +112,6 @@ namespace SportsCenter
         private void btnClearFilter_Click(object sender, RoutedEventArgs e)
         {
             txtSearch.Clear();
-            cbxStatus.SelectedIndex = 0;
             dpFrom.SelectedDate = null;
             dpTo.SelectedDate = null;
             pgPayments.Reset();
@@ -150,29 +134,6 @@ namespace SportsCenter
             {
                 File.WriteAllText(dialog.FileName, _invoiceText, Encoding.UTF8);
                 Msg.Info("Đã xuất hóa đơn ra file.");
-            }
-            catch (Exception ex)
-            {
-                Msg.Error(ex);
-            }
-        }
-
-        // Hoàn tiền: hóa đơn chuyển thành Đã hoàn, gói bị hủy, không tính vào doanh thu
-        private void btnRefund_Click(object sender, RoutedEventArgs e)
-        {
-            if (_currentPaymentId == null) return;
-            if (!Msg.Confirm("Hoàn tiền hóa đơn này? Gói thành viên tương ứng sẽ bị hủy.")) return;
-
-            try
-            {
-                var p = _db.Payments.Include(x => x.Subscription).First(x => x.PaymentId == _currentPaymentId);
-                p.Status = "Refunded";
-                if (p.Subscription != null) p.Subscription.Status = "Cancelled";
-                _db.SaveChanges();
-                AuditHelper.Log(_db, "Refund", $"Hoàn {p.InvoiceNo}", "Payments", p.PaymentId);
-
-                LoadPayments();
-                Msg.Info("Đã hoàn tiền " + p.InvoiceNo + ".");
             }
             catch (Exception ex)
             {

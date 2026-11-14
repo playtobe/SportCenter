@@ -29,7 +29,7 @@ Tài liệu tóm tắt phạm vi, thiết kế và quy ước cho **Group Projec
 
 Các quyết định đã chốt trong quá trình thiết kế:
 
-- Thanh toán **chỉ ghi nhận** vào DB, không nối cổng thanh toán thật.
+- Thanh toán **chỉ ghi nhận** vào DB, không nối cổng thanh toán thật. **Không có hoàn tiền** (đã bỏ); Manager chỉ xem danh sách thanh toán và doanh thu.
 - Form Đăng ký **không có email** (hệ thống không gửi mail). Thay bằng số điện thoại.
 - Đổi mật khẩu là một **hộp thoại nhỏ** mở từ nút ở chân menu, không có màn Cài đặt riêng. Chỉ đổi được mật khẩu; họ tên và username không sửa được (nhờ Manager hoặc lễ tân).
 - **Không có mục tiêu tập luyện** (đã bỏ khỏi DB và giao diện).
@@ -106,7 +106,7 @@ Nếu cần cắt cho kịp thời gian: bỏ P2 (10, 16, 17) và P1 (4, 14) cò
 | Màn | Lọc theo |
 |---|---|
 | Quản lý lớp | Bộ môn, huấn luyện viên (kiểu Q2: có mục "Tất cả") |
-| Thanh toán | Mã hóa đơn hoặc tên member, trạng thái (Đã thu, Đã hoàn), từ ngày, đến ngày |
+| Thanh toán | Mã hóa đơn hoặc tên member, từ ngày, đến ngày |
 | Lịch sử hoạt động | Từ khóa (chi tiết, mã), người dùng, hành động, từ ngày, đến ngày |
 | Tài khoản | Tên đăng nhập hoặc họ tên, vai trò |
 | Đặt lớp | Mã hoặc tên lớp, bộ môn |
@@ -126,7 +126,7 @@ Mã luật dùng để trao đổi trong nhóm, **không hiển thị cho ngư�
 - **A1 Login**: username tồn tại, `IsActive = 1`, hash mật khẩu khớp. Đúng thì vào menu theo `Role`.
 - **A2 Register**: chỉ tạo role Member. Họ tên, số điện thoại (10-11 số, bắt đầu bằng 0), username không trùng, mật khẩu, nhập lại mật khẩu. Mật khẩu tối thiểu 6 ký tự, hai ô phải khớp, không trùng username. Tạo cùng lúc một dòng `Users` và một dòng `Members`. **Gắn vào hồ sơ tại quầy**: nếu số điện thoại **và** họ tên (không phân biệt hoa thường và dấu) khớp **đúng một** hồ sơ đăng ký tại quầy chưa có tài khoản, hệ thống hỏi xác nhận rồi gắn tài khoản vào hồ sơ đó thay vì tạo hồ sơ mới, nên khách thấy lại gói, hóa đơn, lớp cũ. Có nhiều hồ sơ trùng thì không tự gắn. Mỗi lần gắn ghi `LinkMember` vào lịch sử hoạt động. **Giới hạn đã cân nhắc**: ai biết cả họ tên lẫn số điện thoại của khách vẫn gắn được; muốn chặt hơn phải dùng mã liên kết hoặc để lễ tân gắn tay.
 - **A3**: Manager không được tự khóa hoặc tự đổi role của chính mình. Tạo user role Coach thì tạo kèm dòng `Coaches`, role Member thì tạo kèm `Members`.
-- **A4**: ghi `AuditLogs` cho Login, tạo lớp, đăng ký lớp, hủy lớp, thanh toán, hoàn tiền, đổi mật khẩu…
+- **A4**: ghi `AuditLogs` cho Login, tạo lớp, đăng ký lớp, hủy lớp, thanh toán, đổi mật khẩu…
 - **A5 Chống trùng hồ sơ member**: đăng ký tại quầy mà đã có member cùng họ tên **và** cùng số điện thoại (không phân biệt hoa thường và dấu) thì chặn, không tạo thêm hồ sơ. Cùng số điện thoại nhưng khác họ tên (người nhà dùng chung số) thì hỏi xác nhận. Tự đăng ký tài khoản mà họ tên và số điện thoại đó đã có tài khoản thì báo lỗi, hướng dẫn đăng nhập. Email nếu có nhập thì phải đúng định dạng.
 - **Đổi mật khẩu**: phải nhập đúng mật khẩu hiện tại; mật khẩu mới ≥ 6 ký tự, khác mật khẩu cũ, không trùng username, hai ô khớp.
 
@@ -168,7 +168,7 @@ Lịch học cố định hằng tuần: mỗi lớp có `DayOfWeek` (1 = Thứ 
 ### Thanh toán (mô phỏng)
 - **Y1**: `Amount > 0`, mặc định bằng giá gói. Phương thức: `Cash`, `BankTransfer`, `Card`. `InvoiceNo` tự tăng dạng `INV-0001`.
 - **Y2**: tạo `Subscription` và `Payment` trong **một transaction**.
-- **Y3 Hoàn tiền** (chỉ Manager): `Payment.Status = Refunded`, `Subscription.Status = Cancelled`, không tính vào doanh thu.
+- **Y3**: không có chức năng hoàn tiền (đã bỏ vì thanh toán chỉ mô phỏng). Cột `Payments.Status` vẫn còn, hiện luôn là `Paid`.
 - **Y4**: xuất hóa đơn ra file `.txt` hoặc `.csv` (hoặc in bằng `PrintDialog`).
 
 ### Báo cáo (Manager)
@@ -192,7 +192,6 @@ Chỉ điểm danh được member đang `Registered` ở lớp đó, và chỉ 
 | Đăng ký hoặc hủy lớp | | cho member bất kỳ | chính mình | |
 | Ghi nhận thanh toán, xuất hóa đơn (khi bán gói) | | ✔ | chính mình | |
 | Xem danh sách thanh toán | ✔ | ✔ | của mình | |
-| Hoàn tiền | ✔ | | | |
 | Báo cáo, lịch sử hoạt động | ✔ | | | |
 | Xem lớp mình dạy, điểm danh | ✔ | ✔ (điểm danh) | | lớp mình dạy |
 
@@ -319,7 +318,7 @@ Luật dùng chung giữa nhiều màn (đăng ký lớp, hủy lớp, ca trốn
 2. Mở `SportsCenterApp\SportsCenterApp.sln` bằng Visual Studio 2022, kiểm tra `SportsCenter\appsettings.json` (xem mục 6).
 3. Chạy (F5) và đăng nhập bằng một tài khoản mẫu ở mục 5.
 
-**Đã kiểm tra** (bằng bộ test tự động mô phỏng thao tác trên database tạm LocalDB, hơn 120 kiểm tra cho app và gần 100 cho prototype, không mở cửa sổ nào): hiển thị tiếng Việt (dữ liệu mẫu, tên vai trò, tên hành động), hộp thoại đổi mật khẩu, hủy đăng ký lớp trước 24 giờ, mua gói nối tiếp nhau, menu và nút theo từng role (Manager không bán gói, không đặt lớp, không đăng ký member tại quầy), chống trùng hồ sơ member và tên gói, gắn tài khoản vào hồ sơ tại quầy, màn Điểm danh (chọn buổi, bấm cả dòng, lưu), chặn hủy lớp còn học viên. Các phần còn lại (đăng nhập, tạo lớp, hoàn tiền, báo cáo, phân trang, bộ lọc…) đã kiểm tra ở các đợt trước nhưng **chưa chạy lại trọn bộ** sau những lần sửa gần đây.
+**Đã kiểm tra** (bằng bộ test tự động mô phỏng thao tác trên database tạm LocalDB, hơn 120 kiểm tra cho app và gần 100 cho prototype, không mở cửa sổ nào): hiển thị tiếng Việt (dữ liệu mẫu, tên vai trò, tên hành động), hộp thoại đổi mật khẩu, hủy đăng ký lớp trước 24 giờ, mua gói nối tiếp nhau, menu và nút theo từng role (Manager không bán gói, không đặt lớp, không đăng ký member tại quầy), chống trùng hồ sơ member và tên gói, gắn tài khoản vào hồ sơ tại quầy, màn Điểm danh (chọn buổi, bấm cả dòng, lưu), chặn hủy lớp còn học viên. Các phần còn lại (đăng nhập, tạo lớp, báo cáo, phân trang, bộ lọc…) đã kiểm tra ở các đợt trước nhưng **chưa chạy lại trọn bộ** sau những lần sửa gần đây.
 
 **Chưa kiểm tra**: chạy trên SQL Server của từng máy trong nhóm (chuỗi kết nối `(local)`), thao tác chuột bàn phím thật, và thiết kế trong Visual Studio Designer. Nhóm nên chạy thử và báo lại chỗ nào lỗi.
 

@@ -14,10 +14,6 @@
                         <TextBox Name="txtSearch" Width="230"/>
                     </StackPanel>
                     <StackPanel Margin="0,0,12,6">
-                        <Label Content="Trạng thái"/>
-                        <ComboBox Name="cbxStatus" Width="130"/>
-                    </StackPanel>
-                    <StackPanel Margin="0,0,12,6">
                         <Label Content="Từ ngày"/>
                         <DatePicker Name="dpFrom" Width="130"/>
                     </StackPanel>
@@ -50,7 +46,6 @@
                         </Border>
                         <WrapPanel Margin="0,8,0,0">
                             <Button Name="btnExport" Content="Xuất hóa đơn" Style="{StaticResource SecondaryButton}" Click="btnExport_Click"/>
-                            <Button Name="btnRefund" Content="Hoàn tiền" Style="{StaticResource DangerButton}" Click="btnRefund_Click"/>
                         </WrapPanel>
                     </StackPanel>
                 </GroupBox>

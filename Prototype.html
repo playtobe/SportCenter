@@ -309,7 +309,7 @@ function tryRegister(mid,cid){
 function nextInvoice(){return 'INV-'+String(D.pays.length+1).padStart(4,'0')}
 
 /* ============ state ============ */
-const S={page:{},attDraft:{},flt:{payments:{q:'',st:'',from:'',to:''},audit:{q:'',user:'',act:'',from:'',to:''},users:{q:'',role:''},booking:{q:'',sport:''},myatt:{cls:'',from:'',to:''}},weekOff:0,mst:'',user:null,screen:null,actMember:1,tab:'sports',f:{sport:'',coach:''},sel:null,q:'',pkg:null,
+const S={page:{},attDraft:{},flt:{payments:{q:'',from:'',to:''},audit:{q:'',user:'',act:'',from:'',to:''},users:{q:'',role:''},booking:{q:'',sport:''},myatt:{cls:'',from:'',to:''}},weekOff:0,mst:'',user:null,screen:null,actMember:1,tab:'sports',f:{sport:'',coach:''},sel:null,q:'',pkg:null,
   rep:{from:iso(addDays(T,-180)),to:iso(T)},attClass:'',attDate:''};
 const ROLE_VN={Manager:'Quản lý trung tâm',Receptionist:'Nhân viên lễ tân',Member:'Thành viên',Coach:'Huấn luyện viên'};
 const pill=(txt,k)=>`<span class="pill ${k}">${esc(txt)}</span>`;
@@ -489,17 +489,16 @@ function sMySchedule(){
 function sPayments(){
   const mid=S.user.role==='Member'?S.user.memberId:null;
   const f=S.flt.payments;
-  const list=D.pays.filter(p=>!mid||p.memberId==mid).filter(p=>hit(f,p.no+' '+memberName(p.memberId))&&(!f.st||p.status===f.st)&&inRange(p.at,f)).sort((a,b)=>b.at-a.at);
+  const list=D.pays.filter(p=>!mid||p.memberId==mid).filter(p=>hit(f,p.no+' '+memberName(p.memberId))&&inRange(p.at,f)).sort((a,b)=>b.at-a.at);
   const sel=list.find(p=>p.no===S.sel)||list[0];
   const sub=sel&&byId(D.subs,sel.subId),pk=sub&&byId(D.packages,sub.pkgId);
   return head('payments')+fbar('payments',fld('Mã hóa đơn hoặc tên member','payments','q',fIn('payments','q',f.q,'text','VD: INV-0005 hoặc Khoa'),220)
-    +fld('Trạng thái','payments','st',fSel('payments','st',f.st,[['','Tất cả'],['Paid','Đã thu'],['Refunded','Đã hoàn']]))
     +fld('Từ ngày','payments','from',fIn('payments','from',f.from,'date'))+fld('Đến ngày','payments','to',fIn('payments','to',f.to,'date')))
-  +`<div class="two" style="grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)"><div class="grp"><div class="gh">Thanh toán</div><div class="gb">${tbl([['Hóa đơn'],['Member'],['Số tiền','n'],['Ngày'],['Trạng thái']],list.map(p=>
-    `<tr class="${sel&&p.no===sel.no?'sel':''}" data-act="selPay" data-id="${p.no}" style="cursor:pointer"><td>${p.no}</td><td>${esc(memberName(p.memberId))}</td><td class="n">${money(p.amt)}</td><td>${fd(p.at)}</td><td>${p.status==='Paid'?pill('Đã thu','ok'):pill('Đã hoàn','bad')}</td></tr>`),undefined,'payments')}</div></div>
+  +`<div class="two" style="grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)"><div class="grp"><div class="gh">Thanh toán</div><div class="gb">${tbl([['Hóa đơn'],['Member'],['Số tiền','n'],['Ngày']],list.map(p=>
+    `<tr class="${sel&&p.no===sel.no?'sel':''}" data-act="selPay" data-id="${p.no}" style="cursor:pointer"><td>${p.no}</td><td>${esc(memberName(p.memberId))}</td><td class="n">${money(p.amt)}</td><td>${fd(p.at)}</td></tr>`),undefined,'payments')}</div></div>
   <div class="grp"><div class="gh">Hóa đơn</div><div class="gb">${sel?`<div class="inv"><h3>${sel.no}</h3><dl><dt>Member</dt><dd>${esc(memberName(sel.memberId))}</dd><dt>Nội dung</dt><dd>${esc(pk?pk.name:sel.note)}</dd>
     ${sub?`<dt>Hiệu lực</dt><dd>${fd(sub.start)} → ${fd(sub.end)}</dd>`:''}<dt>Phương thức</dt><dd>${esc(sel.method)}</dd><dt>Số tiền</dt><dd><b>${money(sel.amt)}</b></dd><dt>Ngày thu</dt><dd>${fd(sel.at)}</dd></dl></div>
-    <div class="row" style="margin-top:10px"><button class="btn" data-act="exportInv">Xuất hóa đơn</button>${S.user.role==='Manager'&&sel.status==='Paid'?`<button class="btn d" data-act="refund" data-id="${sel.no}">Hoàn tiền</button>`:''}</div>`:'<span class="hint">Chọn một hóa đơn.</span>'}</div></div></div>`}
+    <div class="row" style="margin-top:10px"><button class="btn" data-act="exportInv">Xuất hóa đơn</button></div>`:'<span class="hint">Chọn một hóa đơn.</span>'}</div></div></div>`}
 
 function sUsers(){
   const f=S.flt.users,list=D.users.filter(u=>hit(f,u.username+' '+u.name)&&(!f.role||u.role===f.role));
@@ -709,7 +708,6 @@ const ACT={
   /* payments */
   selPay(el){S.sel=el.dataset.id;main()},
   exportInv(){toast('Đã xuất hóa đơn ra file (mô phỏng, bản thật ghi file .txt/.csv).')},
-  refund(el){const p=D.pays.find(x=>x.no===el.dataset.id);p.status='Refunded';const s=byId(D.subs,p.subId);if(s)s.status='Cancelled';log('Refund','Hoàn '+p.no);toast('Đã hoàn tiền, gói bị hủy, không tính vào doanh thu.');main()},
   /* users */
   setRole(el){const u=byId(D.users,el.dataset.id);u.role=el.value;log('SetRole',u.username+' → '+u.role);toast('Đã đổi role.')},
   toggleUser(el){const u=byId(D.users,el.dataset.id);u.active=!u.active;log('ToggleUser',u.username);main()},

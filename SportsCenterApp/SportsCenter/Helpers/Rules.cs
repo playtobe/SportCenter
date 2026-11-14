@@ -52,8 +52,7 @@ namespace SportsCenter
             ["CancelClass"] = "Hủy lớp/đăng ký",
             ["RegisterClass"] = "Đăng ký lớp",
             ["Attendance"] = "Điểm danh",
-            ["Payment"] = "Thanh toán",
-            ["Refund"] = "Hoàn tiền"
+            ["Payment"] = "Thanh toán"
         };
 
         public static string ActionName(string code) =>
