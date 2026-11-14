@@ -49,7 +49,7 @@ namespace SportsCenter
             catch (Exception ex)
             {
                 MessageBox.Show("Không kết nối được cơ sở dữ liệu. Hãy kiểm tra appsettings.json và đã chạy SportsCenter.sql chưa.\n\n"
-                    + (ex.InnerException?.Message ?? ex.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    + (ex.InnerException?.Message ?? ex.Message), "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

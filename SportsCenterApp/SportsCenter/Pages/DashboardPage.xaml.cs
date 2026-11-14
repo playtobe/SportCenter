@@ -48,7 +48,7 @@ namespace SportsCenter
             DateTime to = dpTo.SelectedDate!.Value.Date.AddDays(1);
             var today = Rules.Today;
 
-            // Chỉ tính hóa đơn đã thu (Paid), hóa đơn đã hoàn không tính vào doanh thu
+            // Doanh thu chỉ tính các hóa đơn có Status = Paid
             var paid = _db.Payments.Where(p => p.Status == "Paid" && p.PaidAt >= from && p.PaidAt < to)
                 .Select(p => new { p.PaidAt, p.Amount }).ToList();
 

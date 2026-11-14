@@ -7,6 +7,7 @@ Tài liệu tóm tắt phạm vi, thiết kế và quy ước cho **Group Projec
 | `SportsCenter.sql` | Script tạo database `SportsCenter` + dữ liệu mẫu (chạy lại nhiều lần được) |
 | `SportsCenterApp/` | **Code WPF đã dựng sẵn** (mở `SportsCenterApp.sln` bằng Visual Studio 2022), xem mục 7 |
 | `Prototype.html` | Prototype bấm được của các màn hình (mở bằng trình duyệt) |
+| `Ban-do-doc-code.md` | **Bản đồ đọc code** cho từng người (đọc file nào trước, luồng chính, câu hay bị hỏi, bảng tra mã luật), xem thêm mục 8 |
 | `Sports-Center-Project.md` | Tài liệu này |
 
 > Prototype chỉ để xem bố cục và luật nghiệp vụ, không phải code WPF. Dữ liệu trong prototype là dữ liệu mô phỏng, nhiều hơn bản trong `SportsCenter.sql`.
@@ -326,20 +327,25 @@ Luật dùng chung giữa nhiều màn (đăng ký lớp, hủy lớp, ca trốn
 
 ## 8. Chia việc cho 5 người
 
-| Module | Màn hình |
-|---|---|
-| 1. Nền tảng và tài khoản | 1, 2, 3, 4, 5 |
-| 2. Gói thành viên | 6, 11, 12 |
-| 3. Quản lý lớp | 7, 8 (+16 nếu dư thời gian) |
-| 4. Đặt lớp | 13, 14 (+17 nếu dư thời gian) |
-| 5. Thanh toán và báo cáo | 15, 9 (+10 nếu dư thời gian) |
+Chia theo **3 luồng bắt buộc của đề** (tài khoản và gói, lớp và đặt lớp, thanh toán và báo cáo), mỗi người sở hữu một nhóm màn hình, luật và bảng dữ liệu. **Cách đọc từng phần (đọc file nào trước, luồng chính, câu hay bị hỏi) xem `Ban-do-doc-code.md`.**
 
-Nên làm ngay đầu dự án:
+| Người | Phần | Màn hình | Luật | Bảng dữ liệu | Code (dòng) |
+|---|---|---|---|---|---|
+| 1 | Tài khoản và khung ứng dụng | Login, Register, Đổi mật khẩu (hộp thoại), `MainWindow` (menu theo role), Tài khoản | A1, A2, A3, A5, đổi mật khẩu | Users | ~900 |
+| 2 | Member, gói thành viên, nhật ký | Member, Gói thành viên, Mua / gia hạn gói, Lịch sử hoạt động | P1-P5, A4 | Members, MembershipPackages, Subscriptions, AuditLogs | ~800 |
+| 3 | Quản lý lớp học | Lớp học, Bộ môn và phòng, Lớp của tôi (coach) | C1-C4 | Classes, Sports, Rooms, TimeSlots, Coaches | ~800 |
+| 4 | Đặt lớp, lịch cá nhân, điểm danh | Đặt lớp, Lịch của tôi, Điểm danh | B1-B8, điểm danh | Registrations, Attendances | ~800 |
+| 5 | Thanh toán, báo cáo, nền dùng chung | Thanh toán, Báo cáo; bộ dùng chung `App.xaml`, `GridHelper`, `PagerControl`, `Msg`; script `SportsCenter.sql` | Y1-Y4, R1-R4 | Payments | ~1.000 (nhiều phần ít logic) và 320 dòng SQL |
 
-1. **Chốt schema và entity trước**, giao một người (thường là người làm module 1) làm trong vài ngày đầu. Các module khác đều phụ thuộc vào đây.
-2. Để `SportsCenter.sql` trong repo, mỗi người chạy cùng một script trên máy của mình.
-3. Dùng Git. Mỗi người làm các Window hoặc Page riêng, chỉ một `MainWindow` chung chứa menu theo role do một người giữ để tránh xung đột XAML.
-4. Mỗi người làm các Page của module mình. Luật dùng chung nằm trong `Helpers/Rules.cs`, thêm hàm mới ở đó thay vì chép code giữa các màn.
+Số dòng đã gồm phần luật của mình trong `Helpers/Rules.cs` và các entity liên quan. Người 5 nhiều dòng hơn nhưng phần lớn là style, hàm dùng chung và script dữ liệu, ít logic nghiệp vụ.
+
+Quy tắc làm việc nhóm:
+
+1. **Mỗi người chỉ sửa file của phần mình.** File dùng chung và chủ của chúng: `MainWindow` và `AccountHelper` (Người 1, ai cần thêm mục menu thì nhờ Người 1); `GridHelper`, `PagerControl`, `App.xaml` và `SportsCenter.sql` (Người 5, đổi bảng hay cột phải báo Người 5); `Helpers/Rules.cs` thì **mỗi người chỉ thêm hàm vào đúng cụm của mình** (gói: Người 2; lịch học, ca trống, hủy lớp: Người 3; đặt lớp: Người 4; tên hiển thị, hóa đơn: Người 5).
+2. **Thứ tự phụ thuộc:** Người 5 chốt script và bộ dùng chung trước → Người 1 làm khung đăng nhập và menu → Người 2 (gói) và Người 3 (lớp) làm song song → Người 4 đặt lớp cần gói của Người 2 và lớp của Người 3 → báo cáo của Người 5 đọc dữ liệu của tất cả.
+3. Để `SportsCenter.sql` trong repo, mỗi người chạy cùng một script trên máy của mình. Dùng Git, mỗi người một nhánh, gộp vào `main` sau khi chạy thử.
+4. Trước khi gộp: chạy lại `SportsCenter.sql`, rồi làm đúng các thao tác ở mục **Demo** của phần mình trong `Ban-do-doc-code.md`.
+5. Mỗi người chuẩn bị trình bày phần của mình: luồng chính cộng ba câu hay bị hỏi (có sẵn trong bản đồ).
 
 ---
 
