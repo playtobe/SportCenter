@@ -14,21 +14,15 @@ namespace SportsCenter
     {
         private SportsCenterContext _db;
 
-        // true trong lúc code tự đổ dữ liệu vào ComboBox.
-        // Khi đó các sự kiện SelectionChanged bỏ qua, chỉ chạy khi NGƯỜI DÙNG đổi lựa chọn.
-        private bool _loading;
-
         public ClassesPage()
         {
             InitializeComponent();
             _db = new();
 
-            _loading = true;
             LoadFilters();
             LoadFormCombos();
             dpStart.SelectedDate = DateTime.Today;
             dpEnd.SelectedDate = DateTime.Today.AddDays(90);
-            _loading = false;
 
             RefreshFreeDays();
             LoadClassList();
@@ -151,13 +145,11 @@ namespace SportsCenter
 
         private void cbxCoachRoom_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_loading) return;
             RefreshFreeDays();
         }
 
         private void cbxDay_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_loading) return;
             RefreshFreeSlots();
         }
 
@@ -185,7 +177,6 @@ namespace SportsCenter
             // Thứ đang chọn mà vẫn còn trống thì giữ nguyên, không thì chọn thứ đầu tiên
             int? oldDay = cbxDay.SelectedValue as int?;
 
-            _loading = true;
             cbxDay.DisplayMemberPath = nameof(OptionViewModel.Text);
             cbxDay.SelectedValuePath = nameof(OptionViewModel.Id);
             cbxDay.ItemsSource = freeDays;
@@ -194,7 +185,6 @@ namespace SportsCenter
                 bool keepOld = oldDay != null && freeDays.Any(d => d.Id == oldDay);
                 cbxDay.SelectedValue = keepOld ? oldDay : freeDays[0].Id;
             }
-            _loading = false;
 
             RefreshFreeSlots();
 
