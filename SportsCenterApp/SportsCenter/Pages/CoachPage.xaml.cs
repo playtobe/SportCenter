@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SportsCenter.Entities;
+using SportsCenter.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -7,43 +8,54 @@ namespace SportsCenter
 {
     /// <summary>
     /// Interaction logic for CoachPage.xaml
+    /// Màn Lớp của tôi (Coach): chọn một lớp mình dạy, xem lịch, phòng, sĩ số và danh sách học viên.
     /// </summary>
     public partial class CoachPage : UserControl
     {
         private SportsCenterContext _db;
+
+        // true trong lúc code tự đổ dữ liệu vào ô Chọn lớp, để sự kiện SelectionChanged bỏ qua
         private bool _loading;
 
         public CoachPage()
         {
             InitializeComponent();
             _db = new();
-            GridHelper.Setup(dgStudents);
             pgStudents.PageChanged += (s, e) => LoadStudents();
             LoadClasses();
         }
 
+        // Đổ các lớp (chưa hủy) của coach đang đăng nhập vào ô Chọn lớp
         private void LoadClasses()
         {
             int coachId = Session.CurrentCoach?.CoachId ?? 0;
-            var classes = _db.Classes.AsNoTracking()
-                .Where(c => c.CoachId == coachId && c.Status != "Cancelled")
-                .OrderBy(c => c.ClassCode)
-                .Select(c => new { c.ClassId, Text = c.ClassCode + " · " + c.ClassName })
-                .ToList();
+
+            var classes = _db.Classes
+                .Where(x => x.CoachId == coachId && x.Status != "Cancelled")
+                .OrderBy(x => x.ClassCode)
+                .Select(x => new OptionViewModel()
+                {
+                    Id = x.ClassId,
+                    Text = x.ClassCode + " · " + x.ClassName
+                }).ToList();
 
             _loading = true;
-            cbxClass.DisplayMemberPath = "Text";
-            cbxClass.SelectedValuePath = "ClassId";
             cbxClass.ItemsSource = classes;
+            cbxClass.DisplayMemberPath = nameof(OptionViewModel.Text);
+            cbxClass.SelectedValuePath = nameof(OptionViewModel.Id);
             _loading = false;
 
             if (classes.Count == 0)
             {
-                txtSchedule.Text = txtRoom.Text = txtCapacity.Text = "";
+                txtSchedule.Text = "";
+                txtRoom.Text = "";
+                txtCapacity.Text = "";
                 dgStudents.ItemsSource = null;
                 Msg.Info("Bạn chưa phụ trách lớp nào.");
                 return;
             }
+
+            // Chọn sẵn lớp đầu tiên -> sự kiện SelectionChanged chạy -> hiện học viên
             cbxClass.SelectedIndex = 0;
         }
 
@@ -54,34 +66,43 @@ namespace SportsCenter
             LoadStudents();
         }
 
+        // Hiện thông tin lớp đang chọn và danh sách học viên đang đăng ký lớp đó
         private void LoadStudents()
         {
-            if (cbxClass.SelectedValue is not int classId) return;
+            if (cbxClass.SelectedValue == null) return;
+            int classId = (int)cbxClass.SelectedValue;
 
-            var c = _db.Classes.AsNoTracking()
-                .Include(x => x.Room).Include(x => x.Slot)
+            // 1. Thông tin lớp: lịch, phòng
+            var cls = _db.Classes
+                .Include(x => x.Room)
+                .Include(x => x.Slot)
                 .First(x => x.ClassId == classId);
 
-            var members = _db.Registrations.AsNoTracking()
-                .Where(r => r.ClassId == classId && r.Status == "Registered")
-                .Select(r => r.Member)
-                .OrderBy(m => m.FullName)
+            // 2. Các member đang đăng ký lớp này
+            var members = _db.Registrations
+                .Where(x => x.ClassId == classId && x.Status == "Registered")
+                .Select(x => x.Member)
+                .OrderBy(x => x.FullName)
                 .ToList();
-            var subs = _db.Subscriptions.AsNoTracking().ToList();
 
-            txtSchedule.Text = Rules.ScheduleText(c);
-            txtRoom.Text = c.Room.RoomName;
-            txtCapacity.Text = $"{members.Count}/{c.Capacity}";
+            // 3. Các gói thành viên (để ghi "Còn hạn" / "Hết hạn" / "Chưa có gói" cho từng học viên)
+            var subscriptions = _db.Subscriptions.ToList();
 
-            var rows = members.Select(m => new
+            txtSchedule.Text = Rules.ScheduleText(cls);
+            txtRoom.Text = cls.Room.RoomName;
+            txtCapacity.Text = $"{members.Count}/{cls.Capacity}";
+
+            // 4. Gắn vào ViewModel rồi đưa lên bảng
+            var students = members.Select(m => new StudentViewModel()
             {
-                m.MemberId,
-                Student = m.FullName,
-                m.Phone,
-                PackageStatus = Rules.SubscriptionText(Rules.CurrentOrLatest(subs.Where(s => s.MemberId == m.MemberId)))
+                MemberId = m.MemberId,
+                FullName = m.FullName,
+                Phone = m.Phone,
+                PackageStatus = Rules.SubscriptionText(
+                    Rules.CurrentOrLatest(subscriptions.Where(s => s.MemberId == m.MemberId)))
             }).ToList();
 
-            dgStudents.ItemsSource = pgStudents.Slice(rows);
+            dgStudents.ItemsSource = pgStudents.Slice(students);
         }
     }
 }

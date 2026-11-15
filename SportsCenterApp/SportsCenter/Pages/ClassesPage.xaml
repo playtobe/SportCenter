@@ -25,7 +25,20 @@
             <!--CLASS LIST-->
             <GroupBox Header="DANH SÁCH LỚP">
                 <StackPanel>
-                    <DataGrid Name="dgClassList"/>
+                    <DataGrid Name="dgClassList" AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Mã lớp" Binding="{Binding ClassCode}" Width="*"/>
+                            <DataGridTextColumn Header="Tên lớp" Binding="{Binding ClassName}" Width="1.6*"/>
+                            <DataGridTextColumn Header="Bộ môn" Binding="{Binding SportName}" Width="*"/>
+                            <DataGridTextColumn Header="HLV" Binding="{Binding CoachName}" Width="1.3*"/>
+                            <DataGridTextColumn Header="Phòng" Binding="{Binding RoomName}" Width="1.2*"/>
+                            <DataGridTextColumn Header="Lịch" Binding="{Binding Schedule}" Width="1.8*"/>
+                            <DataGridTextColumn Header="Bắt đầu" Binding="{Binding StartDate, StringFormat=dd/MM/yyyy}" Width="*"/>
+                            <DataGridTextColumn Header="Kết thúc" Binding="{Binding EndDate, StringFormat=dd/MM/yyyy}" Width="*"/>
+                            <DataGridTextColumn Header="Sĩ số" Binding="{Binding Slots}" Width="0.7*"/>
+                            <DataGridTextColumn Header="Trạng thái" Binding="{Binding Status}" Width="0.9*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
                     <local:PagerControl x:Name="pgClass" Margin="0,8,0,0"/>
                     <Button Content="Hủy lớp đã chọn" Style="{StaticResource DangerButton}" HorizontalAlignment="Left" Margin="0,8,0,0" Click="btnCancelClass_Click"/>
                 </StackPanel>

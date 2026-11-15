@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using SportsCenter.Entities;
+using SportsCenter.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -7,23 +7,23 @@ namespace SportsCenter
 {
     /// <summary>
     /// Interaction logic for ClassesPage.xaml
+    /// Màn Quản lý lớp học (Manager): xem / lọc danh sách lớp, thêm lớp, hủy lớp.
+    /// Luật: C1 (dữ liệu hợp lệ), C2 (trùng phòng), C3 (trùng HLV), C4 (hủy lớp).
     /// </summary>
     public partial class ClassesPage : UserControl
     {
         private SportsCenterContext _db;
+
+        // true trong lúc code tự đổ dữ liệu vào ComboBox.
+        // Khi đó các sự kiện SelectionChanged bỏ qua, chỉ chạy khi NGƯỜI DÙNG đổi lựa chọn.
         private bool _loading;
 
         public ClassesPage()
         {
             InitializeComponent();
             _db = new();
-            GridHelper.Setup(dgClassList);
             pgClass.PageChanged += (s, e) => LoadClassList();
-            LoadData();
-        }
 
-        private void LoadData()
-        {
             _loading = true;
             LoadFilters();
             LoadFormCombos();
@@ -35,143 +35,118 @@ namespace SportsCenter
             LoadClassList();
         }
 
+        // ================================================================ NẠP DỮ LIỆU
+
+        // Hai ô lọc phía trên: thêm mục "Tất cả" có Id = 0
         private void LoadFilters()
         {
-            var sports = _db.Sports.AsNoTracking().OrderBy(s => s.SportName).ToList();
-            var filterSports = sports.ToList();
-            filterSports.Insert(0, new Sport { SportName = "Tất cả" });
+            var sports = _db.Sports.OrderBy(x => x.SportName).ToList();
+            var filterSports = new List<Sport>()
+            {
+                new Sport { SportId = 0, SportName = "Tất cả" }
+            };
+            filterSports.AddRange(sports);
+
             cbxSportFilter.ItemsSource = filterSports;
             cbxSportFilter.DisplayMemberPath = nameof(Sport.SportName);
+            cbxSportFilter.SelectedValuePath = nameof(Sport.SportId);
             cbxSportFilter.SelectedIndex = 0;
 
-            var coaches = _db.Coaches.AsNoTracking().OrderBy(c => c.FullName).ToList();
-            var filterCoaches = coaches.ToList();
-            filterCoaches.Insert(0, new Coach { FullName = "Tất cả" });
+            var coaches = _db.Coaches.OrderBy(x => x.FullName).ToList();
+            var filterCoaches = new List<Coach>()
+            {
+                new Coach { CoachId = 0, FullName = "Tất cả" }
+            };
+            filterCoaches.AddRange(coaches);
+
             cbxCoachFilter.ItemsSource = filterCoaches;
             cbxCoachFilter.DisplayMemberPath = nameof(Coach.FullName);
+            cbxCoachFilter.SelectedValuePath = nameof(Coach.CoachId);
             cbxCoachFilter.SelectedIndex = 0;
         }
 
+        // Ba ô chọn trong form Thêm lớp: Bộ môn, HLV, Phòng
         private void LoadFormCombos()
         {
-            cbxSport.ItemsSource = _db.Sports.AsNoTracking().OrderBy(s => s.SportName).ToList();
+            cbxSport.ItemsSource = _db.Sports.OrderBy(x => x.SportName).ToList();
             cbxSport.DisplayMemberPath = nameof(Sport.SportName);
             cbxSport.SelectedValuePath = nameof(Sport.SportId);
             cbxSport.SelectedIndex = -1;
 
-            cbxCoach.ItemsSource = _db.Coaches.AsNoTracking().OrderBy(c => c.FullName).ToList();
+            cbxCoach.ItemsSource = _db.Coaches.OrderBy(x => x.FullName).ToList();
             cbxCoach.DisplayMemberPath = nameof(Coach.FullName);
             cbxCoach.SelectedValuePath = nameof(Coach.CoachId);
             cbxCoach.SelectedIndex = 0;
 
-            cbxRoom.ItemsSource = _db.Rooms.AsNoTracking().OrderBy(r => r.RoomName).ToList();
+            cbxRoom.ItemsSource = _db.Rooms.OrderBy(x => x.RoomName).ToList();
             cbxRoom.DisplayMemberPath = nameof(Room.RoomName);
             cbxRoom.SelectedValuePath = nameof(Room.RoomId);
             cbxRoom.SelectedIndex = 0;
+
+            // Ô Thứ và ô Ca dùng OptionViewModel (Id + Text); danh sách được đổ trong RefreshFreeDays / RefreshFreeSlots
+            cbxDay.DisplayMemberPath = nameof(OptionViewModel.Text);
+            cbxDay.SelectedValuePath = nameof(OptionViewModel.Id);
+            cbxSlot.DisplayMemberPath = nameof(OptionViewModel.Text);
+            cbxSlot.SelectedValuePath = nameof(OptionViewModel.Id);
         }
 
+        // Bảng danh sách lớp, có xét hai ô lọc
         private void LoadClassList()
         {
+            int sportId = (int)cbxSportFilter.SelectedValue;
+            int coachId = (int)cbxCoachFilter.SelectedValue;
+
             var query = _db.Classes.AsQueryable();
 
-            if (cbxSportFilter.SelectedItem is Sport sport && sport.SportId != 0)
+            if (sportId > 0)
             {
-                query = query.Where(c => c.SportId == sport.SportId);
+                query = query.Where(x => x.SportId == sportId);
             }
-            if (cbxCoachFilter.SelectedItem is Coach coach && coach.CoachId != 0)
+            if (coachId > 0)
             {
-                query = query.Where(c => c.CoachId == coach.CoachId);
+                query = query.Where(x => x.CoachId == coachId);
             }
 
-            var rows = query
-                .OrderBy(c => c.ClassId)
-                .Select(c => new
+            var classes = query
+                .OrderBy(x => x.ClassId)
+                .Select(x => new ClassViewModel()
                 {
-                    c.ClassId,
-                    c.ClassCode,
-                    c.ClassName,
-                    SportName = c.Sport.SportName,
-                    CoachName = c.Coach.FullName,
-                    RoomName = c.Room.RoomName,
-                    c.DayOfWeek,
-                    SlotName = c.Slot.SlotName,
-                    c.Slot.StartTime,
-                    c.Slot.EndTime,
-                    Registered = c.Registrations.Count(r => r.Status == "Registered"),
-                    c.Capacity,
-                    c.Status,
-                    c.StartDate,
-                    c.EndDate
-                })
-                .ToList()
-                .Select(c => new
-                {
-                    c.ClassId,
-                    c.ClassCode,
-                    c.ClassName,
-                    c.SportName,
-                    c.CoachName,
-                    c.RoomName,
-                    Schedule = Rules.ScheduleText(c.DayOfWeek, c.SlotName, c.StartTime, c.EndTime),
-                    Period = $"{c.StartDate:dd/MM/yyyy} → {c.EndDate:dd/MM/yyyy}",
-                    Slots = $"{c.Registered}/{c.Capacity}",
-                    Status = c.Status == "Open" ? "Mở" : "Đã hủy"
-                })
-                .ToList();
+                    ClassId = x.ClassId,
+                    ClassCode = x.ClassCode,
+                    ClassName = x.ClassName,
+                    SportName = x.Sport.SportName,
+                    CoachName = x.Coach.FullName,
+                    RoomName = x.Room.RoomName,
+                    Schedule = Rules.ScheduleText(x.DayOfWeek, x.Slot.SlotName, x.Slot.StartTime, x.Slot.EndTime),
+                    StartDate = x.StartDate,
+                    EndDate = x.EndDate,
+                    Registered = x.Registrations.Count(r => r.Status == "Registered"),
+                    Capacity = x.Capacity,
+                    Status = x.Status == "Open" ? "Mở" : "Đã hủy"
+                }).ToList();
 
-            dgClassList.ItemsSource = pgClass.Slice(rows);
+            dgClassList.ItemsSource = pgClass.Slice(classes);
         }
 
-        // Thứ còn trống = thứ có ít nhất một ca chưa bị chiếm bởi lớp dùng cùng phòng hoặc cùng HLV
-        private void RefreshFreeDays()
+        // ================================================================ LỌC
+
+        private void btnFilter_Click(object sender, RoutedEventArgs e)
         {
-            if (cbxCoach.SelectedValue is not int coachId || cbxRoom.SelectedValue is not int roomId) return;
-
-            var busy = Rules.BusySet(_db, roomId, coachId);
-            var slots = _db.TimeSlots.AsNoTracking().ToList();
-            var days = Enumerable.Range(1, 7)
-                .Where(d => slots.Any(s => !busy.Contains((d, s.SlotId))))
-                .Select(d => new { Day = d, Name = Rules.DayNames[d] })
-                .ToList();
-
-            int? previous = cbxDay.SelectedValue as int?;
-
-            _loading = true;
-            cbxDay.DisplayMemberPath = "Name";
-            cbxDay.SelectedValuePath = "Day";
-            cbxDay.ItemsSource = days;
-            if (days.Count > 0)
-            {
-                cbxDay.SelectedValue = (previous != null && days.Any(d => d.Day == previous)) ? previous : days[0].Day;
-            }
-            _loading = false;
-
-            RefreshFreeSlots();
-
-            bool none = days.Count == 0;
-            cbxDay.IsEnabled = cbxSlot.IsEnabled = btnAddClass.IsEnabled = !none;
-            txtNoSlot.Visibility = none ? Visibility.Visible : Visibility.Collapsed;
+            pgClass.Reset();      // lọc xong về trang 1
+            LoadClassList();
         }
 
-        private void RefreshFreeSlots()
+        private void btnClearFilter_Click(object sender, RoutedEventArgs e)
         {
-            if (cbxCoach.SelectedValue is not int coachId || cbxRoom.SelectedValue is not int roomId || cbxDay.SelectedValue is not int day)
-            {
-                cbxSlot.ItemsSource = null;
-                return;
-            }
-
-            var busy = Rules.BusySet(_db, roomId, coachId);
-            var slots = _db.TimeSlots.AsNoTracking().OrderBy(s => s.SlotId).ToList()
-                .Where(s => !busy.Contains((day, s.SlotId)))
-                .Select(s => new { s.SlotId, Text = $"{s.SlotName} ({s.StartTime:HH:mm}-{s.EndTime:HH:mm})" })
-                .ToList();
-
-            cbxSlot.DisplayMemberPath = "Text";
-            cbxSlot.SelectedValuePath = "SlotId";
-            cbxSlot.ItemsSource = slots;
-            if (slots.Count > 0) cbxSlot.SelectedIndex = 0;
+            cbxSportFilter.SelectedIndex = 0;
+            cbxCoachFilter.SelectedIndex = 0;
+            pgClass.Reset();
+            LoadClassList();
         }
+
+        // ================================================================ CA TRỐNG (form Thêm lớp)
+        // Đổi HLV hoặc Phòng -> RefreshFreeDays (tính lại thứ trống) -> RefreshFreeSlots (tính lại ca trống)
+        // Đổi Thứ           -> RefreshFreeSlots
 
         private void cbxCoachRoom_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -185,68 +160,86 @@ namespace SportsCenter
             RefreshFreeSlots();
         }
 
-        private void btnFilter_Click(object sender, RoutedEventArgs e)
+        // Ô Thứ chỉ hiện những thứ còn ít nhất một ca trống với HLV và phòng đang chọn
+        private void RefreshFreeDays()
         {
-            pgClass.Reset();
-            LoadClassList();
+            if (cbxCoach.SelectedValue == null || cbxRoom.SelectedValue == null) return;
+            int coachId = (int)cbxCoach.SelectedValue;
+            int roomId = (int)cbxRoom.SelectedValue;
+
+            // Các cặp (thứ, ca) đã bị lớp khác chiếm: cùng phòng hoặc cùng HLV
+            var busy = Rules.BusySet(_db, roomId, coachId);
+            var slots = _db.TimeSlots.ToList();
+
+            var freeDays = new List<OptionViewModel>();
+            for (int day = 1; day <= 7; day++)
+            {
+                bool hasFreeSlot = slots.Any(s => !busy.Contains((day, s.SlotId)));
+                if (hasFreeSlot)
+                {
+                    freeDays.Add(new OptionViewModel { Id = day, Text = Rules.DayNames[day] });
+                }
+            }
+
+            // Thứ đang chọn mà vẫn còn trống thì giữ nguyên, không thì chọn thứ đầu tiên
+            int? oldDay = cbxDay.SelectedValue as int?;
+
+            _loading = true;
+            cbxDay.ItemsSource = freeDays;
+            if (freeDays.Count > 0)
+            {
+                bool keepOld = oldDay != null && freeDays.Any(d => d.Id == oldDay);
+                cbxDay.SelectedValue = keepOld ? oldDay : freeDays[0].Id;
+            }
+            _loading = false;
+
+            RefreshFreeSlots();
+
+            // HLV và phòng kín lịch cả tuần: khóa form và hiện dòng báo đỏ
+            bool full = freeDays.Count == 0;
+            cbxDay.IsEnabled = !full;
+            cbxSlot.IsEnabled = !full;
+            btnAddClass.IsEnabled = !full;
+            txtNoSlot.Visibility = full ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        private void btnClearFilter_Click(object sender, RoutedEventArgs e)
+        // Ô Ca chỉ hiện những ca còn trống của thứ đang chọn
+        private void RefreshFreeSlots()
         {
-            cbxSportFilter.SelectedIndex = 0;
-            cbxCoachFilter.SelectedIndex = 0;
-            pgClass.Reset();
-            LoadClassList();
+            if (cbxCoach.SelectedValue == null || cbxRoom.SelectedValue == null || cbxDay.SelectedValue == null)
+            {
+                cbxSlot.ItemsSource = null;
+                return;
+            }
+            int coachId = (int)cbxCoach.SelectedValue;
+            int roomId = (int)cbxRoom.SelectedValue;
+            int day = (int)cbxDay.SelectedValue;
+
+            var busy = Rules.BusySet(_db, roomId, coachId);
+
+            var freeSlots = new List<OptionViewModel>();
+            foreach (var s in _db.TimeSlots.OrderBy(x => x.SlotId).ToList())
+            {
+                if (!busy.Contains((day, s.SlotId)))
+                {
+                    freeSlots.Add(new OptionViewModel
+                    {
+                        Id = s.SlotId,
+                        Text = $"{s.SlotName} ({s.StartTime:HH:mm}-{s.EndTime:HH:mm})"
+                    });
+                }
+            }
+
+            cbxSlot.ItemsSource = freeSlots;
+            if (freeSlots.Count > 0) cbxSlot.SelectedIndex = 0;
         }
 
-        private void btnCancelClass_Click(object sender, RoutedEventArgs e)
-        {
-            int? classId = GridHelper.SelectedId(dgClassList, "ClassId");
-            if (classId == null)
-            {
-                Msg.Warn("Vui lòng chọn một lớp trong danh sách.");
-                return;
-            }
-
-            var cl = _db.Classes.Find(classId);
-            if (cl == null) return;
-            if (cl.Status == "Cancelled")
-            {
-                Msg.Warn("Lớp này đã hủy rồi.");
-                return;
-            }
-            // C4: lớp còn học viên đăng ký thì không cho hủy
-            string? blocked = Rules.CancelClassBlockedReason(_db, cl);
-            if (blocked != null)
-            {
-                Msg.Warn(blocked);
-                return;
-            }
-            if (!Msg.Confirm($"Hủy lớp {cl.ClassCode}? Ca học của lớp sẽ được trả lại thành ca trống."))
-            {
-                return;
-            }
-
-            try
-            {
-                cl.Status = "Cancelled";
-                _db.SaveChanges();
-                AuditHelper.Log(_db, "CancelClass", $"Hủy lớp {cl.ClassCode}", "Classes", cl.ClassId);
-                LoadClassList();
-                RefreshFreeDays();
-            }
-            catch (Exception ex)
-            {
-                Msg.Error(ex);
-            }
-        }
+        // ================================================================ THÊM LỚP
 
         private void btnAddClass_Click(object sender, RoutedEventArgs e)
         {
-            string className = txtClassName.Text.Trim();
-            string classCode = txtClassCode.Text.Trim().ToUpper();
-
-            if (className == "" || classCode == "" || txtCapacity.Text.Trim() == "")
+            // 1. Các ô bắt buộc
+            if (string.IsNullOrWhiteSpace(txtClassName.Text) || string.IsNullOrWhiteSpace(txtClassCode.Text) || string.IsNullOrWhiteSpace(txtCapacity.Text))
             {
                 Msg.Warn("Vui lòng nhập Tên lớp, Mã lớp và Sĩ số.");
                 return;
@@ -256,50 +249,61 @@ namespace SportsCenter
                 Msg.Warn("Sĩ số phải là số lớn hơn 0.");
                 return;
             }
-            if (cbxSport.SelectedValue is not int sportId)
+            if (cbxSport.SelectedValue == null)
             {
                 Msg.Warn("Vui lòng chọn Bộ môn.");
                 return;
             }
-            if (cbxCoach.SelectedValue is not int coachId)
+            if (cbxCoach.SelectedValue == null)
             {
                 Msg.Warn("Vui lòng chọn Huấn luyện viên.");
                 return;
             }
-            if (cbxRoom.SelectedValue is not int roomId)
+            if (cbxRoom.SelectedValue == null)
             {
                 Msg.Warn("Vui lòng chọn Phòng.");
                 return;
             }
-            if (cbxDay.SelectedValue is not int day || cbxSlot.SelectedValue is not int slotId)
+            if (cbxDay.SelectedValue == null || cbxSlot.SelectedValue == null)
             {
                 Msg.Warn("Vui lòng chọn Thứ và Ca học.");
                 return;
             }
-            if (dpStart.SelectedDate is not DateTime start || dpEnd.SelectedDate is not DateTime end)
+            if (dpStart.SelectedDate == null || dpEnd.SelectedDate == null)
             {
                 Msg.Warn("Vui lòng chọn Từ ngày và Đến ngày.");
                 return;
             }
+
+            string className = txtClassName.Text.Trim();
+            string classCode = txtClassCode.Text.Trim().ToUpper();
+            int sportId = (int)cbxSport.SelectedValue;
+            int coachId = (int)cbxCoach.SelectedValue;
+            int roomId = (int)cbxRoom.SelectedValue;
+            int day = (int)cbxDay.SelectedValue;
+            int slotId = (int)cbxSlot.SelectedValue;
+            DateTime start = dpStart.SelectedDate.Value;
+            DateTime end = dpEnd.SelectedDate.Value;
+
+            // 2. Luật C1: ngày, sĩ số, mã lớp
             if (end < start)
             {
                 Msg.Warn("Ngày kết thúc không được trước ngày bắt đầu.");
                 return;
             }
-
-            var room = _db.Rooms.Find(roomId)!;
-            if (capacity > room.Capacity)
+            var room = _db.Rooms.Find(roomId);
+            if (room != null && capacity > room.Capacity)
             {
                 Msg.Warn($"Sĩ số không được vượt sức chứa của phòng ({room.Capacity}).");
                 return;
             }
-            if (_db.Classes.Any(c => c.ClassCode == classCode))
+            if (_db.Classes.Any(x => x.ClassCode == classCode))
             {
                 Msg.Warn("Mã lớp đã tồn tại.");
                 return;
             }
 
-            // Kiểm tra lại lần cuối (phòng khi có người khác vừa thêm lớp cùng ca)
+            // 3. Luật C2, C3: kiểm tra lại trùng phòng / trùng HLV (phòng khi dữ liệu vừa thay đổi)
             string? conflict = Rules.ClassConflictMessage(_db, roomId, coachId, day, slotId);
             if (conflict != null)
             {
@@ -308,31 +312,32 @@ namespace SportsCenter
                 return;
             }
 
+            // 4. Lưu lớp mới
             try
             {
-                var cl = new Class
-                {
-                    ClassCode = classCode,
-                    ClassName = className,
-                    SportId = sportId,
-                    CoachId = coachId,
-                    RoomId = roomId,
-                    DayOfWeek = (byte)day,
-                    SlotId = slotId,
-                    Capacity = capacity,
-                    StartDate = DateOnly.FromDateTime(start),
-                    EndDate = DateOnly.FromDateTime(end),
-                    Status = "Open"
-                };
-                _db.Classes.Add(cl);
+                Class newClass = new Class();
+                newClass.ClassCode = classCode;
+                newClass.ClassName = className;
+                newClass.SportId = sportId;
+                newClass.CoachId = coachId;
+                newClass.RoomId = roomId;
+                newClass.DayOfWeek = (byte)day;
+                newClass.SlotId = slotId;
+                newClass.Capacity = capacity;
+                newClass.StartDate = DateOnly.FromDateTime(start);
+                newClass.EndDate = DateOnly.FromDateTime(end);
+                newClass.Status = "Open";
+
+                _db.Classes.Add(newClass);
                 _db.SaveChanges();
-                AuditHelper.Log(_db, "CreateClass", $"Tạo lớp {classCode}", "Classes", cl.ClassId);
+                AuditHelper.Log(_db, "CreateClass", $"Tạo lớp {classCode}", "Classes", newClass.ClassId);
+
+                Msg.Info("Đã thêm lớp " + classCode + ".");
 
                 pgClass.Reset();
                 LoadClassList();
                 ClearForm();
-                RefreshFreeDays();
-                Msg.Info("Đã thêm lớp " + classCode + ".");
+                RefreshFreeDays();      // ca vừa dùng không còn trong form nữa
             }
             catch (Exception ex)
             {
@@ -340,16 +345,65 @@ namespace SportsCenter
             }
         }
 
+        // ================================================================ HỦY LỚP
+
+        private void btnCancelClass_Click(object sender, RoutedEventArgs e)
+        {
+            var selected = dgClassList.SelectedItem as ClassViewModel;
+            if (selected == null)
+            {
+                Msg.Warn("Vui lòng chọn một lớp trong danh sách.");
+                return;
+            }
+
+            var cls = _db.Classes.Find(selected.ClassId);
+            if (cls == null) return;
+            if (cls.Status == "Cancelled")
+            {
+                Msg.Warn("Lớp này đã hủy rồi.");
+                return;
+            }
+
+            // Luật C4: lớp còn học viên đăng ký thì không cho hủy
+            string? blocked = Rules.CancelClassBlockedReason(_db, cls);
+            if (blocked != null)
+            {
+                Msg.Warn(blocked);
+                return;
+            }
+            if (!Msg.Confirm($"Hủy lớp {cls.ClassCode}? Ca học của lớp sẽ được trả lại thành ca trống.")) return;
+
+            try
+            {
+                // Không xóa dòng, chỉ đổi trạng thái
+                cls.Status = "Cancelled";
+                _db.SaveChanges();
+                AuditHelper.Log(_db, "CancelClass", $"Hủy lớp {cls.ClassCode}", "Classes", cls.ClassId);
+
+                LoadClassList();
+                RefreshFreeDays();      // ca của lớp vừa hủy xuất hiện lại trong form
+            }
+            catch (Exception ex)
+            {
+                Msg.Error(ex);
+            }
+        }
+
+        // ================================================================ NHẬP LẠI
+
+        private void btnClearForm_Click(object sender, RoutedEventArgs e)
+        {
+            ClearForm();
+        }
+
         private void ClearForm()
         {
-            txtClassName.Clear();
-            txtClassCode.Clear();
+            txtClassName.Text = "";
+            txtClassCode.Text = "";
             txtCapacity.Text = "15";
             cbxSport.SelectedIndex = -1;
             dpStart.SelectedDate = DateTime.Today;
             dpEnd.SelectedDate = DateTime.Today.AddDays(90);
         }
-
-        private void btnClearForm_Click(object sender, RoutedEventArgs e) => ClearForm();
     }
 }

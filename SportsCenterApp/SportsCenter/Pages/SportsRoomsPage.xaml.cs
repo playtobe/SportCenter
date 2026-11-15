@@ -1,4 +1,5 @@
 using SportsCenter.Entities;
+using SportsCenter.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -6,6 +7,7 @@ namespace SportsCenter
 {
     /// <summary>
     /// Interaction logic for SportsRoomsPage.xaml
+    /// Màn Bộ môn và phòng tập (Manager): thêm / xóa bộ môn, thêm / xóa phòng.
     /// </summary>
     public partial class SportsRoomsPage : UserControl
     {
@@ -15,41 +17,41 @@ namespace SportsCenter
         {
             InitializeComponent();
             _db = new();
-            GridHelper.Setup(dgSports);
-            GridHelper.Setup(dgRooms);
+
+            // Bấm sang trang khác ở thanh phân trang thì tải lại bảng tương ứng
             pgSports.PageChanged += (s, e) => LoadSports();
             pgRooms.PageChanged += (s, e) => LoadRooms();
+
             LoadSports();
             LoadRooms();
         }
 
+        // ================================================================ BỘ MÔN
+
         private void LoadSports()
         {
-            var rows = _db.Sports
-                .OrderBy(s => s.SportName)
-                .Select(s => new { s.SportId, s.SportName, ClassCount = s.Classes.Count })
-                .ToList();
-            dgSports.ItemsSource = pgSports.Slice(rows);
-        }
+            var sports = _db.Sports
+                .OrderBy(x => x.SportName)
+                .Select(x => new SportViewModel()
+                {
+                    SportId = x.SportId,
+                    SportName = x.SportName,
+                    ClassCount = x.Classes.Count
+                }).ToList();
 
-        private void LoadRooms()
-        {
-            var rows = _db.Rooms
-                .OrderBy(r => r.RoomName)
-                .Select(r => new { r.RoomId, r.RoomName, r.Capacity, ClassCount = r.Classes.Count })
-                .ToList();
-            dgRooms.ItemsSource = pgRooms.Slice(rows);
+            dgSports.ItemsSource = pgSports.Slice(sports);
         }
 
         private void btnAddSport_Click(object sender, RoutedEventArgs e)
         {
             string name = txtSportName.Text.Trim();
-            if (name == "")
+
+            if (string.IsNullOrWhiteSpace(name))
             {
                 Msg.Warn("Vui lòng nhập tên bộ môn.");
                 return;
             }
-            if (_db.Sports.Any(s => s.SportName == name))
+            if (_db.Sports.Any(x => x.SportName == name))
             {
                 Msg.Warn("Bộ môn này đã có.");
                 return;
@@ -57,11 +59,14 @@ namespace SportsCenter
 
             try
             {
-                var sport = new Sport { SportName = name };
+                Sport sport = new Sport();
+                sport.SportName = name;
+
                 _db.Sports.Add(sport);
                 _db.SaveChanges();
                 AuditHelper.Log(_db, "CreateSport", $"Thêm bộ môn {name}", "Sports", sport.SportId);
-                txtSportName.Clear();
+
+                txtSportName.Text = "";
                 LoadSports();
             }
             catch (Exception ex)
@@ -72,25 +77,29 @@ namespace SportsCenter
 
         private void btnDeleteSport_Click(object sender, RoutedEventArgs e)
         {
-            int? id = GridHelper.SelectedId(dgSports, "SportId");
-            if (id == null)
+            var selected = dgSports.SelectedItem as SportViewModel;
+            if (selected == null)
             {
                 Msg.Warn("Vui lòng chọn một bộ môn.");
                 return;
             }
-            if (_db.Classes.Any(c => c.SportId == id))
+            // Bộ môn đang có lớp thì không xóa được (luật C4)
+            if (_db.Classes.Any(x => x.SportId == selected.SportId))
             {
                 Msg.Warn("Bộ môn đang có lớp, không thể xóa.");
                 return;
             }
-            if (!Msg.Confirm("Xóa bộ môn đã chọn?")) return;
+            if (!Msg.Confirm("Xóa bộ môn " + selected.SportName + "?")) return;
 
             try
             {
-                var sport = _db.Sports.Find(id)!;
+                var sport = _db.Sports.Find(selected.SportId);
+                if (sport == null) return;
+
                 _db.Sports.Remove(sport);
                 _db.SaveChanges();
                 AuditHelper.Log(_db, "DeleteSport", $"Xóa bộ môn {sport.SportName}", "Sports", sport.SportId);
+
                 LoadSports();
             }
             catch (Exception ex)
@@ -99,10 +108,28 @@ namespace SportsCenter
             }
         }
 
+        // ================================================================ PHÒNG TẬP
+
+        private void LoadRooms()
+        {
+            var rooms = _db.Rooms
+                .OrderBy(x => x.RoomName)
+                .Select(x => new RoomViewModel()
+                {
+                    RoomId = x.RoomId,
+                    RoomName = x.RoomName,
+                    Capacity = x.Capacity,
+                    ClassCount = x.Classes.Count
+                }).ToList();
+
+            dgRooms.ItemsSource = pgRooms.Slice(rooms);
+        }
+
         private void btnAddRoom_Click(object sender, RoutedEventArgs e)
         {
             string name = txtRoomName.Text.Trim();
-            if (name == "" || txtRoomCapacity.Text.Trim() == "")
+
+            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(txtRoomCapacity.Text))
             {
                 Msg.Warn("Vui lòng nhập tên phòng và sức chứa.");
                 return;
@@ -112,7 +139,7 @@ namespace SportsCenter
                 Msg.Warn("Sức chứa phải là số lớn hơn 0.");
                 return;
             }
-            if (_db.Rooms.Any(r => r.RoomName == name))
+            if (_db.Rooms.Any(x => x.RoomName == name))
             {
                 Msg.Warn("Phòng này đã có.");
                 return;
@@ -120,11 +147,16 @@ namespace SportsCenter
 
             try
             {
-                var room = new Room { RoomName = name, Capacity = capacity, IsActive = true };
+                Room room = new Room();
+                room.RoomName = name;
+                room.Capacity = capacity;
+                room.IsActive = true;
+
                 _db.Rooms.Add(room);
                 _db.SaveChanges();
                 AuditHelper.Log(_db, "CreateRoom", $"Thêm phòng {name}", "Rooms", room.RoomId);
-                txtRoomName.Clear();
+
+                txtRoomName.Text = "";
                 LoadRooms();
             }
             catch (Exception ex)
@@ -135,25 +167,29 @@ namespace SportsCenter
 
         private void btnDeleteRoom_Click(object sender, RoutedEventArgs e)
         {
-            int? id = GridHelper.SelectedId(dgRooms, "RoomId");
-            if (id == null)
+            var selected = dgRooms.SelectedItem as RoomViewModel;
+            if (selected == null)
             {
                 Msg.Warn("Vui lòng chọn một phòng.");
                 return;
             }
-            if (_db.Classes.Any(c => c.RoomId == id))
+            // Phòng đang có lớp thì không xóa được (luật C4)
+            if (_db.Classes.Any(x => x.RoomId == selected.RoomId))
             {
                 Msg.Warn("Phòng đang có lớp, không thể xóa.");
                 return;
             }
-            if (!Msg.Confirm("Xóa phòng đã chọn?")) return;
+            if (!Msg.Confirm("Xóa phòng " + selected.RoomName + "?")) return;
 
             try
             {
-                var room = _db.Rooms.Find(id)!;
+                var room = _db.Rooms.Find(selected.RoomId);
+                if (room == null) return;
+
                 _db.Rooms.Remove(room);
                 _db.SaveChanges();
                 AuditHelper.Log(_db, "DeleteRoom", $"Xóa phòng {room.RoomName}", "Rooms", room.RoomId);
+
                 LoadRooms();
             }
             catch (Exception ex)
