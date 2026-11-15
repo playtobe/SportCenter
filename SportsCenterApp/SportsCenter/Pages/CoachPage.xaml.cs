@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SportsCenter.Entities;
 using SportsCenter.ViewModels;
-using System.Windows;
 using System.Windows.Controls;
 
 namespace SportsCenter
@@ -14,14 +13,10 @@ namespace SportsCenter
     {
         private SportsCenterContext _db;
 
-        // true trong lúc code tự đổ dữ liệu vào ô Chọn lớp, để sự kiện SelectionChanged bỏ qua
-        private bool _loading;
-
         public CoachPage()
         {
             InitializeComponent();
             _db = new();
-            pgStudents.PageChanged += (s, e) => LoadStudents();
             LoadClasses();
         }
 
@@ -39,11 +34,9 @@ namespace SportsCenter
                     Text = x.ClassCode + " · " + x.ClassName
                 }).ToList();
 
-            _loading = true;
             cbxClass.ItemsSource = classes;
             cbxClass.DisplayMemberPath = nameof(OptionViewModel.Text);
             cbxClass.SelectedValuePath = nameof(OptionViewModel.Id);
-            _loading = false;
 
             if (classes.Count == 0)
             {
@@ -61,7 +54,6 @@ namespace SportsCenter
 
         private void cbxClass_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_loading) return;
             pgStudents.Reset();
             LoadStudents();
         }
@@ -103,6 +95,12 @@ namespace SportsCenter
             }).ToList();
 
             dgStudents.ItemsSource = pgStudents.Slice(students);
+        }
+
+        // Bấm sang trang khác ở thanh phân trang thì tải lại danh sách học viên
+        private void pgStudents_PageChanged(object? sender, EventArgs e)
+        {
+            LoadStudents();
         }
     }
 }

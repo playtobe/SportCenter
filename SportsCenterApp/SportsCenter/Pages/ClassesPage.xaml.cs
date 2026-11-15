@@ -14,22 +14,15 @@ namespace SportsCenter
     {
         private SportsCenterContext _db;
 
-        // true trong lúc code tự đổ dữ liệu vào ComboBox.
-        // Khi đó các sự kiện SelectionChanged bỏ qua, chỉ chạy khi NGƯỜI DÙNG đổi lựa chọn.
-        private bool _loading;
-
         public ClassesPage()
         {
             InitializeComponent();
             _db = new();
-            pgClass.PageChanged += (s, e) => LoadClassList();
 
-            _loading = true;
             LoadFilters();
             LoadFormCombos();
             dpStart.SelectedDate = DateTime.Today;
             dpEnd.SelectedDate = DateTime.Today.AddDays(90);
-            _loading = false;
 
             RefreshFreeDays();
             LoadClassList();
@@ -83,11 +76,7 @@ namespace SportsCenter
             cbxRoom.SelectedValuePath = nameof(Room.RoomId);
             cbxRoom.SelectedIndex = 0;
 
-            // Ô Thứ và ô Ca dùng OptionViewModel (Id + Text); danh sách được đổ trong RefreshFreeDays / RefreshFreeSlots
-            cbxDay.DisplayMemberPath = nameof(OptionViewModel.Text);
-            cbxDay.SelectedValuePath = nameof(OptionViewModel.Id);
-            cbxSlot.DisplayMemberPath = nameof(OptionViewModel.Text);
-            cbxSlot.SelectedValuePath = nameof(OptionViewModel.Id);
+            // Ô Thứ và ô Ca được đổ dữ liệu trong RefreshFreeDays / RefreshFreeSlots
         }
 
         // Bảng danh sách lớp, có xét hai ô lọc
@@ -128,6 +117,12 @@ namespace SportsCenter
             dgClassList.ItemsSource = pgClass.Slice(classes);
         }
 
+        // Bấm sang trang khác ở thanh phân trang thì tải lại danh sách lớp
+        private void pgClass_PageChanged(object? sender, EventArgs e)
+        {
+            LoadClassList();
+        }
+
         // ================================================================ LỌC
 
         private void btnFilter_Click(object sender, RoutedEventArgs e)
@@ -150,14 +145,34 @@ namespace SportsCenter
 
         private void cbxCoachRoom_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_loading) return;
             RefreshFreeDays();
         }
 
         private void cbxDay_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_loading) return;
             RefreshFreeSlots();
+        }
+
+        // Đổi Từ ngày / Đến ngày -> tính lại thứ và ca trống (lớp cũ đã kết thúc thì không còn chiếm ca)
+        private void dpDate_SelectedDateChanged(object? sender, SelectionChangedEventArgs e)
+        {
+            RefreshFreeDays();
+        }
+
+        // Khoảng ngày đang nhập trong form.
+        // Chưa chọn đủ ngày hoặc nhập ngược thì xét mọi ngày (cách chặt nhất, ngày sai sẽ bị luật C1 báo khi bấm Thêm)
+        private void GetDateRange(out DateOnly start, out DateOnly end)
+        {
+            start = DateOnly.MinValue;
+            end = DateOnly.MaxValue;
+            if (dpStart.SelectedDate == null || dpEnd.SelectedDate == null) return;
+
+            DateOnly from1 = DateOnly.FromDateTime(dpStart.SelectedDate.Value);
+            DateOnly to1 = DateOnly.FromDateTime(dpEnd.SelectedDate.Value);
+            if (to1 < from1) return;
+
+            start = from1;
+            end = to1;
         }
 
         // Ô Thứ chỉ hiện những thứ còn ít nhất một ca trống với HLV và phòng đang chọn
@@ -167,8 +182,9 @@ namespace SportsCenter
             int coachId = (int)cbxCoach.SelectedValue;
             int roomId = (int)cbxRoom.SelectedValue;
 
-            // Các cặp (thứ, ca) đã bị lớp khác chiếm: cùng phòng hoặc cùng HLV
-            var busy = Rules.BusySet(_db, roomId, coachId);
+            // Các cặp (thứ, ca) đã bị lớp khác chiếm: cùng phòng hoặc cùng HLV, và trùng khoảng ngày
+            GetDateRange(out DateOnly start, out DateOnly end);
+            var busy = Rules.BusySet(_db, roomId, coachId, start, end);
             var slots = _db.TimeSlots.ToList();
 
             var freeDays = new List<OptionViewModel>();
@@ -184,14 +200,14 @@ namespace SportsCenter
             // Thứ đang chọn mà vẫn còn trống thì giữ nguyên, không thì chọn thứ đầu tiên
             int? oldDay = cbxDay.SelectedValue as int?;
 
-            _loading = true;
+            cbxDay.DisplayMemberPath = nameof(OptionViewModel.Text);
+            cbxDay.SelectedValuePath = nameof(OptionViewModel.Id);
             cbxDay.ItemsSource = freeDays;
             if (freeDays.Count > 0)
             {
                 bool keepOld = oldDay != null && freeDays.Any(d => d.Id == oldDay);
                 cbxDay.SelectedValue = keepOld ? oldDay : freeDays[0].Id;
             }
-            _loading = false;
 
             RefreshFreeSlots();
 
@@ -215,7 +231,8 @@ namespace SportsCenter
             int roomId = (int)cbxRoom.SelectedValue;
             int day = (int)cbxDay.SelectedValue;
 
-            var busy = Rules.BusySet(_db, roomId, coachId);
+            GetDateRange(out DateOnly start, out DateOnly end);
+            var busy = Rules.BusySet(_db, roomId, coachId, start, end);
 
             var freeSlots = new List<OptionViewModel>();
             foreach (var s in _db.TimeSlots.OrderBy(x => x.SlotId).ToList())
@@ -230,6 +247,8 @@ namespace SportsCenter
                 }
             }
 
+            cbxSlot.DisplayMemberPath = nameof(OptionViewModel.Text);
+            cbxSlot.SelectedValuePath = nameof(OptionViewModel.Id);
             cbxSlot.ItemsSource = freeSlots;
             if (freeSlots.Count > 0) cbxSlot.SelectedIndex = 0;
         }
@@ -304,7 +323,8 @@ namespace SportsCenter
             }
 
             // 3. Luật C2, C3: kiểm tra lại trùng phòng / trùng HLV (phòng khi dữ liệu vừa thay đổi)
-            string? conflict = Rules.ClassConflictMessage(_db, roomId, coachId, day, slotId);
+            string? conflict = Rules.ClassConflictMessage(_db, roomId, coachId, day, slotId,
+                DateOnly.FromDateTime(start), DateOnly.FromDateTime(end));
             if (conflict != null)
             {
                 Msg.Warn(conflict);
