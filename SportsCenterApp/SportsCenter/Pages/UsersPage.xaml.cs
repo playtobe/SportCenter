@@ -40,30 +40,30 @@ namespace SportsCenter
             // 2. Lọc theo từ khóa tìm kiếm (Username hoặc FullName) nếu có nhập:
             if (!string.IsNullOrEmpty(keyword))
             {
-                query = query.Where(x => x.Username.Contains(keyword) || x.FullName.Contains(keyword));
+                query = query.Where(u => u.Username.Contains(keyword) || u.FullName.Contains(keyword));
             }
 
             // 3. Lọc theo Role nếu có chọn (khác All / Tất cả):
             if (roleIndex > 0)
             {
                 string selectedRole = _roles[roleIndex - 1];
-                query = query.Where(x => x.Role == selectedRole);
+                query = query.Where(u => u.Role == selectedRole);
             }
 
             // 4. Đổ dữ liệu vào DataGrid:
-            var rows = query
-                .OrderBy(x => x.UserId)
-                .Select(x => new
+            var userList = query
+                .OrderBy(u => u.UserId)
+                .Select(u => new
                 {
-                    x.UserId,
-                    x.Username,
-                    x.FullName,
-                    Role = RoleName(x.Role),
-                    Status = x.IsActive ? "Đang hoạt động" : "Đã khóa"
+                    u.UserId,
+                    u.Username,
+                    u.FullName,
+                    Role = RoleName(u.Role),
+                    Status = u.IsActive ? "Đang hoạt động" : "Đã khóa"
                 })
                 .ToList();
 
-            dgUsers.ItemsSource = pgUsers.Slice(rows);
+            dgUsers.ItemsSource = pgUsers.Slice(userList);
         }
 
         public void LoadRole()

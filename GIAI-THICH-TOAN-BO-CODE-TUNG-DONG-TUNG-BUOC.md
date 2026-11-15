@@ -1597,30 +1597,30 @@ Tập tin nằm tại `SportsCenterApp/SportsCenter/Pages/UsersPage.xaml.cs`.
  40:             // 2. Lọc theo từ khóa tìm kiếm (Username hoặc FullName) nếu có nhập:
  41:             if (!string.IsNullOrEmpty(keyword))
  42:             {
- 43:                 query = query.Where(x => x.Username.Contains(keyword) || x.FullName.Contains(keyword));
+ 43:                 query = query.Where(u => u.Username.Contains(keyword) || u.FullName.Contains(keyword));
  44:             }
  45: 
  46:             // 3. Lọc theo Role nếu có chọn (khác All / Tất cả):
  47:             if (roleIndex > 0)
  48:             {
  49:                 string selectedRole = _roles[roleIndex - 1];
- 50:                 query = query.Where(x => x.Role == selectedRole);
+ 50:                 query = query.Where(u => u.Role == selectedRole);
  51:             }
  52: 
  53:             // 4. Đổ dữ liệu vào DataGrid:
- 54:             var rows = query
- 55:                 .OrderBy(x => x.UserId)
- 56:                 .Select(x => new
+ 54:             var userList = query
+ 55:                 .OrderBy(u => u.UserId)
+ 56:                 .Select(u => new
  57:                 {
- 58:                     x.UserId,
- 59:                     x.Username,
- 60:                     x.FullName,
- 61:                     Role = RoleName(x.Role),
- 62:                     Status = x.IsActive ? "Đang hoạt động" : "Đã khóa"
+ 58:                     u.UserId,
+ 59:                     u.Username,
+ 60:                     u.FullName,
+ 61:                     Role = RoleName(u.Role),
+ 62:                     Status = u.IsActive ? "Đang hoạt động" : "Đã khóa"
  63:                 })
  64:                 .ToList();
  65: 
- 66:             dgUsers.ItemsSource = pgUsers.Slice(rows);
+ 66:             dgUsers.ItemsSource = pgUsers.Slice(userList);
  67:         }
  68: 
  69:         public void LoadRole()

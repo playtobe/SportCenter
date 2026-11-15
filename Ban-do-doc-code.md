@@ -27,7 +27,7 @@ Một Page (UserControl) = một màn hình
 **Khuôn của mọi Page** (hiểu một màn là hiểu cả 13 màn):
 
 1. Hàm tạo: `InitializeComponent(); _db = new(); GridHelper.Setup(dgX); pgX.PageChanged += ...; LoadX();`
-2. `LoadX()`: lọc bằng `query.Where(...)`, chọn cột bằng `Select(new { ... }).ToList()`, rồi `dgX.ItemsSource = pgX.Slice(rows)` (mỗi trang 8 dòng).
+2. `LoadX()`: lọc bằng `query.Where(...)`, chọn cột bằng `Select(new { ... }).ToList()`, rồi `dgX.ItemsSource = pgX.Slice(userList)` (mỗi trang 8 dòng).
 3. Mỗi nút bấm là một hàm `btnXxx_Click`: đọc ô nhập → kiểm tra (lỗi thì `Msg.Warn` rồi `return`) → `try { thao tác; _db.SaveChanges(); AuditHelper.Log(...); LoadX(); Msg.Info(...) } catch (Exception ex) { Msg.Error(ex); }`.
 4. Luật dùng chung giữa nhiều màn nằm trong các file `Helpers/Rules*.cs` và `Helpers/AccountHelper.cs`. Hàm trả về `string?` nghĩa là **thông báo lỗi, hoặc `null` nếu hợp lệ**.
 
