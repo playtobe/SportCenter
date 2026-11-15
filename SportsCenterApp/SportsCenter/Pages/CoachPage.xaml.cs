@@ -21,7 +21,6 @@ namespace SportsCenter
         {
             InitializeComponent();
             _db = new();
-            pgStudents.PageChanged += (s, e) => LoadStudents();
             LoadClasses();
         }
 
@@ -103,6 +102,12 @@ namespace SportsCenter
             }).ToList();
 
             dgStudents.ItemsSource = pgStudents.Slice(students);
+        }
+
+        // Bấm sang trang khác ở thanh phân trang thì tải lại danh sách học viên
+        private void pgStudents_PageChanged(object? sender, EventArgs e)
+        {
+            LoadStudents();
         }
     }
 }

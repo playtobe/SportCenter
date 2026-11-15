@@ -18,10 +18,6 @@ namespace SportsCenter
             InitializeComponent();
             _db = new();
 
-            // Bấm sang trang khác ở thanh phân trang thì tải lại bảng tương ứng
-            pgSports.PageChanged += (s, e) => LoadSports();
-            pgRooms.PageChanged += (s, e) => LoadRooms();
-
             LoadSports();
             LoadRooms();
         }
@@ -40,6 +36,12 @@ namespace SportsCenter
                 }).ToList();
 
             dgSports.ItemsSource = pgSports.Slice(sports);
+        }
+
+        // Bấm sang trang khác ở thanh phân trang của bảng Bộ môn thì tải lại bảng Bộ môn
+        private void pgSports_PageChanged(object? sender, EventArgs e)
+        {
+            LoadSports();
         }
 
         private void btnAddSport_Click(object sender, RoutedEventArgs e)
@@ -123,6 +125,12 @@ namespace SportsCenter
                 }).ToList();
 
             dgRooms.ItemsSource = pgRooms.Slice(rooms);
+        }
+
+        // Bấm sang trang khác ở thanh phân trang của bảng Phòng thì tải lại bảng Phòng
+        private void pgRooms_PageChanged(object? sender, EventArgs e)
+        {
+            LoadRooms();
         }
 
         private void btnAddRoom_Click(object sender, RoutedEventArgs e)

@@ -22,7 +22,6 @@ namespace SportsCenter
         {
             InitializeComponent();
             _db = new();
-            pgClass.PageChanged += (s, e) => LoadClassList();
 
             _loading = true;
             LoadFilters();
@@ -126,6 +125,12 @@ namespace SportsCenter
                 }).ToList();
 
             dgClassList.ItemsSource = pgClass.Slice(classes);
+        }
+
+        // Bấm sang trang khác ở thanh phân trang thì tải lại danh sách lớp
+        private void pgClass_PageChanged(object? sender, EventArgs e)
+        {
+            LoadClassList();
         }
 
         // ================================================================ LỌC

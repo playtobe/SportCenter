@@ -39,7 +39,7 @@
                             <DataGridTextColumn Header="Trạng thái" Binding="{Binding Status}" Width="0.9*"/>
                         </DataGrid.Columns>
                     </DataGrid>
-                    <local:PagerControl x:Name="pgClass" Margin="0,8,0,0"/>
+                    <local:PagerControl x:Name="pgClass" PageChanged="pgClass_PageChanged" Margin="0,8,0,0"/>
                     <Button Content="Hủy lớp đã chọn" Style="{StaticResource DangerButton}" HorizontalAlignment="Left" Margin="0,8,0,0" Click="btnCancelClass_Click"/>
                 </StackPanel>
             </GroupBox>

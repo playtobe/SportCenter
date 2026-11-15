@@ -37,7 +37,7 @@
                             <DataGridTextColumn Header="Gói thành viên" Binding="{Binding PackageStatus}" Width="*"/>
                         </DataGrid.Columns>
                     </DataGrid>
-                    <local:PagerControl x:Name="pgStudents" Margin="0,8,0,0"/>
+                    <local:PagerControl x:Name="pgStudents" PageChanged="pgStudents_PageChanged" Margin="0,8,0,0"/>
                 </StackPanel>
             </GroupBox>
         </StackPanel>
