@@ -27,7 +27,7 @@
                 <StackPanel>
                     <DataGrid Name="dgMembers"/>
                     <local:PagerControl x:Name="pgMembers" Margin="0,8,0,0"/>
-                    <Button Name="btnBuy" Content="Mua / gia hạn gói cho member đã chọn" HorizontalAlignment="Left" Margin="0,8,0,0" Click="btnBuy_Click"/>
+                    <Button Name="btnBuy" Content="Mua / gia hạn gói cho member đã chọn" HorizontalAlignment="Left" Margin="0,8,0,0" Click="btnBuyPackage_Click"/>
                 </StackPanel>
             </GroupBox>
 

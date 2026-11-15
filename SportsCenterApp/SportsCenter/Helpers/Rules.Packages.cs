@@ -3,11 +3,10 @@ using SportsCenter.Entities;
 
 namespace SportsCenter
 {
-    // Luật về gói thành viên (P3, P4). Chủ file: Người 2.
-    // Cùng một class Rules với các file Rules*.cs khác (partial), tách ra để mỗi người sửa file riêng, không đụng nhau khi push.
+    // Luật về gói thành viên (P3, P4). Cùng một class Rules với các file Rules*.cs khác (partial).
     public static partial class Rules
     {
-        // Gói còn hạn: chưa hủy và StartDate <= hôm nay <= EndDate
+        // Gói đang dùng: chưa hủy, đã bắt đầu và chưa hết hạn. Không có thì trả null.
         public static Subscription? ActiveSubscription(SportsCenterContext db, int memberId)
         {
             var today = Today;
@@ -18,38 +17,47 @@ namespace SportsCenter
                 .FirstOrDefault();
         }
 
-        // Gói còn hạn nếu có, không thì gói gần nhất (dùng để hiện trạng thái trong danh sách)
+        // Gói còn hạn nếu có, không thì gói gần nhất (để hiện trạng thái trong danh sách Member)
         public static Subscription? CurrentOrLatest(IEnumerable<Subscription> mine)
         {
             var today = Today;
-            return mine.Where(s => s.Status != "Cancelled" && s.StartDate <= today && s.EndDate >= today)
-                       .OrderByDescending(s => s.EndDate).FirstOrDefault()
-                   ?? mine.OrderByDescending(s => s.EndDate).FirstOrDefault();
+            var current = mine
+                .Where(s => s.Status != "Cancelled" && s.StartDate <= today && s.EndDate >= today)
+                .OrderByDescending(s => s.EndDate)
+                .FirstOrDefault();
+            if (current != null)
+            {
+                return current;
+            }
+            return mine.OrderByDescending(s => s.EndDate).FirstOrDefault();
         }
 
         public static string SubscriptionText(Subscription? s)
         {
             if (s == null) return "Chưa có gói";
             if (s.Status == "Cancelled") return "Đã hủy";
-            return s.EndDate < Today ? "Hết hạn" : "Còn hạn";
+            if (s.EndDate < Today) return "Hết hạn";
+            return "Còn hạn";
         }
 
-        // P3: ngày bắt đầu của gói mới = ngày sau khi gói XA NHẤT chưa hết hạn kết thúc.
-        // Tính cả gói đã mua nối tiếp mà chưa tới ngày bắt đầu, để mua nhiều lần thì các gói xếp nối đuôi nhau, không chồng lên nhau.
-        // Không còn gói nào chưa hết hạn thì bắt đầu từ hôm nay.
+        // P3: ngày bắt đầu của gói mới = ngày sau khi gói XA NHẤT chưa hết hạn kết thúc
+        // (tính cả gói đã mua nối tiếp). Không còn gói nào thì bắt đầu từ hôm nay.
         public static DateOnly NextStartDate(SportsCenterContext db, int memberId)
         {
             var today = Today;
-            DateOnly? lastEnd = db.Subscriptions
+            var last = db.Subscriptions
                 .AsNoTracking()
                 .Where(s => s.MemberId == memberId && s.Status != "Cancelled" && s.EndDate >= today)
                 .OrderByDescending(s => s.EndDate)
-                .Select(s => (DateOnly?)s.EndDate)
                 .FirstOrDefault();
-            return lastEnd.HasValue ? lastEnd.Value.AddDays(1) : today;
+            if (last == null)
+            {
+                return today;
+            }
+            return last.EndDate.AddDays(1);
         }
 
-        // Các gói đã mua nối tiếp nhưng chưa tới ngày bắt đầu (gói hiện tại vẫn đang dùng cho tới khi hết hạn)
+        // Các gói đã mua nối tiếp nhưng chưa tới ngày bắt đầu
         public static List<Subscription> QueuedSubscriptions(SportsCenterContext db, int memberId)
         {
             var today = Today;

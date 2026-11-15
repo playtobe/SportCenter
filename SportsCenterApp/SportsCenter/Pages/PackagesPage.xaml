@@ -11,7 +11,7 @@
                 <StackPanel>
                     <DataGrid Name="dgPackages"/>
                     <local:PagerControl x:Name="pgPackages" Margin="0,8,0,0"/>
-                    <Button Content="Ngừng bán / Mở bán lại gói đã chọn" HorizontalAlignment="Left" Margin="0,8,0,0" Click="btnToggle_Click"/>
+                    <Button Content="Ngừng bán / Mở bán lại gói đã chọn" HorizontalAlignment="Left" Margin="0,8,0,0" Click="btnTogglePackage_Click"/>
                 </StackPanel>
             </GroupBox>
 
@@ -32,7 +32,7 @@
                             <TextBox Name="txtPrice" Width="130" Text="500000"/>
                         </StackPanel>
                     </WrapPanel>
-                    <Button Content="Thêm gói" HorizontalAlignment="Left" Click="btnAdd_Click"/>
+                    <Button Content="Thêm gói" HorizontalAlignment="Left" Click="btnAddPackage_Click"/>
                 </StackPanel>
             </GroupBox>
         </StackPanel>

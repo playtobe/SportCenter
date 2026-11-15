@@ -431,7 +431,7 @@ function sSportsRooms(){
 
 function sPackages(){return head('packages')+`<div class="grp"><div class="gh">Danh sách gói</div><div class="gb">${tbl([['Id'],['Tên gói'],['Thời hạn','n'],['Giá','n'],['Trạng thái'],['']],
   D.packages.map(p=>`<tr><td>${p.id}</td><td>${esc(p.name)}</td><td class="n">${p.days} ngày</td><td class="n">${money(p.price)}</td><td>${p.active?pill('Đang bán','ok'):pill('Ngừng bán','mute')}</td>
-  <td><button class="btn s" data-act="togglePkg" data-id="${p.id}">${p.active?'Ngừng bán':'Mở bán lại'}</button></td></tr>`),undefined,'packages')}
+  <td><button class="btn s" data-act="togglePkg" data-id="${p.id}">${p.active?'Ngừng bán':'Mở bán lại'}</button></td></tr>`))}
   </div></div>
   <div class="grp"><div class="gh">Thêm gói mới</div><div class="gb"><div class="row"><div class="f"><label for="pn">Tên gói</label><input id="pn"></div><div class="f"><label for="pd">Số ngày</label><input id="pd" type="number" value="30"></div>
   <div class="f"><label for="pp">Giá (₫)</label><input id="pp" type="number" value="500000"></div><button class="btn p" data-act="addPkg">Thêm gói</button></div></div></div>`}
@@ -444,15 +444,15 @@ function sMembers(){
     <div class="f"><label for="mst">Trạng thái gói</label><select id="mst">${[['','Tất cả'],['Active','Còn hạn'],['Expired','Hết hạn'],['None','Chưa có gói']].map(([o,l])=>`<option value="${o}" ${(S.mst||'')===o?'selected':''}>${l}</option>`).join('')}</select></div><button class="btn p" data-act="search">Tìm</button><button class="btn" data-act="searchClear">Xóa lọc</button></div></div></div>
   <div class="grp"><div class="gh">Danh sách member</div><div class="gb">${tbl([['Id'],['Họ tên'],['Điện thoại'],['Tài khoản'],['Gói hiện tại'],['Hạn đến'],['Trạng thái'],...(S.user.role!=='Manager'?[['']]:[])],list.map(m=>{const s=activeSub(m.id)||lastSub(m.id);
     return `<tr><td>${m.id}</td><td>${esc(m.name)}</td><td>${esc(m.phone)}</td><td>${m.userId?'Có':pill('Chưa có','mute')}</td><td>${s?esc(byId(D.packages,s.pkgId).name):'—'}</td><td>${s?fd(s.end):'—'}</td><td>${subPill(s)}</td>
-    ${S.user.role!=='Manager'?`<td><button class="btn s" data-act="buyFor" data-id="${m.id}">Mua/gia hạn gói</button></td>`:''}</tr>`}),'Không tìm thấy member','members')}</div></div>
+    ${S.user.role!=='Manager'?`<td><button class="btn s" data-act="buyFor" data-id="${m.id}">Mua/gia hạn gói</button></td>`:''}</tr>`}),'Không tìm thấy member')}</div></div>
   ${S.user.role!=='Manager'?`<div class="grp"><div class="gh">Đăng ký member mới tại quầy (không cần tài khoản)</div><div class="gb"><div class="row"><div class="f"><label for="mn">Họ tên</label><input id="mn"></div><div class="f"><label for="mp">Điện thoại</label><input id="mp"></div>
   <div class="f"><label for="me">Email</label><input id="me"></div><button class="btn p" data-act="addMember">Đăng ký</button></div></div></div>`:''}`}
 
 function sBuy(){
-  const mid=memberCtx(),cur=activeSub(mid),last=lastSub(mid);
+  const mid=memberCtx(),cur=activeSub(mid);
   const pkg=S.pkg?byId(D.packages,S.pkg):null;
   const start=nextStart(mid),queued=queuedSubs(mid); const end=pkg?addDays(start,pkg.days-1):null;
-  return head('buy')+picker()+`<div class="note ${cur?'ok':'bad'}"><b>${esc(memberName(mid))}</b> · ${cur?`đang có ${esc(byId(D.packages,cur.pkgId).name)}, còn hạn đến ${fd(cur.end)}${queued.length?`<br>Đã mua nối tiếp: ${queued.map(q=>`${esc(byId(D.packages,q.pkgId).name)} (${fd(q.start)} → ${fd(q.end)})`).join('; ')}`:''}`:last?`gói gần nhất đã hết hạn ngày ${fd(last.end)}`:'chưa từng mua gói'}</div>
+  return head('buy')+picker()+`<div class="note ${cur?'ok':'bad'}"><b>${esc(memberName(mid))}</b> · ${cur?`đang có ${esc(byId(D.packages,cur.pkgId).name)}, còn hạn đến ${fd(cur.end)}${queued.length?`<br>Đã mua nối tiếp: ${queued.map(q=>`${esc(byId(D.packages,q.pkgId).name)} (${fd(q.start)} → ${fd(q.end)})`).join('; ')}`:''}`:'chưa có gói còn hạn'}</div>
   <div class="grp"><div class="gh">Chọn gói</div><div class="gb"><div class="pkgs">${D.packages.filter(p=>p.active).map(p=>`<div class="pkg ${S.pkg==p.id?'on':''}" data-act="pickPkg" data-id="${p.id}"><b>${esc(p.name)}</b><div class="pr">${money(p.price)}</div><div class="hint">${p.days} ngày</div></div>`).join('')}</div></div></div>
   <div class="grp"><div class="gh">Thanh toán (mô phỏng)</div><div class="gb">${pkg?`<div class="row"><div class="f"><label>Hiệu lực</label><div>${fd(start)} → ${fd(end)} ${start>T?pill('Nối tiếp','warn'):''}</div></div>
   <div class="f"><label>Số tiền</label><div><b>${money(pkg.price)}</b></div></div><div class="f"><label for="pm">Phương thức</label><select id="pm"><option>Tiền mặt</option><option>Chuyển khoản</option><option>Thẻ</option></select></div>
@@ -519,13 +519,13 @@ function sUsers(){
   <div class="f"><label for="ur">Vai trò</label><select id="ur">${['Receptionist','Coach','Member','Manager'].map(r=>`<option value="${r}">${ROLE_VN[r]}</option>`).join('')}</select></div><button class="btn p" data-act="addUser">Thêm</button></div></div></div>`}
 
 function sAudit(){
-  const f=S.flt.audit,users=[...new Set(D.audit.map(a=>a.user))].sort(),acts=[...new Set(D.audit.map(a=>a.action))].sort();
+  const f=S.flt.audit,users=D.users.map(u=>u.username).sort(),acts=[...new Set(D.audit.map(a=>a.action))].sort();
   const list=D.audit.filter(a=>hit(f,a.detail+' '+a.user)&&(!f.user||a.user===f.user)&&(!f.act||a.action===f.act)&&inRange(new Date(a.at),f));
   return head('audit')+fbar('audit',fld('Từ khóa (chi tiết, mã)','audit','q',fIn('audit','q',f.q,'text','VD: INV-0001 hoặc YOGA01'),210)
     +fld('Người dùng','audit','user',fSel('audit','user',f.user,[['','Tất cả'],...users.map(u=>[u,u])]))
     +fld('Hành động','audit','act',fSel('audit','act',f.act,[['','Tất cả'],...acts.map(a=>[a,a])]))
     +fld('Từ ngày','audit','from',fIn('audit','from',f.from,'date'))+fld('Đến ngày','audit','to',fIn('audit','to',f.to,'date')))
-  +`<div class="grp"><div class="gb">${tbl([['Thời gian'],['Người dùng'],['Hành động'],['Chi tiết']],list.map(a=>`<tr><td>${new Date(a.at).toLocaleString('vi-VN')}</td><td>${esc(a.user)}</td><td>${pill(a.action,'mute')}</td><td>${esc(a.detail)}</td></tr>`),'Không có hoạt động phù hợp','audit')}</div></div>`}
+  +`<div class="grp"><div class="gb">${tbl([['Thời gian'],['Người dùng'],['Hành động'],['Chi tiết']],list.map(a=>`<tr><td>${new Date(a.at).toLocaleString('vi-VN')}</td><td>${esc(a.user)}</td><td>${pill(a.action,'mute')}</td><td>${esc(a.detail)}</td></tr>`),'Không có hoạt động phù hợp')}</div></div>`}
 
 /* Đổi mật khẩu: hộp thoại nhỏ mở từ nút ở góc dưới menu (thay cho màn Cài đặt cũ), giống ChangePasswordWindow trong app */
 function sPwDialog(){const u=S.user;return `<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="pwt">

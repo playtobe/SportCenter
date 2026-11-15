@@ -31,7 +31,9 @@ Một Page (UserControl) = một màn hình
 3. Mỗi nút bấm là một hàm `btnXxx_Click`: đọc ô nhập → kiểm tra (lỗi thì `Msg.Warn` rồi `return`) → `try { thao tác; _db.SaveChanges(); AuditHelper.Log(...); LoadX(); Msg.Info(...) } catch (Exception ex) { Msg.Error(ex); }`.
 4. Luật dùng chung giữa nhiều màn nằm trong các file `Helpers/Rules*.cs` và `Helpers/AccountHelper.cs`. Hàm trả về `string?` nghĩa là **thông báo lỗi, hoặc `null` nếu hợp lệ**.
 
-Mỗi Page tự giữ một `_db` riêng (giống Q2). Luôn đọc bằng `Select(...)` hoặc `AsNoTracking()` để dữ liệu mới nhất, không bị cũ khi màn khác vừa sửa.
+Mỗi Page tự giữ một `_db` riêng (giống Q2); mở màn là có `_db` mới nên dữ liệu luôn mới. Các màn khác đọc bằng `Select(...)` hoặc `AsNoTracking()` để không bị cũ khi màn khác vừa sửa.
+
+**Riêng 4 màn của Người 2** (Member, Gói thành viên, Mua / gia hạn gói, Lịch sử hoạt động) viết sát kiểu bài Q2 cho dễ đọc, khác khuôn trên ở các điểm: hàm tạo gọi `LoadData()` (gom các hàm `LoadX`); báo bằng `MessageBox.Show` thẳng (không qua `Msg`); **không phân trang** (bảng hiện hết dòng và tự cuộn); có hàm `ClearForm()`; tên nút có đối tượng (`btnAddPackage_Click`); kiểm tra ô chọn bằng `is not int id`. Vẫn dùng `GridHelper` để đặt tiêu đề cột tiếng Việt và ẩn cột Id.
 
 ---
 
@@ -97,21 +99,21 @@ Dữ liệu mẫu để demo (mật khẩu chung `123456`): `manager1`, `recepti
 **Đọc theo thứ tự**
 1. `SportsCenter.sql`: `MembershipPackages`, `Subscriptions` (`CHECK EndDate >= StartDate`), `Payments`.
 2. `Rules.Packages.cs`: `ActiveSubscription` (P4), `CurrentOrLatest`, `SubscriptionText`, `NextStartDate` (P3), `QueuedSubscriptions`.
-3. `PackagesPage`: `LoadPackages`, `btnAdd_Click` (P1: giá, số ngày, tên không trùng), `btnToggle_Click` (ngừng bán / mở bán lại).
-4. `MembersPage`: `LoadMembers` (ghép trạng thái gói của từng member), `btnAddMember_Click` (A5: số điện thoại duy nhất), `btnBuy_Click`. Hàm tạo ẩn nút và khung bán gói với Manager.
-5. `BuyPage`: hàm tạo, `LoadMemberPicker` (member tự mua thì ẩn ô chọn member), `ShowCurrent` (gói hiện tại và gói đã mua nối tiếp), `ShowPreview`, `btnConfirm_Click` (P2, Y2).
-6. `AuditPage`: `LoadData` (đổ ô lọc, tên hành động qua `Rules.ActionName`), `LoadLogs`.
+3. `PackagesPage`: `LoadData` → `LoadPackages`, `btnAddPackage_Click` (P1: giá, số ngày, tên không trùng), `btnTogglePackage_Click` (ngừng bán / mở bán lại), `ClearForm`.
+4. `MembersPage`: `LoadData` → `LoadStatus` + `LoadMembers` (ghép trạng thái gói của từng member), `btnAddMember_Click` (A5: số điện thoại duy nhất), `btnBuyPackage_Click`, `ClearForm`. Hàm tạo ẩn nút và khung bán gói với Manager.
+5. `BuyPage`: `LoadData` → `LoadMethod`, `LoadMember` (member tự mua thì ẩn ô chọn member), `LoadPackages`, `ShowCurrent` (gói hiện tại và gói đã mua nối tiếp), `ShowPreview`; nút `btnConfirmPayment_Click` (P2, Y2).
+6. `AuditPage`: `LoadData` → `LoadUsers` + `LoadActions` (tên hành động qua `Rules.ActionName`) + `LoadLogs`.
 
-**Luồng "Mua gói"** (`BuyPage.btnConfirm_Click`)
-1. Lấy member (`GetMemberId`) và gói đang chọn; gói ngừng bán thì báo.
+**Luồng "Mua gói"** (`BuyPage.btnConfirmPayment_Click`)
+1. Lấy member (`GetMemberId`), gói đang chọn (`GridHelper.SelectedId ... is not int packageId`) và phương thức thanh toán; thiếu thì báo. Gói ngừng bán thì báo.
 2. `Rules.NextStartDate` → ngày bắt đầu (nối tiếp sau gói xa nhất chưa hết hạn, không thì hôm nay).
 3. Tạo `Subscription` (`EndDate = Start + DurationDays - 1`) và `Payment` (số hóa đơn từ `Rules.NextInvoiceNo`).
 4. **Một lần `SaveChanges`** cho cả hai nên là một transaction (Y2): lỗi thì không lưu gì.
-5. `AuditHelper.Log("Payment")`, làm mới ô "gói hiện tại", `Msg.Info`.
+5. `AuditHelper.Log("Payment")`, làm mới ô "gói hiện tại" và dòng xem trước, báo `MessageBox.Show`.
 
 **Demo:** `reception1` → Member → chọn Vũ Anh Tuấn → Mua / gia hạn gói → mua hai lần, thấy nhãn "nối tiếp" và dòng "Đã mua nối tiếp"; `manager1` → Gói thành viên → thêm gói tên trùng bị chặn.
 
-**Hay bị hỏi:** "Gói nối tiếp tính thế nào?" → `Rules.NextStartDate`. "Vì sao không xóa được gói đã bán?" → chỉ ngừng bán (`btnToggle_Click`). "Vì sao Manager không bán gói?" → quyết định ở mục 1 của tài liệu.
+**Hay bị hỏi:** "Gói nối tiếp tính thế nào?" → `Rules.NextStartDate`. "Vì sao không xóa được gói đã bán?" → chỉ ngừng bán (`btnTogglePackage_Click`). "Vì sao Manager không bán gói?" → quyết định ở mục 1 của tài liệu.
 **Giao nhau:** Người 4 gọi `Rules.ActiveSubscription` (luật B1); `PaymentsPage` của Người 5 hiển thị `Payments` do `BuyPage` tạo.
 
 ---
@@ -207,8 +209,8 @@ Dữ liệu mẫu để demo (mật khẩu chung `123456`): `manager1`, `recepti
 | A3 | Manager không tự khóa / đổi role mình | `UsersPage.GetSelectedUser`, `EnsureProfile` |
 | A4 | Ghi lịch sử hoạt động | `AuditHelper.Log` (gọi ở mọi thao tác quan trọng) |
 | A5 | Số điện thoại duy nhất | `AccountHelper.CheckPhoneForRegistration`, `MembersPage.btnAddMember_Click`, chỉ mục `UX_Members_Phone` |
-| P1 | Gói: giá, số ngày, tên không trùng | `PackagesPage.btnAdd_Click` |
-| P2 | Mua gói | `BuyPage.btnConfirm_Click` |
+| P1 | Gói: giá, số ngày, tên không trùng | `PackagesPage.btnAddPackage_Click` |
+| P2 | Mua gói | `BuyPage.btnConfirmPayment_Click` |
 | P3 | Gói nối tiếp | `Rules.NextStartDate` |
 | P4 | Gói còn hạn | `Rules.ActiveSubscription` |
 | P5 | Gói sắp hết hạn | `DashboardPage.LoadExpiring` |
@@ -218,7 +220,7 @@ Dữ liệu mẫu để demo (mật khẩu chung `123456`): `manager1`, `recepti
 | B6 | Hủy đăng ký trước 24 giờ | `Rules.CancelRegistration`, `Rules.CancelHoursBefore` |
 | B7 | Lễ tân đăng ký hộ | `Rules.RegisterClass` (lưu `RegisteredBy`), `BookingPage` |
 | B8 | Member chỉ thao tác dữ liệu của mình | `BookingPage.GetMemberId`, `BuyPage.GetMemberId`, `PaymentsPage.LoadPayments` |
-| Y1, Y2 | Hóa đơn, một transaction | `BuyPage.btnConfirm_Click`, `Rules.NextInvoiceNo` |
+| Y1, Y2 | Hóa đơn, một transaction | `BuyPage.btnConfirmPayment_Click`, `Rules.NextInvoiceNo` |
 | Y4 | Xuất hóa đơn | `PaymentsPage.btnExport_Click` |
 | R1-R4 | Báo cáo | `DashboardPage.LoadReport`, `LoadFill`, `LoadExpiring` |
 | Điểm danh | Buổi học, lưu | `Rules.SessionDates`, `AttendancePage.btnSave_Click` |

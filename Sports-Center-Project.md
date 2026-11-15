@@ -103,7 +103,7 @@ Nếu cần cắt cho kịp thời gian: bỏ P2 (10, 16, 17) và P1 (4, 14) cò
 
 ### Quy ước giao diện chung
 
-- **Phân trang** mọi danh sách dài: 8 dòng mỗi trang, nút tròn « ‹ 1 2 3 4 5 › » , trang hiện tại tô cam, dòng "Hiển thị 1-8 trên N". Lọc hoặc tìm kiếm xong tự về trang 1.
+- **Phân trang** mọi danh sách dài: 8 dòng mỗi trang, nút tròn « ‹ 1 2 3 4 5 › » , trang hiện tại tô cam, dòng "Hiển thị 1-8 trên N". Lọc hoặc tìm kiếm xong tự về trang 1. Riêng 4 màn của Người 2 (Member, Gói thành viên, Mua / gia hạn gói, Lịch sử hoạt động) để đơn giản nên hiện hết dòng trong bảng và tự cuộn, không phân trang.
 - **Bộ lọc** (nút *Lọc* và *Xóa lọc*) ở các màn lịch sử và danh sách:
 
 | Màn | Lọc theo |

@@ -31,7 +31,7 @@
                             <Label Content="Phương thức"/>
                             <ComboBox Name="cbxMethod" Width="170"/>
                         </StackPanel>
-                        <Button Name="btnConfirm" Content="Xác nhận đã thu tiền" VerticalAlignment="Bottom" Click="btnConfirm_Click"/>
+                        <Button Name="btnConfirm" Content="Xác nhận đã thu tiền" VerticalAlignment="Bottom" Click="btnConfirmPayment_Click"/>
                     </WrapPanel>
                 </StackPanel>
             </GroupBox>
