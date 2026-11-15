@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SportsCenter.Entities;
 using SportsCenter.ViewModels;
-using System.Windows;
 using System.Windows.Controls;
 
 namespace SportsCenter
