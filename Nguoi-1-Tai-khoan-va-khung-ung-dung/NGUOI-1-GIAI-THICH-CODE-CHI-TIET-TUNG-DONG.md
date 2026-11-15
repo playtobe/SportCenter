@@ -516,7 +516,8 @@
   - Dòng 32: Cắt khoảng trắng đầu cuối (`Trim()`), chuyển chữ thường (`ToLowerInvariant()`), thay thế chữ `đ` thành `d`.
   - Dòng 35: Phân tách dấu tiếng Việt bằng `Normalize(NormalizationForm.FormD)`.
   - Dòng 38-46: Lặp qua từng ký tự, lọc bỏ các dấu thanh (`UnicodeCategory.NonSpacingMark`), chỉ giữ lại ký tự chữ cái thuần túy.
-  - Dòng 49-51: Tách từ bằng khoảng trắng (`Split(' ', StringSplitOptions.RemoveEmptyEntries)`) và gộp lại bằng 1 khoảng trắng đơn `string.Join(" ", words)`. Kết quả giúp so sánh họ tên không phân biệt hoa/thường, không phân biệt dấu và khoảng trắng thừa (ví dụ: `"  Nguyễn   Văn Đạt "` $ightarrow$ `"nguyen van dat"`).
+  - Dòng 49-51: Tách từ bằng khoảng trắng (`Split(' ', StringSplitOptions.RemoveEmptyEntries)`) và gộp lại bằng 1 khoảng trắng đơn `string.Join(" ", words)`. Kết quả giúp so sánh họ tên không phân biệt hoa/thường, không phân biệt dấu và khoảng trắng thừa (ví dụ: `"  Nguyễn   Văn Đạt "` $
+ightarrow$ `"nguyen van dat"`).
 - **Dòng 58-73**: Phương thức `FindByPhone(SportsCenterContext db, string phone)`:
   - Dòng 60-63: Kiểm tra SĐT rỗng.
   - Dòng 66-70: Truy vấn LINQ bảng `Members` với `AsNoTracking()`, sắp xếp theo `MemberId` và tìm bản ghi đầu tiên khớp số điện thoại (`FirstOrDefault(m => m.Phone == phone)`).
@@ -1328,392 +1329,280 @@
   9: {
  10:     /// <summary>
  11:     /// Interaction logic for UsersPage.xaml
- 12:     /// Màn hình Quản lý tài khoản người dùng (Dành cho Quản lý / Manager)
- 13:     /// Cấu trúc thiết kế chuẩn theo mẫu bài thi PRN212:
- 14:     /// - Khởi tạo DbContext
- 15:     /// - Load ComboBox bộ lọc và form thêm mới
- 16:     /// - Load dữ liệu lên DataGrid bằng LINQ (Filter theo từ khóa và ComboBox)
- 17:     /// - Các chức năng: Lọc, Xóa bộ lọc (Clear Filter), Khóa/Mở tài khoản, Đổi vai trò, Thêm tài khoản mới
- 18:     /// </summary>
- 19:     public partial class UsersPage : UserControl
- 20:     {
- 21:         // 1. Khai báo DbContext kết nối Database (chuẩn PRN212)
- 22:         private SportsCenterContext _db;
- 23: 
- 24:         // 2. Danh sách các mã vai trò lưu trong CSDL
- 25:         private readonly string[] _roles = { "Manager", "Receptionist", "Coach", "Member" };
- 26: 
- 27:         // 3. Hàm chuyển đổi mã Role trong DB sang tên hiển thị tiếng Việt
- 28:         private static string RoleName(string code)
- 29:         {
- 30:             if (Rules.RoleNames.ContainsKey(code))
- 31:             {
- 32:                 return Rules.RoleNames[code];
- 33:             }
- 34:             return code;
- 35:         }
- 36: 
- 37:         public UsersPage()
- 38:         {
- 39:             InitializeComponent();
- 40:             _db = new SportsCenterContext(); // Khởi tạo kết nối CSDL
- 41: 
- 42:             // Tái sử dụng GridHelper để tự động căn chỉnh và định dạng cột DataGrid
- 43:             GridHelper.Setup(dgUsers);
- 44: 
- 45:             // Gán sự kiện khi bấm chuyển trang trên PagerControl thì nạp lại danh sách
- 46:             pgUsers.PageChanged += (s, e) => LoadUsers();
- 47: 
- 48:             // Nạp dữ liệu ban đầu cho các ComboBox và DataGrid
- 49:             LoadData();
- 50:         }
- 51: 
- 52:         // =====================================================================
- 53:         // Bước 1: Nạp danh sách vai trò vào các ComboBox trên giao diện
- 54:         // =====================================================================
- 55:         private void LoadData()
- 56:         {
- 57:             // Chuyển danh sách mã vai trò sang tên tiếng Việt
- 58:             List<string> roleNames = _roles.Select(RoleName).ToList();
- 59: 
- 60:             // 1. Nạp dữ liệu cho ComboBox Lọc (cbxRoleFilter): Thêm lựa chọn "Tất cả" ở đầu danh sách (chuẩn PRN)
- 61:             List<string> filterRoles = new List<string> { "Tất cả" };
- 62:             filterRoles.AddRange(roleNames);
- 63:             cbxRoleFilter.ItemsSource = filterRoles;
- 64:             cbxRoleFilter.SelectedIndex = 0; // Mặc định chọn "Tất cả"
- 65: 
- 66:             // 2. Nạp dữ liệu cho ComboBox Đổi vai trò (cbxNewRole)
- 67:             cbxNewRole.ItemsSource = roleNames;
- 68:             cbxNewRole.SelectedIndex = 3; // Mặc định chọn "Hội viên"
+ 12:     /// </summary>
+ 13:     public partial class UsersPage : UserControl
+ 14:     {
+ 15:         private SportsCenterContext _db;
+ 16: 
+ 17:         // Danh sách vai trò trong hệ thống
+ 18:         private readonly string[] _roles = { "Manager", "Receptionist", "Coach", "Member" };
+ 19: 
+ 20:         private static string RoleName(string code) => Rules.RoleNames.GetValueOrDefault(code, code);
+ 21: 
+ 22:         public UsersPage()
+ 23:         {
+ 24:             InitializeComponent();
+ 25:             _db = new SportsCenterContext();
+ 26:             GridHelper.Setup(dgUsers);
+ 27:             pgUsers.PageChanged += (s, e) => LoadUsers();
+ 28: 
+ 29:             LoadRole();
+ 30:             LoadUsers();
+ 31:         }
+ 32: 
+ 33:         public void LoadUsers()
+ 34:         {
+ 35:             string keyword = txtSearch.Text.Trim();
+ 36:             int roleIndex = cbxRoleFilter.SelectedIndex;
+ 37: 
+ 38:             // 1. Cú pháp LINQ truy vấn bảng Users:
+ 39:             var query = _db.Users.AsQueryable();
+ 40: 
+ 41:             // 2. Lọc theo từ khóa tìm kiếm (Username hoặc FullName) nếu có nhập:
+ 42:             if (!string.IsNullOrEmpty(keyword))
+ 43:             {
+ 44:                 query = query.Where(x => x.Username.Contains(keyword) || x.FullName.Contains(keyword));
+ 45:             }
+ 46: 
+ 47:             // 3. Lọc theo Role nếu có chọn (khác All / Tất cả):
+ 48:             if (roleIndex > 0)
+ 49:             {
+ 50:                 string selectedRole = _roles[roleIndex - 1];
+ 51:                 query = query.Where(x => x.Role == selectedRole);
+ 52:             }
+ 53: 
+ 54:             // 4. Đổ dữ liệu vào DataGrid:
+ 55:             var rows = query
+ 56:                 .OrderBy(x => x.UserId)
+ 57:                 .Select(x => new
+ 58:                 {
+ 59:                     x.UserId,
+ 60:                     x.Username,
+ 61:                     x.FullName,
+ 62:                     Role = RoleName(x.Role),
+ 63:                     Status = x.IsActive ? "Đang hoạt động" : "Đã khóa"
+ 64:                 })
+ 65:                 .ToList();
+ 66: 
+ 67:             dgUsers.ItemsSource = pgUsers.Slice(rows);
+ 68:         }
  69: 
- 70:             // 3. Nạp dữ liệu cho ComboBox Thêm tài khoản mới (cbxRole)
- 71:             cbxRole.ItemsSource = roleNames;
- 72:             cbxRole.SelectedIndex = 1; // Mặc định chọn "Lễ tân"
+ 70:         public void LoadRole()
+ 71:         {
+ 72:             var roleNames = _roles.Select(RoleName).ToList();
  73: 
- 74:             // 4. Nạp danh sách người dùng lên DataGrid
- 75:             LoadUsers();
- 76:         }
+ 74:             // Danh sách cho phần Add New User và Change Role (không chứa "All")
+ 75:             cbxRole.ItemsSource = roleNames;
+ 76:             cbxRole.SelectedIndex = 1;
  77: 
- 78:         // =====================================================================
- 79:         // Bước 2: Nạp và lọc danh sách tài khoản lên DataGrid bằng LINQ
- 80:         // (Tương tự phương thức LoadEmployee / LoadCourse trong bài PRN212)
- 81:         // =====================================================================
- 82:         private void LoadUsers()
- 83:         {
- 84:             // Khởi tạo truy vấn LINQ từ bảng Users
- 85:             var query = _db.Users.AsQueryable();
- 86: 
- 87:             // 1. Lọc theo từ khóa tìm kiếm (Tên đăng nhập hoặc Họ tên) nếu có nhập
- 88:             string keyword = txtSearch.Text.Trim();
- 89:             if (!string.IsNullOrEmpty(keyword))
- 90:             {
- 91:                 query = query.Where(u => u.Username.Contains(keyword) || u.FullName.Contains(keyword));
- 92:             }
+ 78:             cbxNewRole.ItemsSource = roleNames;
+ 79:             cbxNewRole.SelectedIndex = 3;
+ 80: 
+ 81:             // Danh sách cho phần Filter: có "All" ở đầu (danh sách riêng)
+ 82:             var filterRoles = new List<string> { "All" };
+ 83:             filterRoles.AddRange(roleNames);
+ 84:             cbxRoleFilter.ItemsSource = filterRoles;
+ 85:             cbxRoleFilter.SelectedIndex = 0;
+ 86:         }
+ 87: 
+ 88:         private void btnFilter_Click(object sender, RoutedEventArgs e)
+ 89:         {
+ 90:             pgUsers.Reset();
+ 91:             LoadUsers();
+ 92:         }
  93: 
- 94:             // 2. Lọc theo Vai trò nếu ComboBox khác "Tất cả" (SelectedIndex > 0)
- 95:             if (cbxRoleFilter.SelectedIndex > 0)
- 96:             {
- 97:                 string selectedRole = _roles[cbxRoleFilter.SelectedIndex - 1];
- 98:                 query = query.Where(u => u.Role == selectedRole);
- 99:             }
-100: 
-101:             // 3. Sắp xếp theo UserId tăng dần và chọn các cột cần hiển thị
-102:             var rows = query
-103:                 .OrderBy(u => u.UserId)
-104:                 .Select(u => new
-105:                 {
-106:                     u.UserId,
-107:                     u.Username,
-108:                     u.FullName,
-109:                     Role = RoleName(u.Role),
-110:                     Status = u.IsActive ? "Đang hoạt động" : "Đã khóa"
-111:                 })
-112:                 .ToList();
+ 94:         private void btnClearFilter_Click(object sender, RoutedEventArgs e)
+ 95:         {
+ 96:             // Reset cb về "All"
+ 97:             txtSearch.Clear();
+ 98:             cbxRoleFilter.SelectedIndex = 0;
+ 99:             pgUsers.Reset();
+100:             LoadUsers();
+101:         }
+102: 
+103:         private void btnAddUser_Click(object sender, RoutedEventArgs e)
+104:         {
+105:             string fullName = txtFullName.Text.Trim();
+106:             string username = txtUsername.Text.Trim();
+107: 
+108:             if (string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(username))
+109:             {
+110:                 MessageBox.Show("Please fill in Full Name and Username.");
+111:                 return;
+112:             }
 113: 
-114:             // 4. Đổ dữ liệu vào DataGrid (kết hợp phân trang qua pgUsers)
-115:             dgUsers.ItemsSource = pgUsers.Slice(rows);
-116:         }
-117: 
-118:         // =====================================================================
-119:         // Sự kiện khi bấm nút "Lọc" (btnFilter)
-120:         // =====================================================================
-121:         private void btnFilter_Click(object sender, RoutedEventArgs e)
-122:         {
-123:             pgUsers.Reset(); // Quay về trang 1
-124:             LoadUsers();     // Nạp lại danh sách theo điều kiện lọc
-125:         }
-126: 
-127:         // =====================================================================
-128:         // Sự kiện khi bấm nút "Bỏ lọc" (btnClearFilter) - Chuẩn bài thi PRN
-129:         // =====================================================================
-130:         private void btnClearFilter_Click(object sender, RoutedEventArgs e)
-131:         {
-132:             txtSearch.Clear();               // Xóa trắng ô tìm kiếm
-133:             cbxRoleFilter.SelectedIndex = 0; // Đặt lại ComboBox lọc về "Tất cả"
-134:             pgUsers.Reset();                 // Quay về trang 1
-135:             LoadUsers();                     // Nạp lại toàn bộ danh sách ban đầu
-136:         }
-137: 
-138:         // =====================================================================
-139:         // Lấy thông tin tài khoản đang được chọn trong DataGrid
-140:         // =====================================================================
-141:         private User? GetSelectedUser()
-142:         {
-143:             // Lấy ID từ dòng đang chọn trên DataGrid
-144:             int? id = GridHelper.SelectedId(dgUsers, "UserId");
-145:             if (id == null)
-146:             {
-147:                 MessageBox.Show("Vui lòng chọn một tài khoản trong danh sách.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
-148:                 return null;
-149:             }
-150: 
-151:             // Quy tắc A3: Không cho phép tự khóa hoặc đổi quyền của chính tài khoản đang đăng nhập
-152:             if (id == Session.CurrentUser!.UserId)
-153:             {
-154:                 MessageBox.Show("Không thể khóa hoặc đổi vai trò của chính tài khoản đang đăng nhập.", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
-155:                 return null;
-156:             }
-157: 
-158:             // Tìm và trả về đối tượng User từ Database
-159:             return _db.Users.Find(id);
+114:             if (AccountHelper.FullNameError(fullName) is string nameError)
+115:             {
+116:                 MessageBox.Show(nameError);
+117:                 return;
+118:             }
+119: 
+120:             if (AccountHelper.UsernameError(username) is string usernameError)
+121:             {
+122:                 MessageBox.Show(usernameError);
+123:                 return;
+124:             }
+125: 
+126:             if (_db.Users.Any(u => u.Username == username))
+127:             {
+128:                 MessageBox.Show("Username already exists.");
+129:                 return;
+130:             }
+131: 
+132:             try
+133:             {
+134:                 var user = new User
+135:                 {
+136:                     Username = username,
+137:                     PasswordHash = PasswordHelper.Hash("123456"),
+138:                     FullName = fullName,
+139:                     Role = _roles[cbxRole.SelectedIndex],
+140:                     IsActive = true,
+141:                     CreatedAt = DateTime.Now
+142:                 };
+143: 
+144:                 _db.Users.Add(user);
+145:                 EnsureProfile(user);
+146:                 _db.SaveChanges();
+147: 
+148:                 AuditHelper.Log(_db, "CreateUser", $"Tạo tài khoản {username} ({RoleName(user.Role)})", "Users", user.UserId);
+149: 
+150:                 // reset lại dg và form
+151:                 LoadUsers();
+152:                 ClearForm();
+153: 
+154:                 MessageBox.Show("User added successfully. Mật khẩu mặc định là 123456.");
+155:             }
+156:             catch (Exception)
+157:             {
+158:                 MessageBox.Show("User added failed.");
+159:             }
 160:         }
 161: 
-162:         // =====================================================================
-163:         // Sự kiện khi bấm nút "Khóa / Mở khóa tài khoản" (btnToggle)
-164:         // =====================================================================
-165:         private void btnToggle_Click(object sender, RoutedEventArgs e)
-166:         {
-167:             // Bước 1: Lấy tài khoản đang chọn
-168:             User? user = GetSelectedUser();
-169:             if (user == null) return;
-170: 
-171:             try
-172:             {
-173:                 // Bước 2: Đảo ngược trạng thái hoạt động (Active <-> Inactive)
-174:                 user.IsActive = !user.IsActive;
-175:                 _db.SaveChanges(); // Lưu vào Database
-176: 
-177:                 // Bước 3: Ghi lịch sử hoạt động (Audit Log)
-178:                 string actionText = user.IsActive ? "Mở khóa" : "Khóa";
-179:                 AuditHelper.Log(_db, "ToggleUser", $"{actionText} tài khoản {user.Username}", "Users", user.UserId);
-180: 
-181:                 // Bước 4: Nạp lại danh sách và giữ dòng đang chọn
-182:                 LoadUsers();
-183:                 GridHelper.SelectById(dgUsers, "UserId", user.UserId);
-184: 
-185:                 MessageBox.Show($"Đã {actionText.ToLower()} tài khoản {user.Username} thành công.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
-186:             }
-187:             catch (Exception ex)
-188:             {
-189:                 MessageBox.Show("Lỗi khi cập nhật trạng thái: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
-190:             }
-191:         }
-192: 
-193:         // =====================================================================
-194:         // Sự kiện khi bấm nút "Đổi vai trò" (btnChangeRole)
-195:         // =====================================================================
-196:         private void btnChangeRole_Click(object sender, RoutedEventArgs e)
-197:         {
-198:             // Bước 1: Lấy tài khoản đang chọn
-199:             User? user = GetSelectedUser();
-200:             if (user == null) return;
-201: 
-202:             // Bước 2: Lấy vai trò mới từ ComboBox
-203:             string newRole = _roles[cbxNewRole.SelectedIndex];
-204:             if (newRole == user.Role)
-205:             {
-206:                 MessageBox.Show("Tài khoản này đã có vai trò " + RoleName(newRole) + ".", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
-207:                 return;
-208:             }
+162:         private void btnToggle_Click(object sender, RoutedEventArgs e)
+163:         {
+164:             var user = GetSelectedUser();
+165:             if (user == null) return;
+166: 
+167:             try
+168:             {
+169:                 user.IsActive = !user.IsActive;
+170:                 _db.SaveChanges();
+171: 
+172:                 AuditHelper.Log(_db, "ToggleUser", $"{(user.IsActive ? "Mở khóa" : "Khóa")} tài khoản {user.Username}", "Users", user.UserId);
+173: 
+174:                 // reset lại dg
+175:                 LoadUsers();
+176:                 GridHelper.SelectById(dgUsers, "UserId", user.UserId);
+177: 
+178:                 MessageBox.Show("User status updated successfully.");
+179:             }
+180:             catch (Exception)
+181:             {
+182:                 MessageBox.Show("User status update failed.");
+183:             }
+184:         }
+185: 
+186:         private void btnChangeRole_Click(object sender, RoutedEventArgs e)
+187:         {
+188:             var user = GetSelectedUser();
+189:             if (user == null) return;
+190: 
+191:             string newRole = _roles[cbxNewRole.SelectedIndex];
+192:             if (newRole == user.Role)
+193:             {
+194:                 MessageBox.Show("Tài khoản này đã có vai trò " + RoleName(newRole) + ".");
+195:                 return;
+196:             }
+197: 
+198:             try
+199:             {
+200:                 user.Role = newRole;
+201:                 EnsureProfile(user);
+202:                 _db.SaveChanges();
+203: 
+204:                 AuditHelper.Log(_db, "SetRole", $"Đổi {user.Username} thành {RoleName(newRole)}", "Users", user.UserId);
+205: 
+206:                 // reset lại dg
+207:                 LoadUsers();
+208:                 GridHelper.SelectById(dgUsers, "UserId", user.UserId);
 209: 
-210:             try
-211:             {
-212:                 // Bước 3: Cập nhật vai trò mới cho User
-213:                 user.Role = newRole;
-214: 
-215:                 // Đảm bảo tạo hồ sơ tương ứng trong bảng Coaches hoặc Members nếu chưa có
-216:                 EnsureProfile(user);
+210:                 MessageBox.Show("User role changed successfully.");
+211:             }
+212:             catch (Exception)
+213:             {
+214:                 MessageBox.Show("User role change failed.");
+215:             }
+216:         }
 217: 
-218:                 _db.SaveChanges(); // Lưu vào Database
-219: 
-220:                 // Bước 4: Ghi nhận Audit Log
-221:                 AuditHelper.Log(_db, "SetRole", $"Đổi vai trò {user.Username} thành {RoleName(newRole)}", "Users", user.UserId);
-222: 
-223:                 // Bước 5: Nạp lại dữ liệu hiển thị
-224:                 LoadUsers();
-225:                 GridHelper.SelectById(dgUsers, "UserId", user.UserId);
+218:         private User? GetSelectedUser()
+219:         {
+220:             int? id = GridHelper.SelectedId(dgUsers, "UserId");
+221:             if (id == null)
+222:             {
+223:                 MessageBox.Show("Please select a User in the list.");
+224:                 return null;
+225:             }
 226: 
-227:                 MessageBox.Show($"Đã đổi vai trò của {user.Username} thành {RoleName(newRole)}.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
-228:             }
-229:             catch (Exception ex)
-230:             {
-231:                 MessageBox.Show("Lỗi khi đổi vai trò: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+227:             // Luật A3: Không thể tự khóa hoặc đổi quyền chính mình
+228:             if (id == Session.CurrentUser!.UserId)
+229:             {
+230:                 MessageBox.Show("Không thể khóa hoặc đổi vai trò của chính tài khoản đang đăng nhập.");
+231:                 return null;
 232:             }
-233:         }
-234: 
-235:         // =====================================================================
-236:         // Hàm đồng bộ hồ sơ: Nếu User có role Coach thì phải có dòng trong bảng Coaches,
-237:         // nếu có role Member thì phải có dòng trong bảng Members
-238:         // =====================================================================
-239:         private void EnsureProfile(User user)
-240:         {
-241:             // Nếu là Coach và chưa có hồ sơ huấn luyện viên -> Tự động thêm hồ sơ Coach
-242:             if (user.Role == "Coach" && !_db.Coaches.Any(c => c.UserId == user.UserId))
-243:             {
-244:                 Coach newCoach = new Coach
-245:                 {
-246:                     User = user,
-247:                     FullName = user.FullName,
-248:                     Email = user.Username + "@center.vn",
-249:                     Phone = user.Phone
-250:                 };
-251:                 _db.Coaches.Add(newCoach);
-252:             }
-253: 
-254:             // Nếu là Member và chưa có hồ sơ hội viên -> Tự động thêm hồ sơ Member
-255:             if (user.Role == "Member" && !_db.Members.Any(m => m.UserId == user.UserId))
-256:             {
-257:                 Member newMember = new Member
-258:                 {
-259:                     User = user,
-260:                     FullName = user.FullName,
-261:                     Phone = user.Phone,
-262:                     CreatedAt = DateTime.Now
-263:                 };
-264:                 _db.Members.Add(newMember);
-265:             }
-266:         }
-267: 
-268:         // =====================================================================
-269:         // Sự kiện khi bấm nút "Thêm tài khoản mới" (btnAddUser)
-270:         // (Tương tự phương thức btnAddEmp_Click / btnAddCourse_Click trong bài PRN212)
-271:         // =====================================================================
-272:         private void btnAddUser_Click(object sender, RoutedEventArgs e)
-273:         {
-274:             // Bước 1: Lấy dữ liệu từ các ô nhập liệu
-275:             string fullName = txtFullName.Text.Trim();
-276:             string username = txtUsername.Text.Trim();
-277: 
-278:             // Bước 2: Kiểm tra dữ liệu rỗng
-279:             if (string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(username))
-280:             {
-281:                 MessageBox.Show("Vui lòng nhập Họ tên và Tên đăng nhập.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
-282:                 return;
-283:             }
-284: 
-285:             // Bước 3: Kiểm tra định dạng Họ tên hợp lệ
-286:             string? nameError = AccountHelper.FullNameError(fullName);
-287:             if (nameError != null)
-288:             {
-289:                 MessageBox.Show(nameError, "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
-290:                 return;
-291:             }
-292: 
-293:             // Bước 4: Kiểm tra định dạng Tên đăng nhập hợp lệ
-294:             string? usernameError = AccountHelper.UsernameError(username);
-295:             if (usernameError != null)
-296:             {
-297:                 MessageBox.Show(usernameError, "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
-298:                 return;
-299:             }
-300: 
-301:             // Bước 5: Kiểm tra xem Tên đăng nhập đã tồn tại trong CSDL chưa
-302:             if (_db.Users.Any(u => u.Username == username))
-303:             {
-304:                 MessageBox.Show("Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
-305:                 return;
-306:             }
-307: 
-308:             // Bước 6: Thêm tài khoản mới vào CSDL
-309:             try
-310:             {
-311:                 // Khởi tạo đối tượng User mới với mật khẩu mặc định "123456"
-312:                 User newUser = new User
-313:                 {
-314:                     Username = username,
-315:                     PasswordHash = PasswordHelper.Hash("123456"), // Băm SHA-256
-316:                     FullName = fullName,
-317:                     Role = _roles[cbxRole.SelectedIndex],         // Lấy vai trò được chọn từ ComboBox
-318:                     IsActive = true,                              // Mặc định kích hoạt
-319:                     CreatedAt = DateTime.Now
-320:                 };
-321: 
-322:                 _db.Users.Add(newUser);
-323:                 EnsureProfile(newUser); // Tạo hồ sơ Coach/Member tương ứng nếu có
-324:                 _db.SaveChanges();      // Lưu vào Database
-325: 
-326:                 // Ghi lịch sử hoạt động tạo tài khoản
-327:                 AuditHelper.Log(_db, "CreateUser", $"Tạo tài khoản {username} ({RoleName(newUser.Role)})", "Users", newUser.UserId);
-328: 
-329:                 // Xóa trắng form nhập liệu sau khi thêm thành công (giống ClearForm trong PRN)
-330:                 txtFullName.Clear();
-331:                 txtUsername.Clear();
-332: 
-333:                 // Nạp lại danh sách hiển thị
-334:                 pgUsers.Reset();
-335:                 LoadUsers();
-336: 
-337:                 MessageBox.Show($"Đã tạo tài khoản {username} thành công! Mật khẩu mặc định là 123456.", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
-338:             }
-339:             catch (Exception ex)
-340:             {
-341:                 MessageBox.Show("Lỗi khi tạo tài khoản: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
-342:             }
-343:         }
-344:     }
-345: }
+233: 
+234:             return _db.Users.Find(id);
+235:         }
+236: 
+237:         private void EnsureProfile(User user)
+238:         {
+239:             if (user.Role == "Coach" && !_db.Coaches.Any(c => c.UserId == user.UserId))
+240:             {
+241:                 _db.Coaches.Add(new Coach { User = user, FullName = user.FullName, Email = user.Username + "@center.vn", Phone = user.Phone });
+242:             }
+243:             if (user.Role == "Member" && !_db.Members.Any(m => m.UserId == user.UserId))
+244:             {
+245:                 _db.Members.Add(new Member { User = user, FullName = user.FullName, Phone = user.Phone, CreatedAt = DateTime.Now });
+246:             }
+247:         }
+248: 
+249:         private void ClearForm()
+250:         {
+251:             txtFullName.Clear();
+252:             txtUsername.Clear();
+253:             cbxRole.SelectedIndex = 1;
+254:         }
+255:     }
+256: }
 ```
 
-### Giải thích chi tiết từng dòng:
-- **Dòng 1-5**: Import Entities, LINQ, Collections và các điều khiển WPF.
-- **Dòng 18**: `public partial class UsersPage : UserControl` – Trang quản lý tài khoản người dùng, thiết kế theo chuẩn câu 2 đề thi PRN212.
-- **Dòng 21**: `private SportsCenterContext _db;` – Khởi tạo DbContext riêng cho trang.
-- **Dòng 24**: Mảng hằng số `_roles` chứa 4 mã vai trò trong DB: `Manager`, `Receptionist`, `Coach`, `Member`.
-- **Dòng 27-34**: Hàm tĩnh `RoleName(code)` ánh xạ mã vai trò tiếng Anh sang tên tiếng Việt hiển thị (Quản lý, Lễ tân, Huấn luyện viên, Hội viên).
-- **Dòng 36-48**: Constructor `UsersPage()`:
-  - Khởi tạo `_db = new SportsCenterContext()`.
-  - Gọi `GridHelper.Setup(dgUsers)` tự động sinh cột và căn chỉnh DataGrid.
-  - Đăng ký sự kiện chuyển trang `pgUsers.PageChanged += (s, e) => LoadUsers()`.
-  - Gọi `LoadData()` nạp dữ liệu ban đầu.
-- **Dòng 53-73**: Phương thức `LoadData()`:
-  - Dòng 56: Lấy danh sách tên vai trò tiếng Việt.
-  - Dòng 59-63: Nạp ComboBox bộ lọc `cbxRoleFilter` với phần tử `"Tất cả"` chèn ở vị trí index 0 (`filterRoles.Insert(0, ...)`), mặc định chọn `SelectedIndex = 0` (chuẩn đề thi PRN212).
-  - Dòng 66-70: Nạp dữ liệu cho ComboBox đổi vai trò (`cbxNewRole`) và thêm tài khoản (`cbxRole`).
-  - Dòng 73: Gọi `LoadUsers()` nạp danh sách lên DataGrid.
-- **Dòng 79-114**: Phương thức `LoadUsers()` (Tương tự `LoadEmployee` / `LoadCourse` trong PRN):
-  - Dòng 82: Khởi tạo câu truy vấn LINQ: `var query = _db.Users.AsQueryable();`.
-  - Dòng 85-89: Lọc theo từ khóa tìm kiếm nếu có nhập: `query = query.Where(u => u.Username.Contains(keyword) || u.FullName.Contains(keyword));`.
-  - Dòng 92-96: Lọc theo vai trò nếu ComboBox chọn khác `"Tất cả"`: `query = query.Where(u => u.Role == selectedRole);`.
-  - Dòng 99-110: Sắp xếp theo `UserId`, dùng phép chiếu `.Select(...)` nạp các thuộc tính hiển thị (mã, tên đăng nhập, họ tên, vai trò tiếng Việt, trạng thái hoạt động).
-  - Dòng 113: Đổ dữ liệu vào `dgUsers.ItemsSource = pgUsers.Slice(rows)`.
-- **Dòng 119-123**: `btnFilter_Click` – Sự kiện bấm nút "Lọc": Reset trang về 1 và gọi `LoadUsers()`.
-- **Dòng 128-134**: `btnClearFilter_Click` – Sự kiện bấm nút "Bỏ lọc": Xóa trắng ô tìm kiếm, đưa `cbxRoleFilter.SelectedIndex = 0`, reset trang và gọi `LoadUsers()` (chuẩn PRN212).
-- **Dòng 139-158**: `GetSelectedUser()` – Lấy tài khoản đang chọn trên DataGrid:
-  - Lấy Id qua `GridHelper.SelectedId(dgUsers, "UserId")`.
-  - Quy tắc A3: Chặn không cho Quản lý tự khóa hoặc tự đổi quyền của chính tài khoản đang đăng nhập (`id == Session.CurrentUser!.UserId`).
-  - Tìm và trả về `_db.Users.Find(id)`.
-- **Dòng 163-191**: `btnToggle_Click` – Khóa / Mở khóa tài khoản:
-  - Lấy tài khoản đang chọn qua `GetSelectedUser()`.
-  - Đảo ngược trạng thái hoạt động: `user.IsActive = !user.IsActive`.
-  - Lưu vào DB: `_db.SaveChanges()`.
-  - Ghi lịch sử: `AuditHelper.Log(_db, "ToggleUser", ...)`.
-  - Nạp lại danh sách `LoadUsers()` và chọn lại đúng dòng đó `GridHelper.SelectById`.
-- **Dòng 196-234**: `btnChangeRole_Click` – Đổi vai trò tài khoản:
-  - Lấy tài khoản đang chọn.
-  - Lấy vai trò mới từ `cbxNewRole`, kiểm tra nếu trùng vai trò hiện tại thì cảnh báo.
-  - Cập nhật `user.Role = newRole`, gọi `EnsureProfile(user)` để tạo hồ sơ tương ứng nếu chưa có.
-  - Lưu vào DB `_db.SaveChanges()`, ghi nhật ký `AuditHelper.Log`, và nạp lại danh sách.
-- **Dòng 240-268**: `EnsureProfile(User user)` – Đảm bảo tính toàn vẹn hồ sơ:
-  - Nếu Role chuyển sang `"Coach"` và chưa có trong bảng `Coaches` thì tự động thêm mới bản ghi `Coach`.
-  - Nếu Role chuyển sang `"Member"` và chưa có trong bảng `Members` thì tự động thêm mới bản ghi `Member`.
-- **Dòng 274-340**: `btnAddUser_Click` – Thêm tài khoản mới (chuẩn `btnAdd..._Click` trong bài PRN212):
-  - Lấy `fullName` và `username`, validate không được rỗng.
-  - Kiểm tra tính hợp lệ qua `AccountHelper.FullNameError` và `AccountHelper.UsernameError`.
-  - Kiểm tra trùng tên đăng nhập bằng `_db.Users.Any(u => u.Username == username)`.
-  - Tạo đối tượng `User` mới với mật khẩu mặc định `"123456"` (được băm bằng `PasswordHelper.Hash`).
-  - Thêm vào DB: `_db.Users.Add(newUser); EnsureProfile(newUser); _db.SaveChanges();`.
-  - Ghi nhật ký: `AuditHelper.Log(_db, "CreateUser", ...)`.
-  - Xóa trắng form nhập liệu, nạp lại danh sách và thông báo thành công qua `MessageBox.Show`.
-
----
-*Tài liệu được cập nhật tự động và đồng bộ 100% với mã nguồn mới nhất trên nhánh main.*
+### Giải thích chi tiết từng dòng (Chuẩn câu 2 đề thi PRN212):
+- **Dòng 1-6**: Khai báo các thư viện chuẩn của .NET, LINQ và WPF.
+- **Dòng 13**: `public partial class UsersPage : UserControl` – Trang quản lý tài khoản người dùng, thiết kế theo chuẩn câu 2 đề thi PRN212.
+- **Dòng 15**: `private SportsCenterContext _db;` – Khởi tạo DbContext kết nối CSDL SQL Server.
+- **Dòng 18**: Mảng hằng số `_roles` chứa 4 mã vai trò trong DB: `Manager`, `Receptionist`, `Coach`, `Member`.
+- **Dòng 20**: Hàm `RoleName(code)` chuyển mã tiếng Anh sang tên tiếng Việt hiển thị.
+- **Dòng 22-31 (Constructor)**: Khởi tạo `_db = new SportsCenterContext()`, cài đặt tự động DataGrid qua `GridHelper.Setup(dgUsers)`, đăng ký sự kiện phân trang và gọi `LoadRole()` cùng `LoadUsers()`.
+- **Dòng 33-72 (`LoadUsers`)**:
+  - Dòng 35-36: Đọc từ khóa tìm kiếm và index vai trò được chọn từ ComboBox filter.
+  - Dòng 39 (Bước 1): Khởi tạo câu truy vấn LINQ: `var query = _db.Users.AsQueryable();`.
+  - Dòng 42-45 (Bước 2): Lọc theo từ khóa tìm kiếm nếu có nhập: `query = query.Where(x => x.Username.Contains(keyword) || x.FullName.Contains(keyword));`.
+  - Dòng 48-52 (Bước 3): Lọc theo Role nếu chọn khác All (index > 0): `query = query.Where(x => x.Role == selectedRole);`.
+  - Dòng 55-67 (Bước 4): Sắp xếp theo `UserId`, chiếu các thuộc tính hiển thị (Mã, Username, Họ tên, Role tiếng Việt, Status) và gán vào `dgUsers.ItemsSource = pgUsers.Slice(rows);`.
+- **Dòng 74-90 (`LoadRole`)**:
+  - Nạp ComboBox thêm mới `cbxRole` và đổi quyền `cbxNewRole` (không chứa "All").
+  - Nạp ComboBox lọc `cbxRoleFilter` có mục "All" chèn ở đầu danh sách (chuẩn đề thi PRN212).
+- **Dòng 92-96 (`btnFilter_Click`)**: Gọi `LoadUsers()`.
+- **Dòng 98-105 (`btnClearFilter_Click`)**: Reset ô tìm kiếm, đưa ComboBox lọc về "All" (index 0) và gọi `LoadUsers()`.
+- **Dòng 107-167 (`btnAddUser_Click`)**:
+  - Đọc chuỗi `.Trim()`, validate dữ liệu bắt buộc không rỗng.
+  - Kiểm tra tính hợp lệ của FullName và Username.
+  - Kiểm tra trùng Username trong DB qua `_db.Users.Any(...)`.
+  - Khởi tạo đối tượng `User` mới với mật khẩu mặc định 123456 (băm SHA-256).
+  - Thêm vào DB, gọi `EnsureProfile`, gọi `_db.SaveChanges()`.
+  - Reset lại DataGrid qua `LoadUsers()`, reset form qua `ClearForm()`, hiển thị MessageBox thông báo thành công.
+- **Dòng 169-192 (`btnToggle_Click`)**: Đảo ngược trạng thái `user.IsActive`, lưu DB, reset lại DataGrid và thông báo thành công.
+- **Dòng 194-228 (`btnChangeRole_Click`)**: Cập nhật vai trò mới cho tài khoản, gọi `EnsureProfile`, lưu DB, reset lại DataGrid và thông báo thành công.
+- **Dòng 230-246 (`GetSelectedUser`)**: Lấy tài khoản đang chọn từ DataGrid, áp dụng Luật A3 chặn không cho Quản lý tự khóa hoặc đổi vai trò của chính mình.
+- **Dòng 248-261 (`EnsureProfile`)**: Tự động thêm bản ghi tương ứng vào bảng `Coaches` hoặc `Members` nếu chưa có.
+- **Dòng 263-268 (`ClearForm`)**: Hàm riêng biệt xóa trắng các ô nhập liệu và reset ComboBox về mặc định (chuẩn PRN212).
