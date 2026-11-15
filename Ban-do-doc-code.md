@@ -56,6 +56,10 @@ Dữ liệu mẫu để demo (mật khẩu chung `123456`): `manager1`, `recepti
 
 ## 2. Người 1: Tài khoản và khung ứng dụng
 
+> 📂 **Thư mục tài liệu trọn gói Người 1**: `Nguoi-1-Tai-khoan-va-khung-ung-dung/`
+> - [README.md](file:///D:/github-code/SportCenter/Nguoi-1-Tai-khoan-va-khung-ung-dung/README.md) – Nghiệp vụ, kịch bản thuyết trình, demo & bộ câu hỏi bảo vệ.
+> - [NGUOI-1-GIAI-THICH-CODE-CHI-TIET-TUNG-DONG.md](file:///D:/github-code/SportCenter/Nguoi-1-Tai-khoan-va-khung-ung-dung/NGUOI-1-GIAI-THICH-CODE-CHI-TIET-TUNG-DONG.md) – Giải thích chi tiết từng dòng code của 9 file Người 1.
+
 **File:** `LoginWindow`, `RegisterWindow`, `ChangePasswordWindow`, `MainWindow`, `Pages/UsersPage` (mỗi cái gồm `.xaml` và `.xaml.cs`); `Helpers/Session.cs`, `PasswordHelper.cs`, `AccountHelper.cs`; `Entities/User.cs`.
 **Bảng:** `Users` (và dòng `Members` tạo kèm khi đăng ký). **Luật:** A1, A2, A3, A5, đổi mật khẩu.
 
