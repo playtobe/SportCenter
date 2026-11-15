@@ -1,158 +1,206 @@
 using SportsCenter.Entities;
+using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
-using System.Windows.Controls;
 
 namespace SportsCenter
 {
     /// <summary>
     /// Interaction logic for RegisterWindow.xaml
+    /// Màn hình Đăng ký tài khoản hội viên mới (Member)
     /// </summary>
     public partial class RegisterWindow : Window
     {
+        // 1. Khởi tạo đối tượng DbContext để làm việc với CSDL
         private SportsCenterContext _db;
 
         public RegisterWindow()
         {
             InitializeComponent();
-            _db = new();
-            txtFullName.Focus();
+            _db = new SportsCenterContext(); // Khởi tạo kết nối DB
+            txtFullName.Focus();             // Đặt tiêu điểm chuột vào ô Họ tên khi mở cửa sổ
         }
 
+        // =====================================================================
+        // Hàm xóa sạch các dòng chữ báo lỗi màu đỏ trên form trước khi kiểm tra
+        // =====================================================================
         private void ClearErrors()
         {
-            errFullName.Text = errPhone.Text = errUsername.Text = errPassword.Text = errConfirm.Text = "";
+            errFullName.Text = string.Empty;
+            errPhone.Text = string.Empty;
+            errUsername.Text = string.Empty;
+            errPassword.Text = string.Empty;
+            errConfirm.Text = string.Empty;
         }
 
+        // =====================================================================
+        // Sự kiện khi người dùng nhấn nút "Tạo tài khoản" (btnCreate)
+        // =====================================================================
         private void btnCreate_Click(object sender, RoutedEventArgs e)
         {
+            // Bước 1: Xóa thông báo lỗi cũ và lấy dữ liệu người dùng nhập
             ClearErrors();
             string fullName = txtFullName.Text.Trim();
             string phone = txtPhone.Text.Trim();
             string username = txtUsername.Text.Trim();
             string password = txtPassword.Password;
             string confirm = txtConfirm.Password;
-            bool ok = true;
+
+            // Biến cờ theo dõi xem toàn bộ dữ liệu có hợp lệ không
+            bool isValid = true;
             var phoneCheck = (Result: AccountHelper.PhoneCheck.Free, Profile: (Member?)null);
 
-            if (fullName == "")
+            // Bước 2: Kiểm tra Họ và tên (FullName)
+            if (string.IsNullOrEmpty(fullName))
             {
                 errFullName.Text = "Vui lòng nhập họ tên.";
-                ok = false;
+                isValid = false;
             }
-            else if (AccountHelper.FullNameError(fullName) is string nameError)
+            else
             {
-                errFullName.Text = nameError;
-                ok = false;
+                string? nameError = AccountHelper.FullNameError(fullName);
+                if (nameError != null)
+                {
+                    errFullName.Text = nameError;
+                    isValid = false;
+                }
             }
 
-            if (phone == "")
+            // Bước 3: Kiểm tra Số điện thoại (Phone)
+            if (string.IsNullOrEmpty(phone))
             {
                 errPhone.Text = "Vui lòng nhập số điện thoại.";
-                ok = false;
+                isValid = false;
             }
             else if (!Regex.IsMatch(phone, @"^0\d{9,10}$"))
             {
                 errPhone.Text = "Số điện thoại gồm 10-11 chữ số, bắt đầu bằng 0.";
-                ok = false;
+                isValid = false;
             }
             else
             {
-                // Mỗi số điện thoại chỉ thuộc về một member
+                // Quy tắc A5: Mỗi SĐT chỉ thuộc về một hội viên duy nhất
                 phoneCheck = AccountHelper.CheckPhoneForRegistration(_db, fullName, phone);
                 if (phoneCheck.Result == AccountHelper.PhoneCheck.AlreadyRegistered)
                 {
-                    errPhone.Text = "Số điện thoại này đã được đăng ký. Hãy đăng nhập nếu đây là số của bạn, hoặc nhờ lễ tân kiểm tra.";
-                    ok = false;
+                    errPhone.Text = "Số điện thoại này đã được đăng ký. Hãy đăng nhập nếu là số của bạn.";
+                    isValid = false;
                 }
             }
 
-            if (username == "")
+            // Bước 4: Kiểm tra Tên đăng nhập (Username)
+            if (string.IsNullOrEmpty(username))
             {
                 errUsername.Text = "Vui lòng nhập tên đăng nhập.";
-                ok = false;
+                isValid = false;
             }
-            else if (AccountHelper.UsernameError(username) is string usernameError)
+            else
             {
-                errUsername.Text = usernameError;
-                ok = false;
-            }
-            else if (_db.Users.Any(u => u.Username == username))
-            {
-                errUsername.Text = "Tên đăng nhập này đã có người dùng.";
-                ok = false;
+                string? usernameError = AccountHelper.UsernameError(username);
+                if (usernameError != null)
+                {
+                    errUsername.Text = usernameError;
+                    isValid = false;
+                }
+                else if (_db.Users.Any(u => u.Username == username))
+                {
+                    // Kiểm tra trùng tên đăng nhập trong Database
+                    errUsername.Text = "Tên đăng nhập này đã có người dùng.";
+                    isValid = false;
+                }
             }
 
-            if (password == "")
+            // Bước 5: Kiểm tra Mật khẩu (Password)
+            if (string.IsNullOrEmpty(password))
             {
                 errPassword.Text = "Vui lòng nhập mật khẩu.";
-                ok = false;
+                isValid = false;
             }
             else if (password.Length < 6)
             {
                 errPassword.Text = "Mật khẩu cần ít nhất 6 ký tự.";
-                ok = false;
+                isValid = false;
             }
-            else if (password.ToLower() == username.ToLower())
+            else if (password.Equals(username, StringComparison.OrdinalIgnoreCase))
             {
                 errPassword.Text = "Mật khẩu không được trùng tên đăng nhập.";
-                ok = false;
+                isValid = false;
             }
 
-            if (confirm == "")
+            // Bước 6: Kiểm tra Xác nhận mật khẩu (Confirm Password)
+            if (string.IsNullOrEmpty(confirm))
             {
                 errConfirm.Text = "Vui lòng nhập lại mật khẩu.";
-                ok = false;
+                isValid = false;
             }
             else if (confirm != password)
             {
                 errConfirm.Text = "Hai mật khẩu chưa khớp.";
-                ok = false;
+                isValid = false;
             }
 
-            if (!ok) return;
+            // Nếu có bất kỳ trường dữ liệu nào sai thì dừng lại không xử lý tiếp
+            if (!isValid)
+            {
+                return;
+            }
 
+            // Bước 7: Thực hiện lưu tài khoản vào Database
             try
             {
-                // Số điện thoại thuộc một hồ sơ đăng ký tại quầy (chưa có tài khoản) đúng họ tên: phải gắn vào hồ sơ đó,
-                // vì mỗi số điện thoại chỉ có một hồ sơ (không tạo hồ sơ thứ hai).
-                Member? link = null;
+                Member? linkProfile = null;
+
+                // Quy tắc A2: Nếu SĐT trùng với hồ sơ tạo tại quầy (chưa có tài khoản) và khớp họ tên
                 if (phoneCheck.Result == AccountHelper.PhoneCheck.LinkCounterProfile)
                 {
-                    var m = phoneCheck.Profile!;
-                    if (!Msg.Confirm($"Đã có hồ sơ tại quầy của {m.FullName} (SĐT {m.Phone}, tạo ngày {m.CreatedAt:dd/MM/yyyy}).\n\n"
-                        + "Gắn tài khoản mới vào hồ sơ đó để xem lại gói, hóa đơn và lớp đã đăng ký?"))
+                    Member counterMember = phoneCheck.Profile!;
+                    string confirmPrompt = $"Đã có hồ sơ tại quầy của {counterMember.FullName} (SĐT: {counterMember.Phone}).\n\n"
+                                         + "Bạn có muốn gắn tài khoản mới này vào hồ sơ cũ để giữ lại các gói tập và lịch sử không?";
+                    
+                    MessageBoxResult answer = MessageBox.Show(confirmPrompt, "Xác nhận liên kết", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    if (answer != MessageBoxResult.Yes)
                     {
-                        errPhone.Text = "Số điện thoại này đã có hồ sơ tại quầy. Hãy gắn tài khoản vào hồ sơ đó, hoặc dùng số điện thoại khác.";
+                        errPhone.Text = "Số điện thoại này đã có hồ sơ tại quầy. Hãy gắn tài khoản hoặc dùng số khác.";
                         return;
                     }
-                    link = m;
+                    linkProfile = counterMember;
                 }
 
-                // Tạo User (role Member); gắn vào hồ sơ quầy nếu có, không thì tạo hồ sơ Member mới
-                var user = AccountHelper.CreateMemberAccount(_db, username, password, fullName, phone, link);
-                Session.SignIn(_db, user);
-                if (link != null)
+                // Gọi helper tạo User vai trò Member (và liên kết hồ sơ quầy nếu có)
+                User createdUser = AccountHelper.CreateMemberAccount(_db, username, password, fullName, phone, linkProfile);
+
+                // Tự động đăng nhập người dùng vừa tạo
+                Session.SignIn(_db, createdUser);
+
+                // Ghi nhận Audit Log nếu có thao tác liên kết tài khoản
+                if (linkProfile != null)
                 {
-                    AuditHelper.Log(_db, "LinkMember",
-                        $"Tài khoản {username} gắn vào hồ sơ quầy {link.FullName} (#{link.MemberId})", "Members", link.MemberId);
+                    AuditHelper.Log(_db, "LinkMember", $"Tài khoản {username} gắn vào hồ sơ quầy #{linkProfile.MemberId}", "Members", linkProfile.MemberId);
                 }
 
-                string note = link != null ? " Tài khoản đã được gắn vào hồ sơ tại quầy của bạn." : "";
-                Msg.Info("Tạo tài khoản thành công." + note);
-                new MainWindow().Show();
-                Close();
+                // Thông báo thành công và chuyển sang màn hình chính
+                string successNote = linkProfile != null ? " Tài khoản đã được gắn vào hồ sơ tại quầy của bạn." : "";
+                MessageBox.Show("Tạo tài khoản thành công!" + successNote, "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                MainWindow main = new MainWindow();
+                main.Show();
+                this.Close();
             }
             catch (Exception ex)
             {
-                Msg.Error(ex);
+                MessageBox.Show("Đã xảy ra lỗi khi tạo tài khoản: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
+        // =====================================================================
+        // Sự kiện khi người dùng bấm nút "Đã có tài khoản? Đăng nhập" (btnBack)
+        // =====================================================================
         private void btnBack_Click(object sender, RoutedEventArgs e)
         {
-            new LoginWindow().Show();
-            Close();
+            LoginWindow loginWindow = new LoginWindow();
+            loginWindow.Show();
+            this.Close();
         }
     }
 }
