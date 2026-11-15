@@ -10,7 +10,7 @@ namespace SportsCenter
     /// </summary>
     public partial class ChangePasswordWindow : Window
     {
-        // 1. Khởi tạo đối tượng DbContext để làm việc với CSDL
+        // 1. Khởi tạo đối tượng DbContext để làm việc với CSDL (chuẩn PRN212)
         private SportsCenterContext _db;
 
         public ChangePasswordWindow()
@@ -22,9 +22,6 @@ namespace SportsCenter
             User currentUser = Session.CurrentUser!;
             string roleDisplayName = Rules.RoleNames.ContainsKey(currentUser.Role) ? Rules.RoleNames[currentUser.Role] : currentUser.Role;
             txtInfo.Text = $"{currentUser.FullName} · {currentUser.Username} · {roleDisplayName}";
-
-            // Đặt con trỏ chuột vào ô Mật khẩu hiện tại khi mở cửa sổ
-            Loaded += (s, e) => txtOld.Focus();
         }
 
         // =====================================================================
@@ -46,7 +43,7 @@ namespace SportsCenter
             User? user = _db.Users.Find(Session.CurrentUser!.UserId);
             if (user == null)
             {
-                MessageBox.Show("Không tìm thấy thông tin tài khoản.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Không tìm thấy thông tin tài khoản.");
                 return;
             }
 
@@ -114,12 +111,12 @@ namespace SportsCenter
                 // Ghi lại lịch sử hoạt động đổi mật khẩu
                 AuditHelper.Log(_db, "ChangePassword", $"{user.Username} đổi mật khẩu", "Users", user.UserId);
 
-                MessageBox.Show("Đã đổi mật khẩu thành công. Lần đăng nhập sau hãy dùng mật khẩu mới.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Đã đổi mật khẩu thành công. Lần đăng nhập sau hãy dùng mật khẩu mới.");
                 this.Close(); // Đóng cửa sổ đổi mật khẩu
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi khi lưu mật khẩu: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Đổi mật khẩu thất bại: " + ex.Message);
             }
         }
     }

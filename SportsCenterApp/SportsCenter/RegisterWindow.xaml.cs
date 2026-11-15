@@ -12,14 +12,13 @@ namespace SportsCenter
     /// </summary>
     public partial class RegisterWindow : Window
     {
-        // 1. Khởi tạo đối tượng DbContext để làm việc với CSDL
+        // 1. Khởi tạo đối tượng DbContext để làm việc với CSDL (chuẩn PRN212)
         private SportsCenterContext _db;
 
         public RegisterWindow()
         {
             InitializeComponent();
             _db = new SportsCenterContext(); // Khởi tạo kết nối DB
-            txtFullName.Focus();             // Đặt tiêu điểm chuột vào ô Họ tên khi mở cửa sổ
         }
 
         // =====================================================================
@@ -181,7 +180,7 @@ namespace SportsCenter
 
                 // Thông báo thành công và chuyển sang màn hình chính
                 string successNote = linkProfile != null ? " Tài khoản đã được gắn vào hồ sơ tại quầy của bạn." : "";
-                MessageBox.Show("Tạo tài khoản thành công!" + successNote, "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Tạo tài khoản thành công!" + successNote);
 
                 MainWindow main = new MainWindow();
                 main.Show();
@@ -189,7 +188,7 @@ namespace SportsCenter
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Đã xảy ra lỗi khi tạo tài khoản: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Tạo tài khoản thất bại: " + ex.Message);
             }
         }
 

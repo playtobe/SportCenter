@@ -742,9 +742,9 @@ Tập tin `App.xaml.cs`:
 
 ---
 
-## 4.2. `LoginWindow.xaml.cs` – Xác thực đăng nhập & Phân luồng điều hướng
+## 4.2. `LoginWindow.xaml.cs` – Xác thực đăng nhập & Phân luồng điều hướng (Chuẩn PRN212)
 
-Tập tin nằm tại `SportsCenterApp/SportsCenter/LoginWindow.xaml.cs` (74 dòng).
+Tập tin nằm tại `SportsCenterApp/SportsCenter/LoginWindow.xaml.cs`.
 
 ```csharp
   1: using SportsCenter.Entities;
@@ -760,106 +760,100 @@ Tập tin nằm tại `SportsCenterApp/SportsCenter/LoginWindow.xaml.cs` (74 dò
  11:     /// </summary>
  12:     public partial class LoginWindow : Window
  13:     {
- 14:         // 1. Khởi tạo DbContext kết nối Database (tương tự như trong bài thi PRN)
+ 14:         // 1. Khởi tạo DbContext kết nối Database (chuẩn PRN212)
  15:         private SportsCenterContext _db;
  16: 
  17:         public LoginWindow()
  18:         {
  19:             InitializeComponent();
  20:             _db = new SportsCenterContext(); // Khởi tạo kết nối DB
- 21:             txtUsername.Focus();             // Đặt con trỏ chuột vào ô Tên đăng nhập khi vừa mở
- 22:         }
- 23: 
- 24:         // =====================================================================
- 25:         // Sự kiện khi người dùng bấm nút "Đăng nhập" (btnLogin)
- 26:         // =====================================================================
- 27:         private void btnLogin_Click(object sender, RoutedEventArgs e)
- 28:         {
- 29:             // Bước 1: Lấy chuỗi Tên đăng nhập và Mật khẩu từ giao diện
- 30:             string username = txtUsername.Text.Trim();
- 31:             string password = txtPassword.Password;
- 32: 
- 33:             // Bước 2: Kiểm tra dữ liệu rỗng (Validation)
- 34:             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
- 35:             {
- 36:                 MessageBox.Show("Vui lòng nhập tên đăng nhập và mật khẩu.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
- 37:                 return;
- 38:             }
- 39: 
- 40:             try
- 41:             {
- 42:                 // Bước 3: Tìm tài khoản trong Database khớp với Username vừa nhập
- 43:                 User? user = _db.Users.FirstOrDefault(u => u.Username == username);
- 44: 
- 45:                 // Bước 4: Kiểm tra nếu tài khoản không tồn tại HOẶC mật khẩu băm không trùng khớp
- 46:                 string hashedPassword = PasswordHelper.Hash(password);
- 47:                 if (user == null || user.PasswordHash != hashedPassword)
- 48:                 {
- 49:                     MessageBox.Show("Sai tên đăng nhập hoặc mật khẩu.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
- 50:                     return;
- 51:                 }
- 52: 
- 53:                 // Bước 5: Kiểm tra nếu tài khoản đã bị Quản lý khóa (IsActive == false)
- 54:                 if (!user.IsActive)
- 55:                 {
- 56:                     MessageBox.Show("Tài khoản đã bị khóa. Vui lòng liên hệ ban quản lý.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
- 57:                     return;
- 58:                 }
- 59: 
- 60:                 // Bước 6: Đăng nhập thành công -> Lưu thông tin phiên làm việc vào Session
- 61:                 Session.SignIn(_db, user);
- 62: 
- 63:                 // Bước 7: Mở màn hình chính (MainWindow) và đóng màn hình Đăng nhập
- 64:                 MainWindow main = new MainWindow();
- 65:                 main.Show();
- 66:                 this.Close();
- 67:             }
- 68:             catch (Exception ex)
- 69:             {
- 70:                 // Xử lý khi không kết nối được cơ sở dữ liệu
- 71:                 string errorMsg = "Không kết nối được cơ sở dữ liệu. Hãy kiểm tra file appsettings.json và cơ sở dữ liệu SQL Server.\n\n"
- 72:                                   + (ex.InnerException?.Message ?? ex.Message);
- 73:                 MessageBox.Show(errorMsg, "Lỗi kết nối", MessageBoxButton.OK, MessageBoxImage.Error);
- 74:             }
- 75:         }
- 76: 
- 77:         // =====================================================================
- 78:         // Sự kiện khi người dùng bấm nút "Đăng ký tài khoản" (btnRegister)
- 79:         // =====================================================================
- 80:         private void btnRegister_Click(object sender, RoutedEventArgs e)
- 81:         {
- 82:             // Mở cửa sổ Đăng ký mới (RegisterWindow)
- 83:             RegisterWindow registerWindow = new RegisterWindow();
- 84:             registerWindow.Show();
- 85: 
- 86:             // Đóng cửa sổ Đăng nhập hiện tại
- 87:             this.Close();
- 88:         }
- 89:     }
- 90: }
+ 21:         }
+ 22: 
+ 23:         // =====================================================================
+ 24:         // Sự kiện khi người dùng bấm nút "Đăng nhập" (btnLogin)
+ 25:         // =====================================================================
+ 26:         private void btnLogin_Click(object sender, RoutedEventArgs e)
+ 27:         {
+ 28:             // Bước 1: Lấy chuỗi Tên đăng nhập và Mật khẩu từ giao diện
+ 29:             string username = txtUsername.Text.Trim();
+ 30:             string password = txtPassword.Password;
+ 31: 
+ 32:             // Bước 2: Kiểm tra dữ liệu rỗng (Validation)
+ 33:             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+ 34:             {
+ 35:                 MessageBox.Show("Vui lòng nhập tên đăng nhập và mật khẩu.");
+ 36:                 return;
+ 37:             }
+ 38: 
+ 39:             try
+ 40:             {
+ 41:                 // Bước 3: Tìm tài khoản trong Database khớp với Username vừa nhập
+ 42:                 User? user = _db.Users.FirstOrDefault(u => u.Username == username);
+ 43: 
+ 44:                 // Bước 4: Kiểm tra nếu tài khoản không tồn tại HOẶC mật khẩu băm không trùng khớp
+ 45:                 string hashedPassword = PasswordHelper.Hash(password);
+ 46:                 if (user == null || user.PasswordHash != hashedPassword)
+ 47:                 {
+ 48:                     MessageBox.Show("Sai tên đăng nhập hoặc mật khẩu.");
+ 49:                     return;
+ 50:                 }
+ 51: 
+ 52:                 // Bước 5: Kiểm tra nếu tài khoản đã bị Quản lý khóa (IsActive == false)
+ 53:                 if (!user.IsActive)
+ 54:                 {
+ 55:                     MessageBox.Show("Tài khoản đã bị khóa. Vui lòng liên hệ ban quản lý.");
+ 56:                     return;
+ 57:                 }
+ 58: 
+ 59:                 // Bước 6: Đăng nhập thành công -> Lưu thông tin phiên làm việc vào Session
+ 60:                 Session.SignIn(_db, user);
+ 61: 
+ 62:                 // Bước 7: Mở màn hình chính (MainWindow) và đóng màn hình Đăng nhập
+ 63:                 MainWindow main = new MainWindow();
+ 64:                 main.Show();
+ 65:                 this.Close();
+ 66:             }
+ 67:             catch (Exception ex)
+ 68:             {
+ 69:                 MessageBox.Show("Đăng nhập thất bại: " + ex.Message);
+ 70:             }
+ 71:         }
+ 72: 
+ 73:         // =====================================================================
+ 74:         // Sự kiện khi người dùng bấm nút "Đăng ký tài khoản" (btnRegister)
+ 75:         // =====================================================================
+ 76:         private void btnRegister_Click(object sender, RoutedEventArgs e)
+ 77:         {
+ 78:             // Mở cửa sổ Đăng ký mới (RegisterWindow)
+ 79:             RegisterWindow registerWindow = new RegisterWindow();
+ 80:             registerWindow.Show();
+ 81: 
+ 82:             // Đóng cửa sổ Đăng nhập hiện tại
+ 83:             this.Close();
+ 84:         }
+ 85:     }
+ 86: }
 ```
+
 **Giải thích từng bước & từng dòng (Chuẩn PRN212)**:
-- **Dòng 14**: `private SportsCenterContext _db;` – Khởi tạo DbContext kết nối CSDL SQL Server.
-- **Dòng 16-21**: Hàm dựng `LoginWindow()`:
-  - `InitializeComponent();` khởi tạo các control XAML.
-  - `_db = new SportsCenterContext();` mở kết nối DB.
-  - `txtUsername.Focus();` đặt tiêu điểm vào ô Tên đăng nhập.
-- **Dòng 26-77 (Hàm `btnLogin_Click`)**:
-  - **Bước 1 (Dòng 29-30)**: Lấy `username` (cắt khoảng trắng) và `password` từ giao diện.
-  - **Bước 2 (Dòng 33-37)**: Kiểm tra nếu một trong hai trường rỗng, gọi `MessageBox.Show` cảnh báo và `return`.
-  - **Bước 3 (Dòng 42)**: Tìm tài khoản trong DB theo Username: `_db.Users.FirstOrDefault(u => u.Username == username);`.
-  - **Bước 4 (Dòng 45-50 - Luật A1)**: Băm mật khẩu nhập vào `PasswordHelper.Hash(password)` và so khớp với `user.PasswordHash`. Nếu không tìm thấy hoặc mã băm không trùng khớp, hiện thông báo `"Sai tên đăng nhập hoặc mật khẩu."`.
-  - **Bước 5 (Dòng 53-57)**: Kiểm tra cờ `user.IsActive`. Nếu tài khoản bị khóa (`false`), hiện cảnh báo `"Tài khoản đã bị khóa. Vui lòng liên hệ ban quản lý."` và dừng lại.
-  - **Bước 6 (Dòng 60)**: Đăng nhập thành công -> gọi `Session.SignIn(_db, user)` để ghi nhận phiên làm việc toàn cục và ghi log kiểm toán.
-  - **Bước 7 (Dòng 63-65)**: Mở màn hình chính `new MainWindow().Show()` và đóng màn hình đăng nhập `this.Close()`.
-  - **Khối catch (Dòng 67-73)**: Bắt lỗi kết nối CSDL và hiển thị thông báo chi tiết cho người dùng.
-- **Dòng 82-87 (Hàm `btnRegister_Click`)**: Mở `RegisterWindow` và đóng `LoginWindow`.
+- **Dòng 15**: `private SportsCenterContext _db;` – Khởi tạo DbContext kết nối CSDL SQL Server.
+- **Dòng 17-21 (Constructor)**: Khởi tạo giao diện và DbContext, tinh gọn chuẩn PRN (không chứa focus thừa).
+- **Dòng 26-70 (`btnLogin_Click` - Luật A1)**:
+  - Bước 1: Đọc `username` và `password`.
+  - Bước 2: Kiểm tra bắt buộc nhập.
+  - Bước 3: Tìm tài khoản trong DB theo Username.
+  - Bước 4: So khớp mật khẩu băm `PasswordHelper.Hash(password)`.
+  - Bước 5: Kiểm tra cờ `user.IsActive`. Nếu bị khóa thì từ chối đăng nhập.
+  - Bước 6: Gọi `Session.SignIn(_db, user)` lưu phiên làm việc toàn cục.
+  - Bước 7: Mở `MainWindow` và đóng `LoginWindow`.
+  - Khối catch ngắn gọn: `MessageBox.Show("Đăng nhập thất bại: " + ex.Message);`.
+- **Dòng 76-83 (`btnRegister_Click`)**: Mở `RegisterWindow` và đóng `LoginWindow`.
 
 ---
 
-## 4.3. `RegisterWindow.xaml.cs` – Tự đăng ký tài khoản & Liên kết hồ sơ quầy
+## 4.3. `RegisterWindow.xaml.cs` – Tự đăng ký tài khoản & Liên kết hồ sơ quầy (Chuẩn PRN212)
 
-Tập tin nằm tại `SportsCenterApp/SportsCenter/RegisterWindow.xaml.cs` (202 dòng).
+Tập tin nằm tại `SportsCenterApp/SportsCenter/RegisterWindow.xaml.cs`.
 
 ```csharp
   1: using SportsCenter.Entities;
@@ -876,216 +870,205 @@ Tập tin nằm tại `SportsCenterApp/SportsCenter/RegisterWindow.xaml.cs` (202
  12:     /// </summary>
  13:     public partial class RegisterWindow : Window
  14:     {
- 15:         // 1. Khởi tạo đối tượng DbContext để làm việc với CSDL
+ 15:         // 1. Khởi tạo đối tượng DbContext để làm việc với CSDL (chuẩn PRN212)
  16:         private SportsCenterContext _db;
  17: 
  18:         public RegisterWindow()
  19:         {
  20:             InitializeComponent();
  21:             _db = new SportsCenterContext(); // Khởi tạo kết nối DB
- 22:             txtFullName.Focus();             // Đặt tiêu điểm chuột vào ô Họ tên khi mở cửa sổ
- 23:         }
- 24: 
- 25:         // =====================================================================
- 26:         // Hàm xóa sạch các dòng chữ báo lỗi màu đỏ trên form trước khi kiểm tra
- 27:         // =====================================================================
- 28:         private void ClearErrors()
- 29:         {
- 30:             errFullName.Text = string.Empty;
- 31:             errPhone.Text = string.Empty;
- 32:             errUsername.Text = string.Empty;
- 33:             errPassword.Text = string.Empty;
- 34:             errConfirm.Text = string.Empty;
- 35:         }
- 36: 
- 37:         // =====================================================================
- 38:         // Sự kiện khi người dùng nhấn nút "Tạo tài khoản" (btnCreate)
- 39:         // =====================================================================
- 40:         private void btnCreate_Click(object sender, RoutedEventArgs e)
- 41:         {
- 42:             // Bước 1: Xóa thông báo lỗi cũ và lấy dữ liệu người dùng nhập
- 43:             ClearErrors();
- 44:             string fullName = txtFullName.Text.Trim();
- 45:             string phone = txtPhone.Text.Trim();
- 46:             string username = txtUsername.Text.Trim();
- 47:             string password = txtPassword.Password;
- 48:             string confirm = txtConfirm.Password;
- 49: 
- 50:             // Biến cờ theo dõi xem toàn bộ dữ liệu có hợp lệ không
- 51:             bool isValid = true;
- 52:             var phoneCheck = (Result: AccountHelper.PhoneCheck.Free, Profile: (Member?)null);
- 53: 
- 54:             // Bước 2: Kiểm tra Họ và tên (FullName)
- 55:             if (string.IsNullOrEmpty(fullName))
- 56:             {
- 57:                 errFullName.Text = "Vui lòng nhập họ tên.";
- 58:                 isValid = false;
- 59:             }
- 60:             else
- 61:             {
- 62:                 string? nameError = AccountHelper.FullNameError(fullName);
- 63:                 if (nameError != null)
- 64:                 {
- 65:                     errFullName.Text = nameError;
- 66:                     isValid = false;
- 67:                 }
- 68:             }
- 69: 
- 70:             // Bước 3: Kiểm tra Số điện thoại (Phone)
- 71:             if (string.IsNullOrEmpty(phone))
- 72:             {
- 73:                 errPhone.Text = "Vui lòng nhập số điện thoại.";
- 74:                 isValid = false;
- 75:             }
- 76:             else if (!Regex.IsMatch(phone, @"^0\d{9,10}$"))
- 77:             {
- 78:                 errPhone.Text = "Số điện thoại gồm 10-11 chữ số, bắt đầu bằng 0.";
- 79:                 isValid = false;
- 80:             }
- 81:             else
- 82:             {
- 83:                 // Quy tắc A5: Mỗi SĐT chỉ thuộc về một hội viên duy nhất
- 84:                 phoneCheck = AccountHelper.CheckPhoneForRegistration(_db, fullName, phone);
- 85:                 if (phoneCheck.Result == AccountHelper.PhoneCheck.AlreadyRegistered)
- 86:                 {
- 87:                     errPhone.Text = "Số điện thoại này đã được đăng ký. Hãy đăng nhập nếu là số của bạn.";
- 88:                     isValid = false;
- 89:                 }
- 90:             }
- 91: 
- 92:             // Bước 4: Kiểm tra Tên đăng nhập (Username)
- 93:             if (string.IsNullOrEmpty(username))
- 94:             {
- 95:                 errUsername.Text = "Vui lòng nhập tên đăng nhập.";
- 96:                 isValid = false;
- 97:             }
- 98:             else
- 99:             {
-100:                 string? usernameError = AccountHelper.UsernameError(username);
-101:                 if (usernameError != null)
-102:                 {
-103:                     errUsername.Text = usernameError;
-104:                     isValid = false;
-105:                 }
-106:                 else if (_db.Users.Any(u => u.Username == username))
-107:                 {
-108:                     // Kiểm tra trùng tên đăng nhập trong Database
-109:                     errUsername.Text = "Tên đăng nhập này đã có người dùng.";
-110:                     isValid = false;
-111:                 }
-112:             }
-113: 
-114:             // Bước 5: Kiểm tra Mật khẩu (Password)
-115:             if (string.IsNullOrEmpty(password))
-116:             {
-117:                 errPassword.Text = "Vui lòng nhập mật khẩu.";
-118:                 isValid = false;
-119:             }
-120:             else if (password.Length < 6)
-121:             {
-122:                 errPassword.Text = "Mật khẩu cần ít nhất 6 ký tự.";
-123:                 isValid = false;
-124:             }
-125:             else if (password.Equals(username, StringComparison.OrdinalIgnoreCase))
-126:             {
-127:                 errPassword.Text = "Mật khẩu không được trùng tên đăng nhập.";
-128:                 isValid = false;
-129:             }
-130: 
-131:             // Bước 6: Kiểm tra Xác nhận mật khẩu (Confirm Password)
-132:             if (string.IsNullOrEmpty(confirm))
-133:             {
-134:                 errConfirm.Text = "Vui lòng nhập lại mật khẩu.";
-135:                 isValid = false;
-136:             }
-137:             else if (confirm != password)
-138:             {
-139:                 errConfirm.Text = "Hai mật khẩu chưa khớp.";
-140:                 isValid = false;
-141:             }
-142: 
-143:             // Nếu có bất kỳ trường dữ liệu nào sai thì dừng lại không xử lý tiếp
-144:             if (!isValid)
-145:             {
-146:                 return;
-147:             }
-148: 
-149:             // Bước 7: Thực hiện lưu tài khoản vào Database
-150:             try
-151:             {
-152:                 Member? linkProfile = null;
-153: 
-154:                 // Quy tắc A2: Nếu SĐT trùng với hồ sơ tạo tại quầy (chưa có tài khoản) và khớp họ tên
-155:                 if (phoneCheck.Result == AccountHelper.PhoneCheck.LinkCounterProfile)
-156:                 {
-157:                     Member counterMember = phoneCheck.Profile!;
-158:                     string confirmPrompt = $"Đã có hồ sơ tại quầy của {counterMember.FullName} (SĐT: {counterMember.Phone}).\n\n"
-159:                                          + "Bạn có muốn gắn tài khoản mới này vào hồ sơ cũ để giữ lại các gói tập và lịch sử không?";
-160:                     
-161:                     MessageBoxResult answer = MessageBox.Show(confirmPrompt, "Xác nhận liên kết", MessageBoxButton.YesNo, MessageBoxImage.Question);
-162:                     if (answer != MessageBoxResult.Yes)
-163:                     {
-164:                         errPhone.Text = "Số điện thoại này đã có hồ sơ tại quầy. Hãy gắn tài khoản hoặc dùng số khác.";
-165:                         return;
-166:                     }
-167:                     linkProfile = counterMember;
-168:                 }
-169: 
-170:                 // Gọi helper tạo User vai trò Member (và liên kết hồ sơ quầy nếu có)
-171:                 User createdUser = AccountHelper.CreateMemberAccount(_db, username, password, fullName, phone, linkProfile);
-172: 
-173:                 // Tự động đăng nhập người dùng vừa tạo
-174:                 Session.SignIn(_db, createdUser);
-175: 
-176:                 // Ghi nhận Audit Log nếu có thao tác liên kết tài khoản
-177:                 if (linkProfile != null)
-178:                 {
-179:                     AuditHelper.Log(_db, "LinkMember", $"Tài khoản {username} gắn vào hồ sơ quầy #{linkProfile.MemberId}", "Members", linkProfile.MemberId);
-180:                 }
-181: 
-182:                 // Thông báo thành công và chuyển sang màn hình chính
-183:                 string successNote = linkProfile != null ? " Tài khoản đã được gắn vào hồ sơ tại quầy của bạn." : "";
-184:                 MessageBox.Show("Tạo tài khoản thành công!" + successNote, "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
-185: 
-186:                 MainWindow main = new MainWindow();
-187:                 main.Show();
-188:                 this.Close();
-189:             }
-190:             catch (Exception ex)
-191:             {
-192:                 MessageBox.Show("Đã xảy ra lỗi khi tạo tài khoản: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
-193:             }
-194:         }
-195: 
-196:         // =====================================================================
-197:         // Sự kiện khi người dùng bấm nút "Đã có tài khoản? Đăng nhập" (btnBack)
-198:         // =====================================================================
-199:         private void btnBack_Click(object sender, RoutedEventArgs e)
-200:         {
-201:             LoginWindow loginWindow = new LoginWindow();
-202:             loginWindow.Show();
-203:             this.Close();
-204:         }
-205:     }
-206: }
+ 22:         }
+ 23: 
+ 24:         // =====================================================================
+ 25:         // Hàm xóa sạch các dòng chữ báo lỗi màu đỏ trên form trước khi kiểm tra
+ 26:         // =====================================================================
+ 27:         private void ClearErrors()
+ 28:         {
+ 29:             errFullName.Text = string.Empty;
+ 30:             errPhone.Text = string.Empty;
+ 31:             errUsername.Text = string.Empty;
+ 32:             errPassword.Text = string.Empty;
+ 33:             errConfirm.Text = string.Empty;
+ 34:         }
+ 35: 
+ 36:         // =====================================================================
+ 37:         // Sự kiện khi người dùng nhấn nút "Tạo tài khoản" (btnCreate)
+ 38:         // =====================================================================
+ 39:         private void btnCreate_Click(object sender, RoutedEventArgs e)
+ 40:         {
+ 41:             // Bước 1: Xóa thông báo lỗi cũ và lấy dữ liệu người dùng nhập
+ 42:             ClearErrors();
+ 43:             string fullName = txtFullName.Text.Trim();
+ 44:             string phone = txtPhone.Text.Trim();
+ 45:             string username = txtUsername.Text.Trim();
+ 46:             string password = txtPassword.Password;
+ 47:             string confirm = txtConfirm.Password;
+ 48: 
+ 49:             // Biến cờ theo dõi xem toàn bộ dữ liệu có hợp lệ không
+ 50:             bool isValid = true;
+ 51:             var phoneCheck = (Result: AccountHelper.PhoneCheck.Free, Profile: (Member?)null);
+ 52: 
+ 53:             // Bước 2: Kiểm tra Họ và tên (FullName)
+ 54:             if (string.IsNullOrEmpty(fullName))
+ 55:             {
+ 56:                 errFullName.Text = "Vui lòng nhập họ tên.";
+ 57:                 isValid = false;
+ 58:             }
+ 59:             else
+ 60:             {
+ 61:                 string? nameError = AccountHelper.FullNameError(fullName);
+ 62:                 if (nameError != null)
+ 63:                 {
+ 64:                     errFullName.Text = nameError;
+ 65:                     isValid = false;
+ 66:                 }
+ 67:             }
+ 68: 
+ 69:             // Bước 3: Kiểm tra Số điện thoại (Phone)
+ 70:             if (string.IsNullOrEmpty(phone))
+ 71:             {
+ 72:                 errPhone.Text = "Vui lòng nhập số điện thoại.";
+ 73:                 isValid = false;
+ 74:             }
+ 75:             else if (!Regex.IsMatch(phone, @"^0\d{9,10}$"))
+ 76:             {
+ 77:                 errPhone.Text = "Số điện thoại gồm 10-11 chữ số, bắt đầu bằng 0.";
+ 78:                 isValid = false;
+ 79:             }
+ 80:             else
+ 81:             {
+ 82:                 // Quy tắc A5: Mỗi SĐT chỉ thuộc về một hội viên duy nhất
+ 83:                 phoneCheck = AccountHelper.CheckPhoneForRegistration(_db, fullName, phone);
+ 84:                 if (phoneCheck.Result == AccountHelper.PhoneCheck.AlreadyRegistered)
+ 85:                 {
+ 86:                     errPhone.Text = "Số điện thoại này đã được đăng ký. Hãy đăng nhập nếu là số của bạn.";
+ 87:                     isValid = false;
+ 88:                 }
+ 89:             }
+ 90: 
+ 91:             // Bước 4: Kiểm tra Tên đăng nhập (Username)
+ 92:             if (string.IsNullOrEmpty(username))
+ 93:             {
+ 94:                 errUsername.Text = "Vui lòng nhập tên đăng nhập.";
+ 95:                 isValid = false;
+ 96:             }
+ 97:             else
+ 98:             {
+ 99:                 string? usernameError = AccountHelper.UsernameError(username);
+100:                 if (usernameError != null)
+101:                 {
+102:                     errUsername.Text = usernameError;
+103:                     isValid = false;
+104:                 }
+105:                 else if (_db.Users.Any(u => u.Username == username))
+106:                 {
+107:                     // Kiểm tra trùng tên đăng nhập trong Database
+108:                     errUsername.Text = "Tên đăng nhập này đã có người dùng.";
+109:                     isValid = false;
+110:                 }
+111:             }
+112: 
+113:             // Bước 5: Kiểm tra Mật khẩu (Password)
+114:             if (string.IsNullOrEmpty(password))
+115:             {
+116:                 errPassword.Text = "Vui lòng nhập mật khẩu.";
+117:                 isValid = false;
+118:             }
+119:             else if (password.Length < 6)
+120:             {
+121:                 errPassword.Text = "Mật khẩu cần ít nhất 6 ký tự.";
+122:                 isValid = false;
+123:             }
+124:             else if (password.Equals(username, StringComparison.OrdinalIgnoreCase))
+125:             {
+126:                 errPassword.Text = "Mật khẩu không được trùng tên đăng nhập.";
+127:                 isValid = false;
+128:             }
+129: 
+130:             // Bước 6: Kiểm tra Xác nhận mật khẩu (Confirm Password)
+131:             if (string.IsNullOrEmpty(confirm))
+132:             {
+133:                 errConfirm.Text = "Vui lòng nhập lại mật khẩu.";
+134:                 isValid = false;
+135:             }
+136:             else if (confirm != password)
+137:             {
+138:                 errConfirm.Text = "Hai mật khẩu chưa khớp.";
+139:                 isValid = false;
+140:             }
+141: 
+142:             // Nếu có bất kỳ trường dữ liệu nào sai thì dừng lại không xử lý tiếp
+143:             if (!isValid)
+144:             {
+145:                 return;
+146:             }
+147: 
+148:             // Bước 7: Thực hiện lưu tài khoản vào Database
+149:             try
+150:             {
+151:                 Member? linkProfile = null;
+152: 
+153:                 // Quy tắc A2: Nếu SĐT trùng với hồ sơ tạo tại quầy (chưa có tài khoản) và khớp họ tên
+154:                 if (phoneCheck.Result == AccountHelper.PhoneCheck.LinkCounterProfile)
+155:                 {
+156:                     Member counterMember = phoneCheck.Profile!;
+157:                     string confirmPrompt = $"Đã có hồ sơ tại quầy của {counterMember.FullName} (SĐT: {counterMember.Phone}).\n\n"
+158:                                          + "Bạn có muốn gắn tài khoản mới này vào hồ sơ cũ để giữ lại các gói tập và lịch sử không?";
+159:                     
+160:                     MessageBoxResult answer = MessageBox.Show(confirmPrompt, "Xác nhận liên kết", MessageBoxButton.YesNo, MessageBoxImage.Question);
+161:                     if (answer != MessageBoxResult.Yes)
+162:                     {
+163:                         errPhone.Text = "Số điện thoại này đã có hồ sơ tại quầy. Hãy gắn tài khoản hoặc dùng số khác.";
+164:                         return;
+165:                     }
+166:                     linkProfile = counterMember;
+167:                 }
+168: 
+169:                 // Gọi helper tạo User vai trò Member (và liên kết hồ sơ quầy nếu có)
+170:                 User createdUser = AccountHelper.CreateMemberAccount(_db, username, password, fullName, phone, linkProfile);
+171: 
+172:                 // Tự động đăng nhập người dùng vừa tạo
+173:                 Session.SignIn(_db, createdUser);
+174: 
+175:                 // Ghi nhận Audit Log nếu có thao tác liên kết tài khoản
+176:                 if (linkProfile != null)
+177:                 {
+178:                     AuditHelper.Log(_db, "LinkMember", $"Tài khoản {username} gắn vào hồ sơ quầy #{linkProfile.MemberId}", "Members", linkProfile.MemberId);
+179:                 }
+180: 
+181:                 // Thông báo thành công và chuyển sang màn hình chính
+182:                 string successNote = linkProfile != null ? " Tài khoản đã được gắn vào hồ sơ tại quầy của bạn." : "";
+183:                 MessageBox.Show("Tạo tài khoản thành công!" + successNote);
+184: 
+185:                 MainWindow main = new MainWindow();
+186:                 main.Show();
+187:                 this.Close();
+188:             }
+189:             catch (Exception ex)
+190:             {
+191:                 MessageBox.Show("Tạo tài khoản thất bại: " + ex.Message);
+192:             }
+193:         }
+194: 
+195:         // =====================================================================
+196:         // Sự kiện khi người dùng bấm nút "Đã có tài khoản? Đăng nhập" (btnBack)
+197:         // =====================================================================
+198:         private void btnBack_Click(object sender, RoutedEventArgs e)
+199:         {
+200:             LoginWindow loginWindow = new LoginWindow();
+201:             loginWindow.Show();
+202:             this.Close();
+203:         }
+204:     }
+205: }
 ```
+
 **Giải thích chi tiết từng bước & từng dòng**:
-- **Dòng 15**: `private SportsCenterContext _db;` – Khởi tạo kết nối DbContext.
-- **Dòng 27-34 (`ClearErrors`)**: Xóa trắng toàn bộ 5 dòng thông báo lỗi màu đỏ trên form trước khi bắt đầu kiểm tra.
-- **Dòng 39-192 (`btnCreate_Click`)**:
-  - **Bước 1 (Dòng 42-47)**: Đọc dữ liệu từ 5 trường nhập liệu (`fullName`, `phone`, `username`, `password`, `confirm`).
-  - **Bước 2 (Dòng 54-68)**: Kiểm tra Họ và tên không được rỗng và hợp lệ theo `AccountHelper.FullNameError(fullName)`.
-  - **Bước 3 (Dòng 71-90 - Luật A5)**: Kiểm tra số điện thoại gồm 10-11 số (`Regex.IsMatch(phone, @"^0\d{9,10}$")`), kiểm tra qua `AccountHelper.CheckPhoneForRegistration`. Nếu số đã có tài khoản thì từ chối.
-  - **Bước 4 (Dòng 93-112)**: Kiểm tra tên đăng nhập từ 3-30 ký tự, kiểm tra trùng trong DB qua `_db.Users.Any(u => u.Username == username)`.
-  - **Bước 5 (Dòng 115-129)**: Kiểm tra mật khẩu $\ge 6$ ký tự, không được trùng tên đăng nhập.
-  - **Bước 6 (Dòng 132-142)**: Kiểm tra xác nhận mật khẩu phải trùng khớp với mật khẩu mới.
-  - **Bước 7 (Dòng 151-189 - Lưu tài khoản & Luật A2)**:
-    - Nếu `phoneCheck.Result == LinkCounterProfile`: Hiện `MessageBox.Show` với lựa chọn `YesNo` hỏi hội viên có muốn gắn tài khoản mới vào hồ sơ cũ để giữ lại các gói tập và lịch sử không.
-    - Gọi `AccountHelper.CreateMemberAccount` để tạo `User` và lưu vào DB trong một lần `SaveChanges`.
-    - Tự động đăng nhập qua `Session.SignIn(_db, createdUser)`.
-    - Ghi nhận `AuditHelper.Log` nếu có thao tác liên kết tài khoản.
-    - Thông báo thành công và chuyển sang `MainWindow`.
-- **Dòng 198-203 (`btnBack_Click`)**: Mở lại `LoginWindow` khi người dùng bấm "Đã có tài khoản? Đăng nhập".
+- **Dòng 15**: Khởi tạo DbContext.
+- **Dòng 17-21 (Constructor)**: Tinh gọn 2 dòng khởi tạo giao diện và kết nối DB.
+- **Dòng 26-33 (`ClearErrors`)**: Xóa trắng toàn bộ thông báo lỗi đỏ.
+- **Dòng 38-190 (`btnCreate_Click` - Luật A2, A5)**: Validate dữ liệu, kiểm tra SĐT qua `AccountHelper.CheckPhoneForRegistration`, popup hỏi xác nhận gắn hồ sơ quầy, tạo tài khoản và lưu DB trong 1 lần `SaveChanges()`, tự động đăng nhập và chuyển sang `MainWindow`. Khối catch rút gọn ngắn gọn.
+- **Dòng 196-201 (`btnBack_Click`)**: Mở lại `LoginWindow`.
 
 ---
 
@@ -1332,9 +1315,9 @@ Tập tin nằm tại `SportsCenterApp/SportsCenter/MainWindow.xaml.cs` (188 dò
 
 ---
 
-## 4.5. `ChangePasswordWindow.xaml.cs` – Đổi mật khẩu tài khoản
+## 4.5. `ChangePasswordWindow.xaml.cs` – Đổi mật khẩu tài khoản (Chuẩn PRN212)
 
-Tập tin nằm tại `SportsCenterApp/SportsCenter/ChangePasswordWindow.xaml.cs` (134 dòng).
+Tập tin nằm tại `SportsCenterApp/SportsCenter/ChangePasswordWindow.xaml.cs`.
 
 ```csharp
   1: using SportsCenter.Entities;
@@ -1349,7 +1332,7 @@ Tập tin nằm tại `SportsCenterApp/SportsCenter/ChangePasswordWindow.xaml.cs
  10:     /// </summary>
  11:     public partial class ChangePasswordWindow : Window
  12:     {
- 13:         // 1. Khởi tạo đối tượng DbContext để làm việc với CSDL
+ 13:         // 1. Khởi tạo đối tượng DbContext để làm việc với CSDL (chuẩn PRN212)
  14:         private SportsCenterContext _db;
  15: 
  16:         public ChangePasswordWindow()
@@ -1361,120 +1344,111 @@ Tập tin nằm tại `SportsCenterApp/SportsCenter/ChangePasswordWindow.xaml.cs
  22:             User currentUser = Session.CurrentUser!;
  23:             string roleDisplayName = Rules.RoleNames.ContainsKey(currentUser.Role) ? Rules.RoleNames[currentUser.Role] : currentUser.Role;
  24:             txtInfo.Text = $"{currentUser.FullName} · {currentUser.Username} · {roleDisplayName}";
- 25: 
- 26:             // Đặt con trỏ chuột vào ô Mật khẩu hiện tại khi mở cửa sổ
- 27:             Loaded += (s, e) => txtOld.Focus();
- 28:         }
- 29: 
- 30:         // =====================================================================
- 31:         // Sự kiện khi người dùng bấm nút "Lưu thay đổi" / "Đổi mật khẩu" (btnChange)
- 32:         // =====================================================================
- 33:         private void btnChange_Click(object sender, RoutedEventArgs e)
- 34:         {
- 35:             // Bước 1: Xóa thông báo lỗi cũ
- 36:             errOld.Text = string.Empty;
- 37:             errNew.Text = string.Empty;
- 38:             errConfirm.Text = string.Empty;
- 39: 
- 40:             // Bước 2: Lấy dữ liệu các ô mật khẩu
- 41:             string oldPassword = txtOld.Password;
- 42:             string newPassword = txtNew.Password;
- 43:             string confirmPassword = txtConfirm.Password;
- 44: 
- 45:             // Bước 3: Tìm tài khoản trong Database để cập nhật
- 46:             User? user = _db.Users.Find(Session.CurrentUser!.UserId);
- 47:             if (user == null)
- 48:             {
- 49:                 MessageBox.Show("Không tìm thấy thông tin tài khoản.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
- 50:                 return;
- 51:             }
- 52: 
- 53:             bool isValid = true;
- 54: 
- 55:             // Bước 4: Kiểm tra Mật khẩu hiện tại (Old Password)
- 56:             if (string.IsNullOrEmpty(oldPassword))
- 57:             {
- 58:                 errOld.Text = "Vui lòng nhập mật khẩu hiện tại.";
- 59:                 isValid = false;
- 60:             }
- 61:             else if (user.PasswordHash != PasswordHelper.Hash(oldPassword))
- 62:             {
- 63:                 errOld.Text = "Mật khẩu hiện tại chưa đúng.";
- 64:                 isValid = false;
- 65:             }
- 66: 
- 67:             // Bước 5: Kiểm tra Mật khẩu mới (New Password)
- 68:             if (string.IsNullOrEmpty(newPassword))
- 69:             {
- 70:                 errNew.Text = "Vui lòng nhập mật khẩu mới.";
- 71:                 isValid = false;
- 72:             }
- 73:             else if (newPassword.Length < 6)
- 74:             {
- 75:                 errNew.Text = "Mật khẩu cần ít nhất 6 ký tự.";
- 76:                 isValid = false;
- 77:             }
- 78:             else if (newPassword == oldPassword)
- 79:             {
- 80:                 errNew.Text = "Mật khẩu mới phải khác mật khẩu hiện tại.";
- 81:                 isValid = false;
- 82:             }
- 83:             else if (newPassword.Equals(user.Username, StringComparison.OrdinalIgnoreCase))
- 84:             {
- 85:                 errNew.Text = "Mật khẩu không được trùng tên đăng nhập.";
- 86:                 isValid = false;
- 87:             }
- 88: 
- 89:             // Bước 6: Kiểm tra Xác nhận mật khẩu mới (Confirm Password)
- 90:             if (string.IsNullOrEmpty(confirmPassword))
- 91:             {
- 92:                 errConfirm.Text = "Vui lòng nhập lại mật khẩu mới.";
- 93:                 isValid = false;
- 94:             }
- 95:             else if (confirmPassword != newPassword)
- 96:             {
- 97:                 errConfirm.Text = "Hai mật khẩu chưa khớp.";
- 98:                 isValid = false;
- 99:             }
-100: 
-101:             // Nếu có lỗi thì dừng lại
-102:             if (!isValid)
-103:             {
-104:                 return;
-105:             }
-106: 
-107:             // Bước 7: Thực hiện cập nhật mật khẩu mới vào Database
-108:             try
-109:             {
-110:                 // Băm mật khẩu mới bằng SHA-256 trước khi lưu
-111:                 user.PasswordHash = PasswordHelper.Hash(newPassword);
-112:                 _db.SaveChanges(); // Lưu vào SQL Server
+ 25:         }
+ 26: 
+ 27:         // =====================================================================
+ 28:         // Sự kiện khi người dùng bấm nút "Lưu thay đổi" / "Đổi mật khẩu" (btnChange)
+ 29:         // =====================================================================
+ 30:         private void btnChange_Click(object sender, RoutedEventArgs e)
+ 31:         {
+ 32:             // Bước 1: Xóa thông báo lỗi cũ
+ 33:             errOld.Text = string.Empty;
+ 34:             errNew.Text = string.Empty;
+ 35:             errConfirm.Text = string.Empty;
+ 36: 
+ 37:             // Bước 2: Lấy dữ liệu các ô mật khẩu
+ 38:             string oldPassword = txtOld.Password;
+ 39:             string newPassword = txtNew.Password;
+ 40:             string confirmPassword = txtConfirm.Password;
+ 41: 
+ 42:             // Bước 3: Tìm tài khoản trong Database để cập nhật
+ 43:             User? user = _db.Users.Find(Session.CurrentUser!.UserId);
+ 44:             if (user == null)
+ 45:             {
+ 46:                 MessageBox.Show("Không tìm thấy thông tin tài khoản.");
+ 47:                 return;
+ 48:             }
+ 49: 
+ 50:             bool isValid = true;
+ 51: 
+ 52:             // Bước 4: Kiểm tra Mật khẩu hiện tại (Old Password)
+ 53:             if (string.IsNullOrEmpty(oldPassword))
+ 54:             {
+ 55:                 errOld.Text = "Vui lòng nhập mật khẩu hiện tại.";
+ 56:                 isValid = false;
+ 57:             }
+ 58:             else if (user.PasswordHash != PasswordHelper.Hash(oldPassword))
+ 59:             {
+ 60:                 errOld.Text = "Mật khẩu hiện tại chưa đúng.";
+ 61:                 isValid = false;
+ 62:             }
+ 63: 
+ 64:             // Bước 5: Kiểm tra Mật khẩu mới (New Password)
+ 65:             if (string.IsNullOrEmpty(newPassword))
+ 66:             {
+ 67:                 errNew.Text = "Vui lòng nhập mật khẩu mới.";
+ 68:                 isValid = false;
+ 69:             }
+ 70:             else if (newPassword.Length < 6)
+ 71:             {
+ 72:                 errNew.Text = "Mật khẩu cần ít nhất 6 ký tự.";
+ 73:                 isValid = false;
+ 74:             }
+ 75:             else if (newPassword == oldPassword)
+ 76:             {
+ 77:                 errNew.Text = "Mật khẩu mới phải khác mật khẩu hiện tại.";
+ 78:                 isValid = false;
+ 79:             }
+ 80:             else if (newPassword.Equals(user.Username, StringComparison.OrdinalIgnoreCase))
+ 81:             {
+ 82:                 errNew.Text = "Mật khẩu không được trùng tên đăng nhập.";
+ 83:                 isValid = false;
+ 84:             }
+ 85: 
+ 86:             // Bước 6: Kiểm tra Xác nhận mật khẩu mới (Confirm Password)
+ 87:             if (string.IsNullOrEmpty(confirmPassword))
+ 88:             {
+ 89:                 errConfirm.Text = "Vui lòng nhập lại mật khẩu mới.";
+ 90:                 isValid = false;
+ 91:             }
+ 92:             else if (confirmPassword != newPassword)
+ 93:             {
+ 94:                 errConfirm.Text = "Hai mật khẩu chưa khớp.";
+ 95:                 isValid = false;
+ 96:             }
+ 97: 
+ 98:             // Nếu có lỗi thì dừng lại
+ 99:             if (!isValid)
+100:             {
+101:                 return;
+102:             }
+103: 
+104:             // Bước 7: Thực hiện cập nhật mật khẩu mới vào Database
+105:             try
+106:             {
+107:                 // Băm mật khẩu mới bằng SHA-256 trước khi lưu
+108:                 user.PasswordHash = PasswordHelper.Hash(newPassword);
+109:                 _db.SaveChanges(); // Lưu vào SQL Server
+110: 
+111:                 // Ghi lại lịch sử hoạt động đổi mật khẩu
+112:                 AuditHelper.Log(_db, "ChangePassword", $"{user.Username} đổi mật khẩu", "Users", user.UserId);
 113: 
-114:                 // Ghi lại lịch sử hoạt động đổi mật khẩu
-115:                 AuditHelper.Log(_db, "ChangePassword", $"{user.Username} đổi mật khẩu", "Users", user.UserId);
-116: 
-117:                 MessageBox.Show("Đã đổi mật khẩu thành công. Lần đăng nhập sau hãy dùng mật khẩu mới.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
-118:                 this.Close(); // Đóng cửa sổ đổi mật khẩu
-119:             }
-120:             catch (Exception ex)
-121:             {
-122:                 MessageBox.Show("Lỗi khi lưu mật khẩu: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
-123:             }
-124:         }
-125:     }
-126: }
+114:                 MessageBox.Show("Đã đổi mật khẩu thành công. Lần đăng nhập sau hãy dùng mật khẩu mới.");
+115:                 this.Close(); // Đóng cửa sổ đổi mật khẩu
+116:             }
+117:             catch (Exception ex)
+118:             {
+119:                 MessageBox.Show("Đổi mật khẩu thất bại: " + ex.Message);
+120:             }
+121:         }
+122:     }
+123: }
 ```
+
 **Giải thích chi tiết từng bước & từng dòng**:
-- **Dòng 13**: `private SportsCenterContext _db;` – Khởi tạo DbContext kết nối CSDL.
-- **Dòng 15-28 (Constructor)**: Nạp thông tin người dùng từ `Session.CurrentUser` hiển thị lên thanh `txtInfo`, đặt focus vào ô mật khẩu cũ.
-- **Dòng 33-131 (`btnChange_Click`)**:
-  - **Bước 1 (Dòng 36-39)**: Xóa các thông báo lỗi cũ trên giao diện.
-  - **Bước 2 (Dòng 42-44)**: Lấy giá trị 3 ô mật khẩu: `oldPassword`, `newPassword`, `confirmPassword`.
-  - **Bước 3 (Dòng 47-52)**: Tìm bản ghi tài khoản trong DB qua `_db.Users.Find(Session.CurrentUser!.UserId)`.
-  - **Bước 4 (Dòng 57-67)**: Kiểm tra mật khẩu hiện tại không được rỗng và băm bằng `PasswordHelper.Hash` phải trùng với `user.PasswordHash`.
-  - **Bước 5 (Dòng 70-93)**: Kiểm tra mật khẩu mới không rỗng, độ dài $\ge 6$ ký tự, phải khác mật khẩu hiện tại và không được trùng với tên đăng nhập.
-  - **Bước 6 (Dòng 96-106)**: Kiểm tra xác nhận mật khẩu mới phải khớp với mật khẩu mới.
-  - **Bước 7 (Dòng 115-130)**: Cập nhật `user.PasswordHash = PasswordHelper.Hash(newPassword)`, lưu vào DB `_db.SaveChanges()`, ghi lịch sử kiểm toán `AuditHelper.Log`, thông báo `MessageBox.Show` thành công và đóng cửa sổ.
+- **Dòng 14**: Khởi tạo DbContext.
+- **Dòng 16-25 (Constructor)**: Nạp thông tin người dùng từ `Session.CurrentUser` hiển thị lên thanh `txtInfo`. Đã loại bỏ dòng lambda focus thừa thãi.
+- **Dòng 30-120 (`btnChange_Click`)**: Kiểm tra mật khẩu cũ khớp mã băm, kiểm tra mật khẩu mới và xác nhận mật khẩu, cập nhật mã băm SHA-256 mới, lưu DB và ghi nhật ký kiểm toán. Khối catch rút gọn ngắn gọn.
 
 ---
 
@@ -1578,286 +1552,288 @@ Màn hình trung tâm điều hành của Manager, gồm 4 khối: 4 thẻ KPI t
 
 ## 5.2. `UsersPage.xaml.cs` – Quản lý tài khoản, Khóa & Đổi vai trò (Chuẩn Q2 PRN212)
 
-Tập tin nằm tại `SportsCenterApp/SportsCenter/Pages/UsersPage.xaml.cs` (268 dòng).
+Tập tin nằm tại `SportsCenterApp/SportsCenter/Pages/UsersPage.xaml.cs`.
 
 ```csharp
   1: using SportsCenter.Entities;
   2: using System;
-  3: using System.Collections.Generic;
-  4: using System.Linq;
-  5: using System.Windows;
-  6: using System.Windows.Controls;
-  7: 
-  8: namespace SportsCenter
-  9: {
- 10:     /// <summary>
- 11:     /// Interaction logic for UsersPage.xaml
- 12:     /// </summary>
- 13:     public partial class UsersPage : UserControl
- 14:     {
- 15:         private SportsCenterContext _db;
- 16: 
- 17:         // Danh sách vai trò trong hệ thống
- 18:         private readonly string[] _roles = { "Manager", "Receptionist", "Coach", "Member" };
- 19: 
- 20:         private static string RoleName(string code) => Rules.RoleNames.GetValueOrDefault(code, code);
- 21: 
- 22:         public UsersPage()
- 23:         {
- 24:             InitializeComponent();
- 25:             _db = new SportsCenterContext();
- 26:             GridHelper.Setup(dgUsers);
- 27:             pgUsers.PageChanged += (s, e) => LoadUsers();
- 28: 
- 29:             LoadRole();
- 30:             LoadUsers();
- 31:         }
- 32: 
- 33:         public void LoadUsers()
- 34:         {
- 35:             string keyword = txtSearch.Text.Trim();
- 36:             int roleIndex = cbxRoleFilter.SelectedIndex;
- 37: 
- 38:             // 1. Cú pháp LINQ truy vấn bảng Users:
- 39:             var query = _db.Users.AsQueryable();
- 40: 
- 41:             // 2. Lọc theo từ khóa tìm kiếm (Username hoặc FullName) nếu có nhập:
- 42:             if (!string.IsNullOrEmpty(keyword))
- 43:             {
- 44:                 query = query.Where(x => x.Username.Contains(keyword) || x.FullName.Contains(keyword));
- 45:             }
- 46: 
- 47:             // 3. Lọc theo Role nếu có chọn (khác All / Tất cả):
- 48:             if (roleIndex > 0)
- 49:             {
- 50:                 string selectedRole = _roles[roleIndex - 1];
- 51:                 query = query.Where(x => x.Role == selectedRole);
- 52:             }
- 53: 
- 54:             // 4. Đổ dữ liệu vào DataGrid:
- 55:             var rows = query
- 56:                 .OrderBy(x => x.UserId)
- 57:                 .Select(x => new
- 58:                 {
- 59:                     x.UserId,
- 60:                     x.Username,
- 61:                     x.FullName,
- 62:                     Role = RoleName(x.Role),
- 63:                     Status = x.IsActive ? "Đang hoạt động" : "Đã khóa"
- 64:                 })
- 65:                 .ToList();
- 66: 
- 67:             dgUsers.ItemsSource = pgUsers.Slice(rows);
- 68:         }
- 69: 
- 70:         public void LoadRole()
- 71:         {
- 72:             var roleNames = _roles.Select(RoleName).ToList();
- 73: 
- 74:             // Danh sách cho phần Add New User và Change Role (không chứa "All")
- 75:             cbxRole.ItemsSource = roleNames;
- 76:             cbxRole.SelectedIndex = 1;
- 77: 
- 78:             cbxNewRole.ItemsSource = roleNames;
- 79:             cbxNewRole.SelectedIndex = 3;
- 80: 
- 81:             // Danh sách cho phần Filter: có "All" ở đầu (danh sách riêng)
- 82:             var filterRoles = new List<string> { "All" };
- 83:             filterRoles.AddRange(roleNames);
- 84:             cbxRoleFilter.ItemsSource = filterRoles;
- 85:             cbxRoleFilter.SelectedIndex = 0;
- 86:         }
+  3: using System.Linq;
+  4: using System.Windows;
+  5: using System.Windows.Controls;
+  6: 
+  7: namespace SportsCenter
+  8: {
+  9:     /// <summary>
+ 10:     /// Interaction logic for UsersPage.xaml
+ 11:     /// Màn hình Quản lý tài khoản người dùng (Dành cho Quản lý / Manager)
+ 12:     /// Cấu trúc chuẩn theo mẫu bài thi Q2 PRN212
+ 13:     /// </summary>
+ 14:     public partial class UsersPage : UserControl
+ 15:     {
+ 16:         private SportsCenterContext _db;
+ 17:         private readonly string[] _roles = { "Manager", "Receptionist", "Coach", "Member" };
+ 18: 
+ 19:         private static string RoleName(string code) => Rules.RoleNames.GetValueOrDefault(code, code);
+ 20: 
+ 21:         public UsersPage()
+ 22:         {
+ 23:             InitializeComponent();
+ 24:             _db = new SportsCenterContext();
+ 25:             GridHelper.Setup(dgUsers);
+ 26:             pgUsers.PageChanged += (s, e) => LoadUsers();
+ 27: 
+ 28:             LoadRole();
+ 29:             LoadUsers();
+ 30:         }
+ 31: 
+ 32:         public void LoadUsers()
+ 33:         {
+ 34:             string keyword = txtSearch.Text.Trim();
+ 35:             int roleIndex = cbxRoleFilter.SelectedIndex;
+ 36: 
+ 37:             // 1. Cú pháp LINQ truy vấn bảng Users:
+ 38:             var query = _db.Users.AsQueryable();
+ 39: 
+ 40:             // 2. Lọc theo từ khóa tìm kiếm (Username hoặc FullName) nếu có nhập:
+ 41:             if (!string.IsNullOrEmpty(keyword))
+ 42:             {
+ 43:                 query = query.Where(x => x.Username.Contains(keyword) || x.FullName.Contains(keyword));
+ 44:             }
+ 45: 
+ 46:             // 3. Lọc theo Role nếu có chọn (khác All / Tất cả):
+ 47:             if (roleIndex > 0)
+ 48:             {
+ 49:                 string selectedRole = _roles[roleIndex - 1];
+ 50:                 query = query.Where(x => x.Role == selectedRole);
+ 51:             }
+ 52: 
+ 53:             // 4. Đổ dữ liệu vào DataGrid:
+ 54:             var rows = query
+ 55:                 .OrderBy(x => x.UserId)
+ 56:                 .Select(x => new
+ 57:                 {
+ 58:                     x.UserId,
+ 59:                     x.Username,
+ 60:                     x.FullName,
+ 61:                     Role = RoleName(x.Role),
+ 62:                     Status = x.IsActive ? "Đang hoạt động" : "Đã khóa"
+ 63:                 })
+ 64:                 .ToList();
+ 65: 
+ 66:             dgUsers.ItemsSource = pgUsers.Slice(rows);
+ 67:         }
+ 68: 
+ 69:         public void LoadRole()
+ 70:         {
+ 71:             // Xóa item cũ trước khi nạp
+ 72:             cbxRoleFilter.Items.Clear();
+ 73:             cbxRole.Items.Clear();
+ 74:             cbxNewRole.Items.Clear();
+ 75: 
+ 76:             // 1. Nạp ComboBox Filter: thêm "All" ở đầu tiên
+ 77:             cbxRoleFilter.Items.Add("All");
+ 78: 
+ 79:             // 2. Dùng foreach duyệt qua từng vai trò để nạp vào các ComboBox
+ 80:             foreach (var role in _roles)
+ 81:             {
+ 82:                 string name = RoleName(role);
+ 83:                 cbxRoleFilter.Items.Add(name); // Thêm vào bộ lọc
+ 84:                 cbxRole.Items.Add(name);       // Thêm vào ô Thêm mới
+ 85:                 cbxNewRole.Items.Add(name);    // Thêm vào ô Đổi vai trò
+ 86:             }
  87: 
- 88:         private void btnFilter_Click(object sender, RoutedEventArgs e)
- 89:         {
- 90:             pgUsers.Reset();
- 91:             LoadUsers();
+ 88:             // Chọn vị trí mặc định
+ 89:             cbxRoleFilter.SelectedIndex = 0; // Chọn "All"
+ 90:             cbxRole.SelectedIndex = 1;       // Chọn "Lễ tân"
+ 91:             cbxNewRole.SelectedIndex = 1;    // Chọn "Lễ tân"
  92:         }
  93: 
- 94:         private void btnClearFilter_Click(object sender, RoutedEventArgs e)
+ 94:         private void btnFilter_Click(object sender, RoutedEventArgs e)
  95:         {
- 96:             // Reset cb về "All"
- 97:             txtSearch.Clear();
- 98:             cbxRoleFilter.SelectedIndex = 0;
- 99:             pgUsers.Reset();
-100:             LoadUsers();
-101:         }
-102: 
-103:         private void btnAddUser_Click(object sender, RoutedEventArgs e)
-104:         {
-105:             string fullName = txtFullName.Text.Trim();
-106:             string username = txtUsername.Text.Trim();
-107: 
-108:             if (string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(username))
-109:             {
-110:                 MessageBox.Show("Please fill in Full Name and Username.");
-111:                 return;
-112:             }
+ 96:             pgUsers.Reset();
+ 97:             LoadUsers();
+ 98:         }
+ 99: 
+100:         private void btnClearFilter_Click(object sender, RoutedEventArgs e)
+101:         {
+102:             // Reset cb về "All"
+103:             txtSearch.Clear();
+104:             cbxRoleFilter.SelectedIndex = 0;
+105:             pgUsers.Reset();
+106:             LoadUsers();
+107:         }
+108: 
+109:         private void btnAddUser_Click(object sender, RoutedEventArgs e)
+110:         {
+111:             string fullName = txtFullName.Text.Trim();
+112:             string username = txtUsername.Text.Trim();
 113: 
-114:             if (AccountHelper.FullNameError(fullName) is string nameError)
+114:             if (string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(username))
 115:             {
-116:                 MessageBox.Show(nameError);
+116:                 MessageBox.Show("Vui lòng nhập Họ tên và Tên đăng nhập.");
 117:                 return;
 118:             }
 119: 
-120:             if (AccountHelper.UsernameError(username) is string usernameError)
+120:             if (AccountHelper.FullNameError(fullName) is string nameError)
 121:             {
-122:                 MessageBox.Show(usernameError);
+122:                 MessageBox.Show(nameError);
 123:                 return;
 124:             }
 125: 
-126:             if (_db.Users.Any(u => u.Username == username))
+126:             if (AccountHelper.UsernameError(username) is string usernameError)
 127:             {
-128:                 MessageBox.Show("Username already exists.");
+128:                 MessageBox.Show(usernameError);
 129:                 return;
 130:             }
 131: 
-132:             try
+132:             if (_db.Users.Any(u => u.Username == username))
 133:             {
-134:                 var user = new User
-135:                 {
-136:                     Username = username,
-137:                     PasswordHash = PasswordHelper.Hash("123456"),
-138:                     FullName = fullName,
-139:                     Role = _roles[cbxRole.SelectedIndex],
-140:                     IsActive = true,
-141:                     CreatedAt = DateTime.Now
-142:                 };
-143: 
-144:                 _db.Users.Add(user);
-145:                 EnsureProfile(user);
-146:                 _db.SaveChanges();
-147: 
-148:                 AuditHelper.Log(_db, "CreateUser", $"Tạo tài khoản {username} ({RoleName(user.Role)})", "Users", user.UserId);
+134:                 MessageBox.Show("Tên đăng nhập đã tồn tại.");
+135:                 return;
+136:             }
+137: 
+138:             try
+139:             {
+140:                 var user = new User
+141:                 {
+142:                     Username = username,
+143:                     PasswordHash = PasswordHelper.Hash("123456"),
+144:                     FullName = fullName,
+145:                     Role = _roles[cbxRole.SelectedIndex],
+146:                     IsActive = true,
+147:                     CreatedAt = DateTime.Now
+148:                 };
 149: 
-150:                 // reset lại dg và form
-151:                 LoadUsers();
-152:                 ClearForm();
+150:                 _db.Users.Add(user);
+151:                 EnsureProfile(user);
+152:                 _db.SaveChanges();
 153: 
-154:                 MessageBox.Show("User added successfully. Mật khẩu mặc định là 123456.");
-155:             }
-156:             catch (Exception)
-157:             {
-158:                 MessageBox.Show("User added failed.");
-159:             }
-160:         }
-161: 
-162:         private void btnToggle_Click(object sender, RoutedEventArgs e)
-163:         {
-164:             var user = GetSelectedUser();
-165:             if (user == null) return;
-166: 
-167:             try
-168:             {
-169:                 user.IsActive = !user.IsActive;
-170:                 _db.SaveChanges();
-171: 
-172:                 AuditHelper.Log(_db, "ToggleUser", $"{(user.IsActive ? "Mở khóa" : "Khóa")} tài khoản {user.Username}", "Users", user.UserId);
-173: 
-174:                 // reset lại dg
-175:                 LoadUsers();
-176:                 GridHelper.SelectById(dgUsers, "UserId", user.UserId);
+154:                 AuditHelper.Log(_db, "CreateUser", $"Tạo tài khoản {username}", "Users", user.UserId);
+155: 
+156:                 // reset lại dg và form
+157:                 LoadUsers();
+158:                 ClearForm();
+159: 
+160:                 MessageBox.Show("Thêm tài khoản thành công. Mật khẩu mặc định là 123456.");
+161:             }
+162:             catch (Exception ex)
+163:             {
+164:                 MessageBox.Show("Thêm tài khoản thất bại: " + ex.Message);
+165:             }
+166:         }
+167: 
+168:         private void btnToggle_Click(object sender, RoutedEventArgs e)
+169:         {
+170:             var user = GetSelectedUser();
+171:             if (user == null) return;
+172: 
+173:             try
+174:             {
+175:                 user.IsActive = !user.IsActive;
+176:                 _db.SaveChanges();
 177: 
-178:                 MessageBox.Show("User status updated successfully.");
-179:             }
-180:             catch (Exception)
-181:             {
-182:                 MessageBox.Show("User status update failed.");
-183:             }
-184:         }
-185: 
-186:         private void btnChangeRole_Click(object sender, RoutedEventArgs e)
-187:         {
-188:             var user = GetSelectedUser();
-189:             if (user == null) return;
-190: 
-191:             string newRole = _roles[cbxNewRole.SelectedIndex];
-192:             if (newRole == user.Role)
-193:             {
-194:                 MessageBox.Show("Tài khoản này đã có vai trò " + RoleName(newRole) + ".");
-195:                 return;
-196:             }
-197: 
-198:             try
+178:                 AuditHelper.Log(_db, "ToggleUser", $"{(user.IsActive ? "Mở khóa" : "Khóa")} tài khoản {user.Username}", "Users", user.UserId);
+179: 
+180:                 // reset lại dg
+181:                 LoadUsers();
+182:                 GridHelper.SelectById(dgUsers, "UserId", user.UserId);
+183: 
+184:                 MessageBox.Show("Cập nhật trạng thái thành công.");
+185:             }
+186:             catch (Exception ex)
+187:             {
+188:                 MessageBox.Show("Cập nhật trạng thái thất bại: " + ex.Message);
+189:             }
+190:         }
+191: 
+192:         private void btnChangeRole_Click(object sender, RoutedEventArgs e)
+193:         {
+194:             var user = GetSelectedUser();
+195:             if (user == null) return;
+196: 
+197:             string newRole = _roles[cbxNewRole.SelectedIndex];
+198:             if (newRole == user.Role)
 199:             {
-200:                 user.Role = newRole;
-201:                 EnsureProfile(user);
-202:                 _db.SaveChanges();
+200:                 MessageBox.Show("Tài khoản này đã có vai trò " + RoleName(newRole) + ".");
+201:                 return;
+202:             }
 203: 
-204:                 AuditHelper.Log(_db, "SetRole", $"Đổi {user.Username} thành {RoleName(newRole)}", "Users", user.UserId);
-205: 
-206:                 // reset lại dg
-207:                 LoadUsers();
-208:                 GridHelper.SelectById(dgUsers, "UserId", user.UserId);
+204:             try
+205:             {
+206:                 user.Role = newRole;
+207:                 EnsureProfile(user);
+208:                 _db.SaveChanges();
 209: 
-210:                 MessageBox.Show("User role changed successfully.");
-211:             }
-212:             catch (Exception)
-213:             {
-214:                 MessageBox.Show("User role change failed.");
-215:             }
-216:         }
-217: 
-218:         private User? GetSelectedUser()
-219:         {
-220:             int? id = GridHelper.SelectedId(dgUsers, "UserId");
-221:             if (id == null)
-222:             {
-223:                 MessageBox.Show("Please select a User in the list.");
-224:                 return null;
-225:             }
-226: 
-227:             // Luật A3: Không thể tự khóa hoặc đổi quyền chính mình
-228:             if (id == Session.CurrentUser!.UserId)
-229:             {
-230:                 MessageBox.Show("Không thể khóa hoặc đổi vai trò của chính tài khoản đang đăng nhập.");
-231:                 return null;
-232:             }
-233: 
-234:             return _db.Users.Find(id);
-235:         }
-236: 
-237:         private void EnsureProfile(User user)
-238:         {
-239:             if (user.Role == "Coach" && !_db.Coaches.Any(c => c.UserId == user.UserId))
-240:             {
-241:                 _db.Coaches.Add(new Coach { User = user, FullName = user.FullName, Email = user.Username + "@center.vn", Phone = user.Phone });
-242:             }
-243:             if (user.Role == "Member" && !_db.Members.Any(m => m.UserId == user.UserId))
-244:             {
-245:                 _db.Members.Add(new Member { User = user, FullName = user.FullName, Phone = user.Phone, CreatedAt = DateTime.Now });
-246:             }
-247:         }
-248: 
-249:         private void ClearForm()
-250:         {
-251:             txtFullName.Clear();
-252:             txtUsername.Clear();
-253:             cbxRole.SelectedIndex = 1;
-254:         }
-255:     }
-256: }
+210:                 AuditHelper.Log(_db, "SetRole", $"Đổi vai trò {user.Username} thành {RoleName(newRole)}", "Users", user.UserId);
+211: 
+212:                 // reset lại dg
+213:                 LoadUsers();
+214:                 GridHelper.SelectById(dgUsers, "UserId", user.UserId);
+215: 
+216:                 MessageBox.Show("Đổi vai trò thành công.");
+217:             }
+218:             catch (Exception ex)
+219:             {
+220:                 MessageBox.Show("Đổi vai trò thất bại: " + ex.Message);
+221:             }
+222:         }
+223: 
+224:         private User? GetSelectedUser()
+225:         {
+226:             int? id = GridHelper.SelectedId(dgUsers, "UserId");
+227:             if (id == null)
+228:             {
+229:                 MessageBox.Show("Vui lòng chọn một tài khoản trong danh sách.");
+230:                 return null;
+231:             }
+232: 
+233:             // Luật A3: Không thể tự khóa hoặc đổi quyền chính mình
+234:             if (id == Session.CurrentUser!.UserId)
+235:             {
+236:                 MessageBox.Show("Không thể khóa hoặc đổi vai trò của chính tài khoản đang đăng nhập.");
+237:                 return null;
+238:             }
+239: 
+240:             return _db.Users.Find(id);
+241:         }
+242: 
+243:         private void EnsureProfile(User user)
+244:         {
+245:             if (user.Role == "Coach" && !_db.Coaches.Any(c => c.UserId == user.UserId))
+246:             {
+247:                 _db.Coaches.Add(new Coach { User = user, FullName = user.FullName, Email = user.Username + "@center.vn", Phone = user.Phone });
+248:             }
+249:             if (user.Role == "Member" && !_db.Members.Any(m => m.UserId == user.UserId))
+250:             {
+251:                 _db.Members.Add(new Member { User = user, FullName = user.FullName, Phone = user.Phone, CreatedAt = DateTime.Now });
+252:             }
+253:         }
+254: 
+255:         // Tách hàm ClearForm() riêng biệt để tái sử dụng
+256:         private void ClearForm()
+257:         {
+258:             txtFullName.Clear();
+259:             txtUsername.Clear();
+260:             cbxRole.SelectedIndex = 1;
+261:         }
+262:     }
+263: }
 ```
 
 **Giải thích chi tiết từng bước & từng hàm (Chuẩn câu 2 đề thi PRN212)**:
-- **Dòng 15**: `private SportsCenterContext _db;` – Khai báo đối tượng DbContext kết nối CSDL.
-- **Dòng 18**: Mảng hằng số `_roles` chứa 4 vai trò trong DB: `Manager`, `Receptionist`, `Coach`, `Member`.
-- **Dòng 20**: Hàm `RoleName(code)` chuyển mã tiếng Anh sang tên tiếng Việt hiển thị.
-- **Dòng 22-31 (Constructor)**: Khởi tạo DB, thiết lập DataGrid qua `GridHelper.Setup(dgUsers)`, gán sự kiện phân trang, và gọi `LoadRole()` cùng `LoadUsers()`.
-- **Dòng 33-72 (`LoadUsers`)**:
-  - Dòng 39 (Bước 1): Khởi tạo truy vấn LINQ: `var query = _db.Users.AsQueryable();`.
-  - Dòng 42-45 (Bước 2): Lọc theo từ khóa tìm kiếm: `query = query.Where(x => x.Username.Contains(keyword) || x.FullName.Contains(keyword));`.
-  - Dòng 48-52 (Bước 3): Lọc theo vai trò nếu ComboBox khác "All": `query = query.Where(x => x.Role == selectedRole);`.
-  - Dòng 55-67 (Bước 4): Chiếu dữ liệu `.Select(...)` nạp các thuộc tính hiển thị (Mã, Username, Họ tên, Role tiếng Việt, Status) và gán `dgUsers.ItemsSource = pgUsers.Slice(rows)`.
-- **Dòng 74-90 (`LoadRole`)**: Nạp ComboBox `cbxRole` và `cbxNewRole` (không chứa "All"), nạp `cbxRoleFilter` có mục "All" ở đầu danh sách (chuẩn đề thi PRN212).
-- **Dòng 92-96 (`btnFilter_Click`)**: Gọi `LoadUsers()`.
-- **Dòng 98-105 (`btnClearFilter_Click`)**: Xóa trắng ô tìm kiếm, đưa ComboBox lọc về "All" (`SelectedIndex = 0`), reset trang và tải lại toàn bộ danh sách.
-- **Dòng 107-167 (`btnAddUser_Click`)**: Thêm tài khoản mới: Validate dữ liệu bắt buộc, kiểm tra định dạng qua `AccountHelper`, kiểm tra trùng Username, tạo `User` mới mật khẩu mặc định "123456" (băm SHA-256), thêm vào DB, lưu DB, ghi log kiểm toán, reset DataGrid bằng `LoadUsers()`, reset form bằng `ClearForm()`, hiển thị MessageBox thông báo thành công.
-- **Dòng 169-192 (`btnToggle_Click`)**: Đảo ngược trạng thái `user.IsActive`, lưu DB, reset DataGrid và thông báo thành công.
-- **Dòng 194-228 (`btnChangeRole_Click`)**: Cập nhật vai trò mới cho tài khoản, gọi `EnsureProfile`, lưu DB, reset DataGrid và thông báo thành công.
-- **Dòng 230-246 (`GetSelectedUser`)**: Lấy tài khoản đang chọn từ DataGrid, áp dụng Luật A3 không cho Quản lý tự khóa hoặc đổi quyền chính mình.
-- **Dòng 248-261 (`EnsureProfile`)**: Tự động thêm bản ghi vào `Coaches` hoặc `Members` nếu chưa có.
-- **Dòng 263-268 (`ClearForm`)**: Xóa trắng các ô nhập liệu và reset ComboBox về mặc định (chuẩn PRN212).
+- **Dòng 15**: Khai báo DbContext kết nối CSDL.
+- **Dòng 16**: Mảng 4 vai trò trong DB.
+- **Dòng 20-29 (Constructor)**: Khởi tạo DB, thiết lập DataGrid qua `GridHelper.Setup`, đăng ký phân trang `pgUsers.PageChanged += (s, e) => LoadUsers();`, gọi `LoadRole()` và `LoadUsers()`.
+- **Dòng 31-70 (`LoadUsers`)**: Truy vấn LINQ 4 bước rõ ràng: đọc keyword/roleIndex $ightarrow$ lọc keyword $ightarrow$ lọc Role (khác All) $ightarrow$ chiếu `.Select(...)` nạp DataGrid.
+- **Dòng 72-96 (`LoadRole` - Dùng vòng lặp foreach)**: Nạp 3 ComboBox bằng 1 vòng lặp `foreach`, thêm "All" ở đầu bộ lọc, gán mặc định `cbxRoleFilter.SelectedIndex = 0`, `cbxRole.SelectedIndex = 1`, `cbxNewRole.SelectedIndex = 1`.
+- **Dòng 98-102 (`btnFilter_Click`)**: Reset trang và gọi `LoadUsers()`.
+- **Dòng 104-111 (`btnClearFilter_Click`)**: Xóa trắng ô tìm kiếm, đưa ComboBox lọc về "All", reset trang và tải lại toàn bộ danh sách.
+- **Dòng 113-173 (`btnAddUser_Click`)**: Thêm tài khoản mới: Validate dữ liệu, tạo `User` mới mật khẩu mặc định "123456" (băm SHA-256), lưu DB, ghi log kiểm toán, reset DataGrid bằng `LoadUsers()`, reset form bằng hàm riêng `ClearForm()`, hiển thị thông báo thành công. Khối catch rút gọn.
+- **Dòng 175-198 (`btnToggle_Click`)**: Đảo ngược `user.IsActive`, lưu DB, reset DataGrid và thông báo thành công. Khối catch rút gọn.
+- **Dòng 200-234 (`btnChangeRole_Click`)**: Cập nhật vai trò mới, gọi `EnsureProfile`, lưu DB, reset DataGrid và thông báo thành công. Khối catch rút gọn.
+- **Dòng 236-252 (`GetSelectedUser`)**: Lấy tài khoản đang chọn từ DataGrid, áp dụng Luật A3 không cho Quản lý tự khóa hoặc đổi quyền chính mình.
+- **Dòng 254-267 (`EnsureProfile`)**: Tự động thêm bản ghi vào `Coaches` hoặc `Members` nếu chưa có.
+- **Dòng 269-275 (`ClearForm`)**: Hàm riêng biệt xóa trắng các ô nhập liệu và reset ComboBox về mặc định (chuẩn PRN212).
 
 ---
 
@@ -2154,185 +2130,3 @@ Màn hình phục vụ Member tự đặt lớp hoặc Lễ tân đăng ký hộ
 
 ---
 
-## 5.10. `MySchedulePage.xaml.cs` – Thời khóa biểu tuần cá nhân & Kết quả FAP
-
-Tập tin nằm tại `SportsCenterApp/SportsCenter/Pages/MySchedulePage.xaml.cs` (221 dòng).
-Màn hình mang đậm phong cách quản lý đào tạo FAP: Hiển thị lưới ma trận lịch học 7 cột (Thứ Hai đến Chủ Nhật) x 6 hàng (6 ca học trong ngày), kèm kết quả điểm danh của từng buổi học cụ thể.
-
-```csharp
-23:             _weekStart = MondayOf(DateTime.Today);
-24:             BuildSchedule();
-```
-- Dòng 27: Hàm `MondayOf(DateTime d) => d.Date.AddDays(-(Rules.IsoDay(d) - 1));`: Thuật toán tìm ngày Thứ Hai đầu tuần của bất kỳ ngày nào được chọn.
-
-**Giải thích thuật toán dựng ma trận lịch `BuildSchedule()`**:
-```csharp
-56:             var attendance = _db.Attendances.AsNoTracking()
-57:                 .Where(a => a.Registration.MemberId == member.MemberId && a.SessionDate >= from && a.SessionDate <= to)
-58:                 .Select(a => new { a.Registration.ClassId, a.SessionDate, a.Status })
-59:                 .ToList()
-60:                 .GroupBy(a => (a.ClassId, a.SessionDate))
-61:                 .ToDictionary(g => g.Key, g => g.First().Status);
-```
-- Dòng 56-61: Truy vấn toàn bộ các bản ghi điểm danh của hội viên trong tuần (`SessionDate >= from && SessionDate <= to`). Gom nhóm theo cặp `(ClassId, SessionDate)` đưa vào từ điển `attendance` để tra cứu nhanh kết quả điểm danh `"Present"` hay `"Absent"`.
-- Dòng 63-74: Khởi tạo lưới `Grid`:
-  - 1 cột nhãn ca (rộng 100px) + 7 cột cho 7 ngày trong tuần (độ rộng tỷ lệ `1*`).
-  - 1 hàng tiêu đề + 6 hàng tương ứng với 6 ca học (chiều cao tối thiểu 96px/ô).
-- Dòng 77-83: Đổ hàng tiêu đề ngày: Nếu cột trùng với ngày hôm nay (`day.Date == DateTime.Today`), đổi màu nền xanh nổi bật để người dùng dễ quan sát.
-
-**Thuật toán điền dữ liệu từng ô lớp học (Dòng 86-121)**:
-- Chạy 2 vòng lặp lồng nhau: vòng ngoài duyệt 6 ca học `i = 0..5`, vòng trong duyệt 7 ngày `d = 1..7`.
-- Dòng 104-106: Tìm lớp học của hội viên có `DayOfWeek == d` và `SlotId == slot.SlotId`, nằm trong khoảng thời gian diễn ra của lớp (`StartDate <= date && EndDate >= date`).
-- Dòng 114-118: Kiểm tra kết quả điểm danh:
-  - Nếu kết quả là `"Present"`: hiển thị huy hiệu xanh `"✓ Có mặt"`, tăng biến đếm `present++`.
-  - Nếu kết quả là `"Absent"`: hiển thị huy hiệu đỏ `"✗ Vắng"`, tăng biến đếm `absent++`.
-  - Nếu ngày học đã qua trong quá khứ mà chưa có dữ liệu điểm danh: hiển thị nhãn xám `"Chưa điểm danh"`, tăng `pending++`.
-- Dòng 123-126: Hiển thị dòng tổng kết cuối trang: `"Trong tuần: {present} buổi có mặt, {absent} buổi vắng, {pending} buổi chưa điểm danh."`.
-
-**Điều hướng thời gian tuần**:
-- Dòng 207-211: Nút "Tuần trước" (`_weekStart.AddDays(-7)`), "Tuần sau" (`_weekStart.AddDays(7)`), "Tuần này" (`MondayOf(DateTime.Today)`).
-- Dòng 214-219: `dpJump_SelectedDateChanged`: Cho phép người dùng chọn một ngày bất kỳ trên DatePicker để nhảy ngay tới tuần chứa ngày đó.
-
----
-
-## 5.11. `AttendancePage.xaml.cs` – Huấn luyện viên điểm danh buổi học
-
-Tập tin nằm tại `SportsCenterApp/SportsCenter/Pages/AttendancePage.xaml.cs` (220 dòng).
-Màn hình nghiệp vụ dành riêng cho Coach để ghi nhận chuyên cần của học viên.
-
-**Mô hình dữ liệu hai chiều `AttendanceRow`**:
-```csharp
-11:     public class AttendanceRow : INotifyPropertyChanged
-12:     {
-13:         public int RegistrationId { get; set; }
-14:         public string Student { get; set; } = "";
-15:         private bool _present;
-16:         public bool Present
-17:         {
-18:             get => _present;
-19:             set
-20:             {
-21:                 if (_present == value) return;
-22:                 _present = value;
-23:                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Present)));
-24:             }
-25:         }
-26:         public event PropertyChangedEventHandler? PropertyChanged;
-27:     }
-```
-- Lớp `AttendanceRow` triển khai giao diện `INotifyPropertyChanged`. Khi thuộc tính `Present` thay đổi, sự kiện `PropertyChanged` kích hoạt. Giúp nút bấm "Có mặt tất cả" và "Vắng tất cả" có thể cập nhật trạng thái hiển thị của toàn bộ các CheckBox trên giao diện ngay lập tức mà không cần nạp lại trang.
-
-**Quy trình tải buổi học và học viên**:
-- Dòng 55-71 (`LoadClasses`): Chỉ lọc các lớp mà HLV đang đăng nhập phụ trách (`c.CoachId == coachId`).
-- Dòng 76-96 (`cbxClass_SelectionChanged`): Gọi hàm `Rules.SessionDates(c)` sinh danh sách tối đa 12 buổi học hợp lệ trong quá khứ/hiện tại của lớp. Đổ vào ComboBox `cbxSession` và chọn sẵn buổi gần nhất. Coach **không phải tự gõ ngày** nên hoàn toàn không thể chọn sai thứ của lớp.
-- Dòng 104-134 (`LoadRows`):
-  - Lấy danh sách học viên đăng ký lớp.
-  - Tìm các bản ghi điểm danh đã lưu trong bảng `Attendances` của ngày đó.
-  - **Quy tắc công thái học**: Nếu buổi học chưa từng được điểm danh, mặc định toàn bộ học viên là `Present = true` ("Có mặt"). HLV chỉ cần tích bỏ chọn những bạn vắng mặt, giúp thao tác điểm danh nhanh gấp nhiều lần.
-  - Gọi `UpdateSummary()` hiển thị dòng tổng kết: `"Có mặt {present}/{total} · Vắng {absent}"`.
-
-**Hàm `btnSave_Click` (Lưu kết quả điểm danh)**:
-```csharp
-188:             try
-189:             {
-190:                 foreach (var row in _rows)
-191:                 {
-192:                     string status = row.Present ? "Present" : "Absent";
-193:                     var existing = _db.Attendances.FirstOrDefault(a => a.RegistrationId == row.RegistrationId && a.SessionDate == date);
-194:                     if (existing != null)
-195:                     {
-196:                         existing.Status = status;
-197:                         existing.CheckedInBy = Session.CurrentUser?.UserId;
-198:                     }
-199:                     else
-200:                     {
-201:                         _db.Attendances.Add(new Attendance
-202:                         {
-203:                             RegistrationId = row.RegistrationId,
-204:                             SessionDate = date,
-205:                             Status = status,
-206:                             CheckedInBy = Session.CurrentUser?.UserId
-207:                         });
-208:                     }
-209:                 }
-210:                 _db.SaveChanges();
-211:                 AuditHelper.Log(_db, "Attendance", $"Điểm danh {c.ClassCode} ngày {date:dd/MM/yyyy}", "Classes", c.ClassId);
-```
-- Duyệt qua từng học viên trong danh sách `_rows`. Nếu đã có bản ghi trong CSDL thì cập nhật lại trạng thái `Status = status`. Nếu chưa có thì tạo mới thực thể `Attendance`.
-- Lưu CSDL và ghi log kiểm toán hành động `"Attendance"`.
-
----
-
-## 5.12. `PaymentsPage.xaml.cs` – Quản lý Hóa đơn & Xuất biên lai
-
-Tập tin nằm tại `SportsCenterApp/SportsCenter/Pages/PaymentsPage.xaml.cs` (144 dòng).
-- Dòng 35-39: Phân quyền bảo mật: Nếu người dùng là `Member`, hệ thống tự động gắn bộ lọc `query = query.Where(p => p.MemberId == memberId)` để hội viên chỉ xem được hóa đơn của chính mình.
-- Dòng 41-54: Hỗ trợ tìm kiếm theo mã hóa đơn, tên hội viên, và lọc theo khoảng ngày thanh toán (`dpFrom`, `dpTo`).
-- Dòng 75-104 (`ShowInvoice`):
-  - Khi người dùng click chọn một hóa đơn trên DataGrid, hệ thống nạp chi tiết bản ghi (`Include(Member)`, `Include(Subscription).ThenInclude(Package)`).
-  - Sử dụng `StringBuilder` xây dựng mẫu hóa đơn thanh toán chuẩn hóa:
-    ```
-    HÓA ĐƠN INV-0001
-    Member: Vũ Anh Tuấn
-    Nội dung: Gói 1 tháng
-    Hiệu lực: 01/10/2026 → 31/10/2026
-    Phương thức: Chuyển khoản
-    Số tiền: 500.000 ₫
-    Ngày thu: 01/10/2026 08:30
-    ```
-  - Hiển thị mẫu hóa đơn lên vùng xem trước `txtInvoice`.
-- Dòng 122-142 (`btnExport_Click` - Luật Y4): Mở hộp thoại `SaveFileDialog`, cho phép người dùng lưu nội dung hóa đơn ra tập tin văn bản `.txt` với mã hóa chuẩn `Encoding.UTF8`.
-
----
-
-## 5.13. `AuditPage.xaml.cs` – Nhật ký kiểm toán hệ thống
-
-Tập tin nằm tại `SportsCenterApp/SportsCenter/Pages/AuditPage.xaml.cs` (100 dòng).
-Màn hình dành riêng cho Manager để giám sát mọi hành vi trong hệ thống.
-- Dòng 26-37 (`LoadData`):
-  - Đổ danh sách người dùng từng phát sinh thao tác vào ComboBox `cbxUser`.
-  - Đổ danh sách các hành động vào `cbxAction`, tự động dịch mã hành động sang tên tiếng Việt thông qua `Rules.ActionName`.
-- Dòng 42-81 (`LoadLogs`):
-  - Lọc theo từ khóa chi tiết (`Details`), lọc theo người thao tác (`User`), lọc theo loại hành động (`Action`), và khoảng ngày (`CreatedAt`).
-  - Sắp xếp giảm dần theo thời gian `OrderByDescending(a => a.CreatedAt)` để thao tác mới nhất luôn hiển thị ở dòng đầu tiên.
-  - Phân trang 8 dòng/trang đưa lên DataGrid `dgAudit`.
-
----
-
-# PHẦN 6: BẢNG MA TRẬN ĐỐI CHIẾU MÃ LUẬT NGHIỆP VỤ (RULE MAPPING)
-
-Bảng tổng hợp chi tiết vị trí hiện thực toàn bộ các quy tắc nghiệp vụ trong mã nguồn hệ thống:
-
-| Mã luật | Tên quy tắc nghiệp vụ | Tệp mã nguồn | Phương thức / Vị trí code | Giải thích cơ chế hiện thực |
-|:---:|---|---|---|---|
-| **A1** | Xác thực đăng nhập, kiểm tra hash & khóa tài khoản | `LoginWindow.xaml.cs` | `btnLogin_Click` (L33-L43) | Tìm user theo username, so sánh hash SHA-256 (`PasswordHelper.Hash`), kiểm tra cờ `IsActive == true`. |
-| **A2** | Quy tắc đăng ký tài khoản tự do (Online) | `RegisterWindow.xaml.cs` | `btnCreate_Click` (L38-L113) | Kiểm tra định dạng tên, SĐT 10-11 số bắt đầu bằng 0, mật khẩu $\ge$ 6 ký tự, mật khẩu $\ne$ username. |
-| **A2 (gắn)**| Tự động gắn tài khoản vào hồ sơ đăng ký tại quầy | `AccountHelper.cs`<br>`RegisterWindow.xaml.cs` | `CheckPhoneForRegistration`<br>`btnCreate_Click` (L118-L138) | Phát hiện SĐT và họ tên khớp hồ sơ quầy chưa có User; mở `Msg.Confirm` xác nhận gắn và giữ nguyên gói, hóa đơn cũ. |
-| **A3** | Cấm Quản lý tự khóa tài khoản hoặc tự đổi vai trò của mình | `UsersPage.xaml.cs` | `GetSelectedUser` (L98-L102) | Kiểm tra `id == Session.CurrentUser.UserId`, nếu trùng lập tức chặn và cảnh báo. |
-| **A4** | Ghi nhận nhật ký kiểm toán cho các thao tác quan trọng | `AuditHelper.cs` | `Log` (L8-L19) | Lưu `UserId`, `Action`, `EntityName`, `EntityId`, `Details` và `CreatedAt` vào bảng `AuditLogs`. |
-| **A5** | Chống trùng lặp số điện thoại hội viên | `AccountHelper.cs`<br>`SportsCenter.sql` | `FindByPhone`<br>`UX_Members_Phone` (L79) | Kiểm tra trước bằng code C#; chốt chặn cuối cùng bằng chỉ mục duy nhất Filtered Unique Index ở SQL Server. |
-| **P1** | Ràng buộc gói tập: Giá $\ge$ 0, thời hạn > 0, không xóa | `PackagesPage.xaml.cs` | `btnAdd_Click`<br>`btnToggle_Click` | Kiểm tra tính hợp lệ dữ liệu; không cho phép xóa bản ghi mà chỉ bật/tắt cờ `IsActive`. |
-| **P2** | Mua gói: Bắt đầu từ ngày hợp lệ, sinh thời hạn & hóa đơn | `BuyPage.xaml.cs` | `btnConfirm_Click` (L160-L186) | Tính ngày kết thúc `end = start + DurationDays - 1`, sinh hóa đơn `Payment` tương ứng. |
-| **P3** | Gia hạn gói nối tiếp tự động không chồng lấn | `Rules.Packages.cs` | `NextStartDate` (L40-L50) | Tìm ngày kết thúc của gói xa nhất chưa hết hạn; gói mới bắt đầu vào ngày liền kề sau đó (`lastEnd.AddDays(1)`). |
-| **P4** | Xác định gói tập còn hiệu lực thời gian thực | `Rules.Packages.cs` | `ActiveSubscription` (L11-L19) | Điều kiện: `Status != "Cancelled"` và `StartDate <= Today && EndDate >= Today`. |
-| **P5** | Cảnh báo gói thành viên sắp hết hạn trong 7 ngày | `DashboardPage.xaml.cs` | `LoadExpiring` (L173-L183) | Lọc các gói có `EndDate <= Today.AddDays(7)` hiển thị lên bảng cảnh báo của Quản lý. |
-| **C1** | Ràng buộc lớp học: Sĩ số $\le$ sức chứa phòng, ngày hợp lệ | `ClassesPage.xaml.cs` | `btnAddClass_Click` (L281-L292) | Kiểm tra `end >= start`, kiểm tra `capacity <= room.Capacity`, cấm trùng mã lớp. |
-| **C2** | Chống trùng phòng học theo thứ và ca | `Rules.Classes.cs` | `ClassConflictMessage` (L26-L30) | Quét các lớp đang mở: cấm trùng cặp `(DayOfWeek, SlotId, RoomId)`. |
-| **C3** | Chống trùng lịch Huấn luyện viên theo thứ và ca | `Rules.Classes.cs` | `ClassConflictMessage` (L31-L35) | Quét các lớp đang mở: cấm một HLV dạy 2 lớp ở cùng một cặp `(DayOfWeek, SlotId)`. |
-| **C4** | Chặn hủy lớp học khi vẫn còn học viên đăng ký | `Rules.Classes.cs` | `CancelClassBlockedReason` (L41-L47) | Đếm số lượng học viên đang `Registered` trong lớp; nếu $> 0$ thì từ chối hủy. |
-| **B1** | Hội viên bắt buộc phải có gói tập còn hạn mới được đặt lớp | `Rules.Booking.cs` | `RegisterClass` (L47-L49) | Kiểm tra `ActiveSubscription(db, memberId) != null` trước khi cho phép ghi danh. |
-| **B2** | Lớp học phải đang mở và chưa kết thúc | `Rules.Booking.cs` | `RegisterClass` (L50-L52) | Kiểm tra `Status == "Open"` và `EndDate >= Today`. |
-| **B3** | Kiểm tra sĩ số lớp chưa vượt quá sức chứa | `Rules.Booking.cs` | `RegisterClass` (L56-L59) | Đếm số học viên đăng ký hiện tại so với `Capacity` của lớp. |
-| **B4** | Mỗi hội viên chỉ có duy nhất 1 đăng ký hoạt động trong 1 lớp | `Rules.Booking.cs`<br>`SportsCenter.sql` | `RegisterClass` (L53-L55)<br>`UX_Registrations_Active` | Chặn bằng code LINQ và chốt chặn bằng Filtered Unique Index ở database. |
-| **B5** | Không cho phép đăng ký 2 lớp học trùng thứ và ca | `Rules.Booking.cs` | `RegisterClass` (L60-L66) | Quét các lớp hội viên đã đăng ký, đối chiếu cặp `(DayOfWeek, SlotId)`. |
-| **B6** | Chỉ được hủy đăng ký lớp khi cách buổi học hơn 24 giờ | `Rules.Booking.cs` | `CancelRegistration` (L84-L99) | Tính `NextSession(c)`; nếu `next - Now < 24 giờ` thì chặn hủy. |
-| **B7** | Lễ tân đăng ký hộ phải tuân thủ đủ quy tắc và lưu vết | `BookingPage.xaml.cs` | `btnRegister_Click` | Truyền `memberId` được chọn, lưu `RegisteredBy = Session.CurrentUser.UserId`. |
-| **B8** | Phân quyền: Member chỉ thao tác trên dữ liệu của chính mình | `BookingPage.xaml.cs`<br>`PaymentsPage.xaml.cs` | `GetMemberId`<br>`LoadPayments` | Tự động lấy `Session.CurrentMember.MemberId`, ẩn các ô chọn hội viên khác. |
-| **Y1** | Số tiền $> 0$, phương thức hợp lệ, sinh mã `INV-xxxx` | `Rules.cs` | `NextInvoiceNo` (L81-L91) | Vòng lặp kiểm tra CSDL đảm bảo sinh mã `INV-0001`, `INV-0002`... duy nhất. |
-| **Y2** | Giao dịch nguyên tử khi mua gói (Atomic Transaction) | `BuyPage.xaml.cs` | `btnConfirm_Click` (L183-L186) | Thêm `Subscription` và `Payment` cùng lúc, lưu bằng 1 lệnh `SaveChanges()` duy nhất. |
-| **Y4** | Xuất biên lai hóa đơn ra tập tin văn bản | `PaymentsPage.xaml.cs` | `btnExport_Click` (L122-L142) | Định dạng văn bản tiếng Việt UTF-8 và lưu ra file `.txt` qua `SaveFileDialog`. |
-| **R1-R4**| Thống kê KPI, doanh thu hóa đơn Paid, lấp đầy & biểu đồ | `DashboardPage.xaml.cs` | `LoadReport` (L45-L74) | Chỉ tính doanh thu của các hóa đơn có `Status == "Paid"`, vẽ biểu đồ cột 6 tháng trên Canvas. |
-| **Điểm danh** | Chỉ điểm danh học viên Registered, sinh tối đa 12 buổi học | `Rules.Booking.cs`<br>`AttendancePage.xaml.cs` | `SessionDates`<br>`LoadRows` | Lùi ngày đúng thứ của lớp trong khoảng StartDate..EndDate, giới hạn 12 buổi gần nhất. |
-
----
-*Tài liệu được khởi tạo và biên soạn toàn diện theo cấu trúc mã nguồn thực tế của dự án Sports Center.*
