@@ -33,7 +33,7 @@ Một Page (UserControl) = một màn hình
 
 Mỗi Page tự giữ một `_db` riêng (giống Q2); mở màn là có `_db` mới nên dữ liệu luôn mới. Các màn khác đọc bằng `Select(...)` hoặc `AsNoTracking()` để không bị cũ khi màn khác vừa sửa.
 
-**Riêng 4 màn của Người 2** (Member, Gói thành viên, Mua / gia hạn gói, Lịch sử hoạt động) viết sát kiểu bài Q2 cho dễ đọc, khác khuôn trên ở các điểm: hàm tạo gọi `LoadData()` (gom các hàm `LoadX`); báo bằng `MessageBox.Show` thẳng (không qua `Msg`); **không phân trang** (bảng hiện hết dòng và tự cuộn); có hàm `ClearForm()`; tên nút có đối tượng (`btnAddPackage_Click`); kiểm tra ô chọn bằng `is not int id`. Vẫn dùng `GridHelper` để đặt tiêu đề cột tiếng Việt và ẩn cột Id.
+**Riêng 4 màn của Người 2** (Member, Gói thành viên, Mua / gia hạn gói, Lịch sử hoạt động) viết sát kiểu bài Q2 cho dễ đọc, khác khuôn trên ở các điểm: hàm tạo gọi `LoadData()` (gom các hàm `LoadX`); báo bằng `MessageBox.Show` thẳng (không qua `Msg`); **không phân trang** (bảng hiện hết dòng và tự cuộn); có hàm `ClearForm()`; tên nút có đối tượng (`btnAddPackage_Click`); kiểm tra ô chọn bằng `is not int id`; mỗi bảng có một class dòng trong `ViewModels/` (`PackageViewModel`, `PackageChoiceViewModel`, `MemberViewModel`, `AuditLogViewModel`) giống Người 3. Vẫn dùng `GridHelper` để đặt tiêu đề cột tiếng Việt và ẩn cột Id.
 
 ---
 

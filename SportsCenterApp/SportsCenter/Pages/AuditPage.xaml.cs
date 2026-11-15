@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SportsCenter.Entities;
+using SportsCenter.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -74,12 +75,12 @@ namespace SportsCenter
             }
 
             var rows = query.OrderByDescending(a => a.CreatedAt).ToList()
-                .Select(a => new
+                .Select(a => new AuditLogViewModel
                 {
                     At = a.CreatedAt,
                     User = a.User != null ? a.User.Username : "-",
                     Action = Rules.ActionName(a.Action),
-                    a.Details
+                    Details = a.Details
                 }).ToList();
 
             // Lọc theo hành động: so sánh tên tiếng Việt, nên lọc sau khi đã đổi tên

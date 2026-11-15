@@ -10,7 +10,7 @@
             <GroupBox Header="BỘ LỌC">
                 <WrapPanel>
                     <StackPanel Margin="0,0,12,6">
-                        <Label Content="Từ khóa (chi tiết, mã lớp, mã hóa đơn)"/>
+                        <Label Content="Từ khóa (mã lớp, mã hóa đơn)"/>
                         <TextBox Name="txtKeyword" Width="240"/>
                     </StackPanel>
                     <StackPanel Margin="0,0,12,6">

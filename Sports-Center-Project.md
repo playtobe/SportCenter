@@ -110,7 +110,7 @@ Nếu cần cắt cho kịp thời gian: bỏ P2 (10, 16, 17) và P1 (4, 14) cò
 |---|---|
 | Quản lý lớp | Bộ môn, huấn luyện viên (kiểu Q2: có mục "Tất cả") |
 | Thanh toán | Mã hóa đơn hoặc tên member, từ ngày, đến ngày |
-| Lịch sử hoạt động | Từ khóa (chi tiết, mã), người dùng, hành động, từ ngày, đến ngày |
+| Lịch sử hoạt động | Từ khóa (mã lớp, mã hóa đơn), người dùng, hành động, từ ngày, đến ngày |
 | Tài khoản | Tên đăng nhập hoặc họ tên, vai trò |
 | Đặt lớp | Mã hoặc tên lớp, bộ môn |
 | Member | Tên, số điện thoại hoặc email; trạng thái gói (Còn hạn, Hết hạn, Chưa có gói) |

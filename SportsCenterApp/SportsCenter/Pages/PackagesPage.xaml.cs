@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SportsCenter.Entities;
+using SportsCenter.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -27,12 +28,12 @@ namespace SportsCenter
         {
             dgPackages.ItemsSource = _db.MembershipPackages
                 .OrderBy(p => p.PackageId)
-                .Select(p => new
+                .Select(p => new PackageViewModel
                 {
-                    p.PackageId,
-                    p.PackageName,
-                    p.DurationDays,
-                    p.Price,
+                    PackageId = p.PackageId,
+                    PackageName = p.PackageName,
+                    DurationDays = p.DurationDays,
+                    Price = p.Price,
                     Status = p.IsActive ? "Đang bán" : "Ngừng bán"
                 }).ToList();
         }

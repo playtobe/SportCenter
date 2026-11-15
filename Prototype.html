@@ -521,7 +521,7 @@ function sUsers(){
 function sAudit(){
   const f=S.flt.audit,users=D.users.map(u=>u.username).sort(),acts=[...new Set(D.audit.map(a=>a.action))].sort();
   const list=D.audit.filter(a=>hit(f,a.detail+' '+a.user)&&(!f.user||a.user===f.user)&&(!f.act||a.action===f.act)&&inRange(new Date(a.at),f));
-  return head('audit')+fbar('audit',fld('Từ khóa (chi tiết, mã)','audit','q',fIn('audit','q',f.q,'text','VD: INV-0001 hoặc YOGA01'),210)
+  return head('audit')+fbar('audit',fld('Từ khóa (mã lớp, mã hóa đơn)','audit','q',fIn('audit','q',f.q,'text','VD: INV-0001 hoặc YOGA01'),210)
     +fld('Người dùng','audit','user',fSel('audit','user',f.user,[['','Tất cả'],...users.map(u=>[u,u])]))
     +fld('Hành động','audit','act',fSel('audit','act',f.act,[['','Tất cả'],...acts.map(a=>[a,a])]))
     +fld('Từ ngày','audit','from',fIn('audit','from',f.from,'date'))+fld('Đến ngày','audit','to',fIn('audit','to',f.to,'date')))

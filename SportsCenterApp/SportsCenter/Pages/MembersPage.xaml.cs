@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SportsCenter.Entities;
+using SportsCenter.ViewModels;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
@@ -58,11 +59,11 @@ namespace SportsCenter
             var rows = members.Select(m =>
             {
                 var sub = Rules.CurrentOrLatest(subs.Where(x => x.MemberId == m.MemberId));
-                return new
+                return new MemberViewModel
                 {
-                    m.MemberId,
-                    m.FullName,
-                    m.Phone,
+                    MemberId = m.MemberId,
+                    FullName = m.FullName,
+                    Phone = m.Phone,
                     HasAccount = m.UserId != null ? "Có" : "Chưa có",
                     PackageName = sub?.Package.PackageName ?? "—",
                     EndDate = sub?.EndDate,
