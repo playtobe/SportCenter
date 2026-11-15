@@ -7,29 +7,34 @@ namespace SportsCenter
     // Cùng một class Rules với các file Rules*.cs khác (partial), tách ra để mỗi người sửa file riêng, không đụng nhau khi push.
     public static partial class Rules
     {
-        // Các cặp (thứ, ca) đã bị chiếm bởi lớp dùng cùng phòng hoặc cùng HLV
-        public static HashSet<(int Day, int SlotId)> BusySet(SportsCenterContext db, int roomId, int coachId)
+        // Các cặp (thứ, ca) đã bị chiếm bởi lớp dùng cùng phòng hoặc cùng HLV,
+        // và có khoảng ngày chồng lên khoảng start..end (lớp đã kết thúc trước start hoặc bắt đầu sau end thì không tính)
+        public static HashSet<(int Day, int SlotId)> BusySet(SportsCenterContext db, int roomId, int coachId, DateOnly start, DateOnly end)
         {
             return db.Classes
-                .Where(c => c.Status != "Cancelled" && (c.RoomId == roomId || c.CoachId == coachId))
+                .Where(c => c.Status != "Cancelled" && (c.RoomId == roomId || c.CoachId == coachId)
+                         && c.StartDate <= end && c.EndDate >= start)
                 .Select(c => new { c.DayOfWeek, c.SlotId })
                 .ToList()
                 .Select(x => ((int)x.DayOfWeek, x.SlotId))
                 .ToHashSet();
         }
 
-        // Trả về thông báo nếu trùng phòng (C2) hoặc trùng HLV (C3), không trùng thì trả về null
-        public static string? ClassConflictMessage(SportsCenterContext db, int roomId, int coachId, int day, int slotId)
+        // Trả về thông báo nếu trùng phòng (C2) hoặc trùng HLV (C3), không trùng thì trả về null.
+        // Chỉ tính là trùng khi khoảng ngày của hai lớp chồng lên nhau.
+        public static string? ClassConflictMessage(SportsCenterContext db, int roomId, int coachId, int day, int slotId, DateOnly start, DateOnly end)
         {
             byte d = (byte)day;
 
             var sameRoom = db.Classes.Include(c => c.Room).FirstOrDefault(c =>
-                c.Status != "Cancelled" && c.DayOfWeek == d && c.SlotId == slotId && c.RoomId == roomId);
+                c.Status != "Cancelled" && c.DayOfWeek == d && c.SlotId == slotId && c.RoomId == roomId
+                && c.StartDate <= end && c.EndDate >= start);
             if (sameRoom != null)
                 return $"Phòng {sameRoom.Room.RoomName} đã có lớp {sameRoom.ClassCode} ở ca này.";
 
             var sameCoach = db.Classes.FirstOrDefault(c =>
-                c.Status != "Cancelled" && c.DayOfWeek == d && c.SlotId == slotId && c.CoachId == coachId);
+                c.Status != "Cancelled" && c.DayOfWeek == d && c.SlotId == slotId && c.CoachId == coachId
+                && c.StartDate <= end && c.EndDate >= start);
             if (sameCoach != null)
                 return $"HLV đã dạy lớp {sameCoach.ClassCode} cùng khung giờ.";
 

@@ -153,6 +153,28 @@ namespace SportsCenter
             RefreshFreeSlots();
         }
 
+        // Đổi Từ ngày / Đến ngày -> tính lại thứ và ca trống (lớp cũ đã kết thúc thì không còn chiếm ca)
+        private void dpDate_SelectedDateChanged(object? sender, SelectionChangedEventArgs e)
+        {
+            RefreshFreeDays();
+        }
+
+        // Khoảng ngày đang nhập trong form.
+        // Chưa chọn đủ ngày hoặc nhập ngược thì xét mọi ngày (cách chặt nhất, ngày sai sẽ bị luật C1 báo khi bấm Thêm)
+        private void GetDateRange(out DateOnly start, out DateOnly end)
+        {
+            start = DateOnly.MinValue;
+            end = DateOnly.MaxValue;
+            if (dpStart.SelectedDate == null || dpEnd.SelectedDate == null) return;
+
+            DateOnly from1 = DateOnly.FromDateTime(dpStart.SelectedDate.Value);
+            DateOnly to1 = DateOnly.FromDateTime(dpEnd.SelectedDate.Value);
+            if (to1 < from1) return;
+
+            start = from1;
+            end = to1;
+        }
+
         // Ô Thứ chỉ hiện những thứ còn ít nhất một ca trống với HLV và phòng đang chọn
         private void RefreshFreeDays()
         {
@@ -160,8 +182,9 @@ namespace SportsCenter
             int coachId = (int)cbxCoach.SelectedValue;
             int roomId = (int)cbxRoom.SelectedValue;
 
-            // Các cặp (thứ, ca) đã bị lớp khác chiếm: cùng phòng hoặc cùng HLV
-            var busy = Rules.BusySet(_db, roomId, coachId);
+            // Các cặp (thứ, ca) đã bị lớp khác chiếm: cùng phòng hoặc cùng HLV, và trùng khoảng ngày
+            GetDateRange(out DateOnly start, out DateOnly end);
+            var busy = Rules.BusySet(_db, roomId, coachId, start, end);
             var slots = _db.TimeSlots.ToList();
 
             var freeDays = new List<OptionViewModel>();
@@ -208,7 +231,8 @@ namespace SportsCenter
             int roomId = (int)cbxRoom.SelectedValue;
             int day = (int)cbxDay.SelectedValue;
 
-            var busy = Rules.BusySet(_db, roomId, coachId);
+            GetDateRange(out DateOnly start, out DateOnly end);
+            var busy = Rules.BusySet(_db, roomId, coachId, start, end);
 
             var freeSlots = new List<OptionViewModel>();
             foreach (var s in _db.TimeSlots.OrderBy(x => x.SlotId).ToList())
@@ -299,7 +323,8 @@ namespace SportsCenter
             }
 
             // 3. Luật C2, C3: kiểm tra lại trùng phòng / trùng HLV (phòng khi dữ liệu vừa thay đổi)
-            string? conflict = Rules.ClassConflictMessage(_db, roomId, coachId, day, slotId);
+            string? conflict = Rules.ClassConflictMessage(_db, roomId, coachId, day, slotId,
+                DateOnly.FromDateTime(start), DateOnly.FromDateTime(end));
             if (conflict != null)
             {
                 Msg.Warn(conflict);

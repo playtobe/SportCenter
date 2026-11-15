@@ -82,11 +82,11 @@
                         </StackPanel>
                         <StackPanel Margin="0,0,12,6">
                             <Label Content="Từ ngày"/>
-                            <DatePicker Name="dpStart" Width="130"/>
+                            <DatePicker Name="dpStart" Width="130" SelectedDateChanged="dpDate_SelectedDateChanged"/>
                         </StackPanel>
                         <StackPanel Margin="0,0,12,6">
                             <Label Content="Đến ngày"/>
-                            <DatePicker Name="dpEnd" Width="130"/>
+                            <DatePicker Name="dpEnd" Width="130" SelectedDateChanged="dpDate_SelectedDateChanged"/>
                         </StackPanel>
                     </WrapPanel>
                     <TextBlock Name="txtNoSlot" Style="{StaticResource ErrText}" Visibility="Collapsed"
