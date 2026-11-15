@@ -30,7 +30,13 @@
 
             <GroupBox Header="DANH SÁCH HỌC VIÊN">
                 <StackPanel>
-                    <DataGrid Name="dgStudents"/>
+                    <DataGrid Name="dgStudents" AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Học viên" Binding="{Binding FullName}" Width="2*"/>
+                            <DataGridTextColumn Header="Điện thoại" Binding="{Binding Phone}" Width="*"/>
+                            <DataGridTextColumn Header="Gói thành viên" Binding="{Binding PackageStatus}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
                     <local:PagerControl x:Name="pgStudents" Margin="0,8,0,0"/>
                 </StackPanel>
             </GroupBox>
