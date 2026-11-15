@@ -82,11 +82,7 @@ namespace SportsCenter
             cbxRoom.SelectedValuePath = nameof(Room.RoomId);
             cbxRoom.SelectedIndex = 0;
 
-            // Ô Thứ và ô Ca dùng OptionViewModel (Id + Text); danh sách được đổ trong RefreshFreeDays / RefreshFreeSlots
-            cbxDay.DisplayMemberPath = nameof(OptionViewModel.Text);
-            cbxDay.SelectedValuePath = nameof(OptionViewModel.Id);
-            cbxSlot.DisplayMemberPath = nameof(OptionViewModel.Text);
-            cbxSlot.SelectedValuePath = nameof(OptionViewModel.Id);
+            // Ô Thứ và ô Ca được đổ dữ liệu trong RefreshFreeDays / RefreshFreeSlots
         }
 
         // Bảng danh sách lớp, có xét hai ô lọc
@@ -190,6 +186,8 @@ namespace SportsCenter
             int? oldDay = cbxDay.SelectedValue as int?;
 
             _loading = true;
+            cbxDay.DisplayMemberPath = nameof(OptionViewModel.Text);
+            cbxDay.SelectedValuePath = nameof(OptionViewModel.Id);
             cbxDay.ItemsSource = freeDays;
             if (freeDays.Count > 0)
             {
@@ -235,6 +233,8 @@ namespace SportsCenter
                 }
             }
 
+            cbxSlot.DisplayMemberPath = nameof(OptionViewModel.Text);
+            cbxSlot.SelectedValuePath = nameof(OptionViewModel.Id);
             cbxSlot.ItemsSource = freeSlots;
             if (freeSlots.Count > 0) cbxSlot.SelectedIndex = 0;
         }
