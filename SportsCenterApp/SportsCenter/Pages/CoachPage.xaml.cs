@@ -14,9 +14,6 @@ namespace SportsCenter
     {
         private SportsCenterContext _db;
 
-        // true trong lúc code tự đổ dữ liệu vào ô Chọn lớp, để sự kiện SelectionChanged bỏ qua
-        private bool _loading;
-
         public CoachPage()
         {
             InitializeComponent();
@@ -38,11 +35,9 @@ namespace SportsCenter
                     Text = x.ClassCode + " · " + x.ClassName
                 }).ToList();
 
-            _loading = true;
             cbxClass.ItemsSource = classes;
             cbxClass.DisplayMemberPath = nameof(OptionViewModel.Text);
             cbxClass.SelectedValuePath = nameof(OptionViewModel.Id);
-            _loading = false;
 
             if (classes.Count == 0)
             {
@@ -60,7 +55,6 @@ namespace SportsCenter
 
         private void cbxClass_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_loading) return;
             pgStudents.Reset();
             LoadStudents();
         }
