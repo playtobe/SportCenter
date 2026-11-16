@@ -8,8 +8,7 @@ namespace SportsCenter
 {
     /// <summary>
     /// Interaction logic for UsersPage.xaml
-    /// Màn hình Quản lý tài khoản người dùng (Dành cho Quản lý / Manager)
-    /// Cấu trúc chuẩn theo mẫu bài thi Q2 PRN212
+    /// Màn hình Quản lý tài khoản người dùng (Dành cho Quản lý / Manager
     /// </summary>
     public partial class UsersPage : UserControl
     {

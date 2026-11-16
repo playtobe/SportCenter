@@ -12,7 +12,7 @@ namespace SportsCenter
     /// </summary>
     public partial class RegisterWindow : Window
     {
-        // 1. Khởi tạo đối tượng DbContext để làm việc với CSDL (chuẩn PRN212)
+        // 1. Khởi tạo đối tượng DbContext để làm việc với CSDL
         private SportsCenterContext _db;
 
         public RegisterWindow()

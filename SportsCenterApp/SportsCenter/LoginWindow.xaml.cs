@@ -11,7 +11,7 @@ namespace SportsCenter
     /// </summary>
     public partial class LoginWindow : Window
     {
-        // 1. Khởi tạo DbContext kết nối Database (chuẩn PRN212)
+        // 1. Khởi tạo DbContext kết nối Database
         private SportsCenterContext _db;
 
         public LoginWindow()
