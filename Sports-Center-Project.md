@@ -67,8 +67,8 @@ Receptionist
   Đặt lớp
   Thanh toán
 
-Member                     Lịch của tôi · Đặt lớp · Gói thành viên · Thanh toán
-Coach                      Lớp của tôi · Điểm danh
+Member                     Lịch của tôi · Đặt lớp · Số buổi đã học · Gói thành viên · Thanh toán
+Coach                      Lớp của tôi · Điểm danh · Số buổi học viên
 ```
 
 Mọi role đều có thêm hai nút ở chân menu: **Đổi mật khẩu** (mở hộp thoại nhỏ) và **Đăng xuất**.

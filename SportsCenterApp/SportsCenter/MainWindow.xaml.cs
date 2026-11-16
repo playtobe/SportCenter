@@ -74,6 +74,7 @@ namespace SportsCenter
                 case "Member": // Vai trò Hội viên: Xem lịch tập, đặt lớp, đăng ký gói, xem thanh toán
                     AddItem("Lịch của tôi", typeof(MySchedulePage));
                     AddItem("Đặt lớp", typeof(BookingPage));
+                    AddItem("Số buổi đã học", typeof(ProgressPage));
                     AddItem("Gói thành viên", typeof(BuyPage));
                     AddItem("Thanh toán", typeof(PaymentsPage));
                     break;
@@ -81,6 +82,7 @@ namespace SportsCenter
                 case "Coach": // Vai trò Huấn luyện viên: Xem lớp dạy và điểm danh học viên
                     AddItem("Lớp của tôi", typeof(CoachPage));
                     AddItem("Điểm danh", typeof(AttendancePage));
+                    AddItem("Số buổi học viên", typeof(ProgressPage));
                     break;
             }
         }

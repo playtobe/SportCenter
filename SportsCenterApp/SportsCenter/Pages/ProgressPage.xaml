@@ -1,0 +1,48 @@
+<UserControl x:Class="SportsCenter.ProgressPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="20,16">
+            <TextBlock Name="txtTitle" Text="Số buổi học" Style="{StaticResource PageTitle}"/>
+
+            <!-- Dành cho Member: các lớp mình đã đăng ký, đã học bao nhiêu buổi trên tổng số buổi -->
+            <GroupBox Name="boxMine" Header="CÁC LỚP CỦA TÔI">
+                <StackPanel>
+                    <DataGrid Name="dgMine" AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Lớp" Binding="{Binding ClassName}" Width="2*"/>
+                            <DataGridTextColumn Header="Môn" Binding="{Binding SportName}" Width="*"/>
+                            <DataGridTextColumn Header="Tổng số buổi" Binding="{Binding Total}" Width="*"/>
+                            <DataGridTextColumn Header="Đã học" Binding="{Binding Present}" Width="*"/>
+                            <DataGridTextColumn Header="Nghỉ" Binding="{Binding Absent}" Width="*"/>
+                            <DataGridTextColumn Header="Chưa điểm danh" Binding="{Binding NotMarked}" Width="*"/>
+                            <DataGridTextColumn Header="Còn lại" Binding="{Binding Remaining}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <TextBlock Name="txtMineNote" Margin="0,8,0,0"/>
+                </StackPanel>
+            </GroupBox>
+
+            <!-- Dành cho Coach: chọn lớp mình dạy, xem từng học viên đã học và nghỉ bao nhiêu buổi -->
+            <GroupBox Name="boxCoach" Header="HỌC VIÊN CỦA LỚP">
+                <StackPanel>
+                    <StackPanel Margin="0,0,0,8">
+                        <Label Content="Chọn lớp"/>
+                        <ComboBox Name="cbxClass" Width="320" HorizontalAlignment="Left" SelectionChanged="cbxClass_SelectionChanged"/>
+                    </StackPanel>
+                    <TextBlock Name="txtSummary" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <DataGrid Name="dgStudents" AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Học viên" Binding="{Binding FullName}" Width="2*"/>
+                            <DataGridTextColumn Header="Điện thoại" Binding="{Binding Phone}" Width="*"/>
+                            <DataGridTextColumn Header="Tổng số buổi" Binding="{Binding Total}" Width="*"/>
+                            <DataGridTextColumn Header="Đã học" Binding="{Binding Present}" Width="*"/>
+                            <DataGridTextColumn Header="Nghỉ" Binding="{Binding Absent}" Width="*"/>
+                            <DataGridTextColumn Header="Chưa điểm danh" Binding="{Binding NotMarked}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

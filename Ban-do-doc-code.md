@@ -103,6 +103,7 @@ Dữ liệu mẫu để demo (mật khẩu chung `123456`): `manager1`, `recepti
 4. `MembersPage`: `LoadData` → `LoadStatus` + `LoadMembers` (ghép trạng thái gói của từng member), `btnAddMember_Click` (A5: số điện thoại duy nhất), `btnBuyPackage_Click`, `ClearForm`. Hàm tạo ẩn nút và khung bán gói với Manager.
 5. `BuyPage`: `LoadData` → `LoadMethod`, `LoadMember` (member tự mua thì ẩn ô chọn member), `LoadPackages`, `ShowCurrent` (gói hiện tại và gói đã mua nối tiếp), `ShowPreview`; nút `btnConfirmPayment_Click` (P2, Y2).
 6. `AuditPage`: `LoadData` → `LoadUsers` + `LoadActions` (tên hành động qua `Rules.ActionName`) + `LoadLogs`.
+7. `Rules.Progress.cs` và `ProgressPage` (màn **Số buổi học**): `Rules.CountSessions` đếm số buổi của lớp (đúng thứ của lớp, trong `StartDate`..`EndDate`), `Rules.ProgressOf` trả tổng buổi, đã học (có mặt), nghỉ (vắng), chưa điểm danh, còn lại. `ProgressPage.LoadData` rẽ theo role: Member → `LoadMine` (các lớp mình đã đăng ký, menu "Số buổi đã học"); Coach → `LoadClasses` + `LoadStudents` (từng học viên của lớp mình dạy, menu "Số buổi học viên"). Số buổi tính từ khoảng ngày của lớp và bảng `Attendances`, không thêm bảng hay cột mới.
 
 **Luồng "Mua gói"** (`BuyPage.btnConfirmPayment_Click`)
 1. Lấy member (`GetMemberId`), gói đang chọn (`GridHelper.SelectedId ... is not int packageId`) và phương thức thanh toán; thiếu thì báo. Gói ngừng bán thì báo.
@@ -112,6 +113,11 @@ Dữ liệu mẫu để demo (mật khẩu chung `123456`): `manager1`, `recepti
 5. `AuditHelper.Log("Payment")`, làm mới ô "gói hiện tại" và dòng xem trước, báo `MessageBox.Show`.
 
 **Demo:** `reception1` → Member → chọn Vũ Anh Tuấn → Mua / gia hạn gói → mua hai lần, thấy nhãn "nối tiếp" và dòng "Đã mua nối tiếp"; `manager1` → Gói thành viên → thêm gói tên trùng bị chặn.
+
+**Luồng "Số buổi học"** (`ProgressPage`)
+1. Member mở **Số buổi đã học**: `LoadMine` lấy các `Registrations` còn `Registered` của mình, với mỗi lớp gọi `Rules.ProgressOf` rồi hiện Tổng số buổi, Đã học, Nghỉ, Chưa điểm danh, Còn lại.
+2. Coach mở **Số buổi học viên**: chọn lớp mình dạy (`cbxClass_SelectionChanged` → `LoadStudents`), mỗi học viên một dòng với Đã học, Nghỉ, Chưa điểm danh; dòng tổng kết ghi số học viên, tổng số buổi, số buổi đã diễn ra.
+3. "Đã học" và "Nghỉ" đếm từ `Attendances` (`Present`, `Absent`) do coach điểm danh ở màn Điểm danh của Người 4; "Chưa điểm danh" là buổi đã qua kể từ ngày member đăng ký mà chưa có dòng điểm danh.
 
 **Hay bị hỏi:** "Gói nối tiếp tính thế nào?" → `Rules.NextStartDate`. "Vì sao không xóa được gói đã bán?" → chỉ ngừng bán (`btnTogglePackage_Click`). "Vì sao Manager không bán gói?" → quyết định ở mục 1 của tài liệu.
 **Giao nhau:** Người 4 gọi `Rules.ActiveSubscription` (luật B1); `PaymentsPage` của Người 5 hiển thị `Payments` do `BuyPage` tạo.

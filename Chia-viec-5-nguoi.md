@@ -11,7 +11,7 @@ Chia theo **3 luồng bắt buộc của đề** (tài khoản và gói, lớp v
 | Người | Phần | Màn hình | Luật | Bảng dữ liệu | Dòng code (.cs / .xaml) |
 |---|---|---|---|---|---|
 | 1 | Tài khoản và khung ứng dụng | Login, Register, Đổi mật khẩu (hộp thoại), `MainWindow` (menu theo role), Tài khoản | A1, A2, A3, A5, đổi mật khẩu | Users | 851 / 180 |
-| 2 | Member, gói thành viên, nhật ký | Member, Gói thành viên, Mua / gia hạn gói, Lịch sử hoạt động | P1-P5, A4 | Members, MembershipPackages, Subscriptions, AuditLogs | 749 / 181 |
+| 2 | Member, gói thành viên, nhật ký, số buổi học | Member, Gói thành viên, Mua / gia hạn gói, Lịch sử hoạt động, Số buổi học (member và coach) | P1-P5, A4 | Members, MembershipPackages, Subscriptions, AuditLogs | 749 / 181 |
 | 3 | Quản lý lớp học | Lớp học, Bộ môn và phòng, Lớp của tôi (coach) | C1-C4 | Classes, Sports, Rooms, TimeSlots, Coaches | 750 / 176 |
 | 4 | Đặt lớp, lịch cá nhân, điểm danh | Đặt lớp, Lịch của tôi, Điểm danh (coach) | B1-B8, điểm danh | Registrations, Attendances | 782 / 157 |
 | 5 | Thanh toán, báo cáo, nền dùng chung | Thanh toán, Báo cáo; bộ dùng chung `App.xaml`, `GridHelper`, `PagerControl`, `Msg`; script `SportsCenter.sql` | Y1-Y4, R1-R4 | Payments | 805 / 335 và 345 dòng SQL |
